@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OLS — Login</title>
+  <script src="config.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0A0A0A;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-container {
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: -0.5px;
+    }
+
+    .logo p {
+      font-size: 13px;
+      color: #555;
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      background: #1E1E1E;
+      border: 1px solid #2A2A2A;
+      border-radius: 8px;
+      color: #FFFFFF;
+      font-size: 16px;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      border-color: #00B4D8;
+    }
+
+    input.error {
+      border-color: #E63946;
+    }
+
+    .error-msg {
+      font-size: 12px;
+      color: #E63946;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .error-msg.visible {
+      display: block;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #00B4D8;
+      border: none;
+      border-radius: 8px;
+      color: #000000;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+      margin-top: 8px;
+    }
+
+    button:hover { background: #0096B4; }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #000;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="logo">
+      <h1>OLS</h1>
+      <p>Inventory Management</p>
+    </div>
+
+    <div class="form-group">
+      <label for="code">Access Code</label>
+      <input
+        type="password"
+        id="code"
+        placeholder="······"
+        maxlength="10"
+        autocomplete="off"
+        autofocus
+      />
+      <div class="error-msg" id="errorMsg">
+        Access code not recognised. Please try again.
+      </div>
+    </div>
+
+    <button id="loginBtn" onclick="handleLogin()">
+      Enter
+    </button>
+  </div>
+
+  <script>
+    // Redirect if already logged in
+    if (isLoggedIn()) {
+      redirectByRole();
+    }
+
+    async function handleLogin() {
+      const code    = document.getElementById('code').value.trim();
+      const btn     = document.getElementById('loginBtn');
+      const input   = document.getElementById('code');
+      const errorMsg = document.getElementById('errorMsg');
+
+      if (!code) return;
+
+      // Reset error state
+      input.classList.remove('error');
+      errorMsg.classList.remove('visible');
+
+      // Loading state
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Checking...';
+
+      try {
+        const res = await fetch(
+          `${CONFIG.API_URL}?action=login&code=${encodeURIComponent(code)}`
+        );
+        const data = await res.json();
+
+        if (data.success) {
+          // Save session
+          sessionStorage.setItem('ols_role',       data.role);
+          sessionStorage.setItem('ols_userId',     data.userId);
+          sessionStorage.setItem('ols_retailerId', data.retailerId || '');
+          sessionStorage.setItem('ols_name',       data.name       || '');
+          sessionStorage.setItem('ols_tier',       data.tier       || '');
+          sessionStorage.setItem('ols_code',       code);
+
+          redirectByRole(data.role);
+        } else {
+          // Error state
+          input.classList.add('error');
+          errorMsg.classList.add('visible');
+          btn.disabled = false;
+          btn.innerHTML = 'Enter';
+          input.value = '';
+          input.focus();
+        }
+
+      } catch (err) {
+        input.classList.add('error');
+        errorMsg.textContent = 'Connection error. Please try again.';
+        errorMsg.classList.add('visible');
+        btn.disabled = false;
+        btn.innerHTML = 'Enter';
+      }
+    }
+
+    function redirectByRole(role) {
+      const r = role || sessionStorage.getItem('ols_role');
+      if (r === 'admin') {
+        window.location.href = 'dashboard.html';
+      } else {
+        window.location.href = 'catalogue.html';
+      }
+    }
+
+    // Allow Enter key to submit
+    document.getElementById('code').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handleLogin();
+    });
+  </script>
+
+</body>
+</html>
