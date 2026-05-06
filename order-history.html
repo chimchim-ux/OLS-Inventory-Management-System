@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OLS — My Orders</title>
+  <script src="config.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0A0A0A; color: #FFF; min-height: 100vh;
+    }
+    nav {
+      background: #141414; border-bottom: 1px solid #222;
+      padding: 0 32px; display: flex; align-items: center;
+      justify-content: space-between; height: 56px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-brand { font-size: 16px; font-weight: 700; color: #FFF; letter-spacing: 1px; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      color: #666; text-decoration: none; font-size: 13px;
+      padding: 6px 12px; border-radius: 6px; transition: all 0.2s;
+    }
+    .nav-links a:hover { color: #FFF; background: #1E1E1E; }
+    .nav-links a.active { color: #FFF; background: #1E1E1E; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-user { font-size: 12px; color: #555; }
+    .btn-logout {
+      font-size: 12px; color: #555; background: none;
+      border: 1px solid #2A2A2A; border-radius: 6px;
+      padding: 6px 12px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-logout:hover { color: #FFF; border-color: #555; }
+
+    .page { max-width: 1000px; margin: 0 auto; padding: 32px; }
+    .page-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 24px;
+    }
+    .page-header h1 { font-size: 24px; font-weight: 700; }
+    .page-header p { font-size: 13px; color: #555; margin-top: 4px; }
+
+    .btn-primary {
+      padding: 10px 20px; background: #00B4D8; border: none;
+      border-radius: 8px; color: #000; font-size: 13px;
+      font-weight: 700; cursor: pointer; transition: background 0.2s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-primary:hover { background: #0096B4; }
+
+    /* ── Filters ── */
+    .filters {
+      display: flex; gap: 8px; margin-bottom: 20px;
+      align-items: center; flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 6px 14px; background: none;
+      border: 1px solid #2A2A2A; border-radius: 20px;
+      color: #666; font-size: 12px; cursor: pointer; transition: all 0.2s;
+    }
+    .filter-btn:hover { border-color: #555; color: #FFF; }
+    .filter-btn.active { background: #FFF; border-color: #FFF; color: #000; font-weight: 600; }
+
+    /* ── Order cards ── */
+    .order-card {
+      background: #141414; border: 1px solid #222;
+      border-radius: 10px; margin-bottom: 12px;
+      overflow: hidden; transition: border-color 0.2s; cursor: pointer;
+    }
+    .order-card:hover { border-color: #333; }
+    .order-card.cancelled { opacity: 0.5; }
+
+    .order-card-header {
+      padding: 16px 20px;
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 16px;
+    }
+
+    .order-meta { display: flex; align-items: center; gap: 16px; flex: 1; }
+
+    .order-number {
+      font-family: 'Courier New', monospace;
+      font-size: 14px; font-weight: 700; color: #FFF;
+      min-width: 120px;
+    }
+
+    .order-info { flex: 1; }
+    .order-brand { font-size: 13px; color: #CCC; }
+    .order-date  { font-size: 12px; color: #555; margin-top: 2px; }
+
+    .order-total {
+      text-align: right;
+    }
+    .order-total-label { font-size: 10px; color: #444; margin-bottom: 2px; }
+    .order-total-value { font-size: 16px; font-weight: 700; color: #FFF; }
+
+    /* ── Badges ── */
+    .badge {
+      font-size: 11px; padding: 4px 10px;
+      border-radius: 20px; font-weight: 600; white-space: nowrap;
+    }
+    .badge-grey  { background: #1A1A1A; color: #666;    border: 1px solid #2A2A2A; }
+    .badge-amber { background: #2A1F00; color: #F4A261; border: 1px solid #3A2A00; }
+    .badge-blue  { background: #001A2A; color: #00B4D8; border: 1px solid #00253A; }
+    .badge-green { background: #002A10; color: #52B788; border: 1px solid #003A18; }
+    .badge-red   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
+
+    /* ── Expanded detail ── */
+    .order-detail {
+      border-top: 1px solid #1E1E1E;
+      padding: 0 20px;
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+    .order-detail.open {
+      max-height: 600px;
+      padding: 20px;
+    }
+
+    .detail-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 12px; margin-bottom: 16px;
+    }
+    .detail-item label {
+      display: block; font-size: 11px; font-weight: 600; color: #555;
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;
+    }
+    .detail-item .val { font-size: 13px; color: #FFF; }
+
+    /* ── Line items table ── */
+    .li-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    .li-table th {
+      text-align: left; padding: 8px 12px;
+      font-size: 11px; color: #555; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1px;
+      border-bottom: 1px solid #222;
+    }
+    .li-table td {
+      padding: 10px 12px; font-size: 13px; color: #CCC;
+      border-bottom: 1px solid #1A1A1A;
+    }
+    .li-table tr:last-child td { border-bottom: none; }
+
+    /* ── Totals ── */
+    .detail-totals {
+      background: #1A1A1A; border: 1px solid #222;
+      border-radius: 8px; padding: 12px 16px;
+    }
+    .totals-row {
+      display: flex; justify-content: space-between;
+      font-size: 13px; color: #888; margin-bottom: 6px;
+    }
+    .totals-row.grand {
+      font-size: 15px; font-weight: 700; color: #FFF;
+      margin-bottom: 0; padding-top: 6px; border-top: 1px solid #333;
+    }
+    .totals-row span:last-child { color: #FFF; }
+
+    /* ── Loading/Empty ── */
+    .loading { padding: 64px; text-align: center; color: #444; font-size: 13px; }
+    .empty {
+      padding: 64px; text-align: center; color: #444; font-size: 13px;
+      background: #141414; border: 1px solid #222; border-radius: 10px;
+    }
+    .empty a { color: #00B4D8; text-decoration: none; }
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid #333; border-top-color: #00B4D8;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+      margin-right: 8px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-brand">OLS</div>
+    <div class="nav-links">
+      <a href="retailer-catalogue.html">Catalogue</a>
+      <a href="new-order.html">New Order</a>
+      <a href="order-history.html" class="active">My Orders</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user" id="navUser">—</span>
+      <button class="btn-logout" onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <div>
+        <h1>My Orders</h1>
+        <p id="orderCount">Loading...</p>
+      </div>
+      <a href="new-order.html" class="btn-primary">+ New Order</a>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterStatus('all', this)">All</button>
+      <button class="filter-btn" onclick="filterStatus('Draft', this)">Draft</button>
+      <button class="filter-btn" onclick="filterStatus('Pending Approval', this)">Pending</button>
+      <button class="filter-btn" onclick="filterStatus('Confirmed', this)">Confirmed</button>
+      <button class="filter-btn" onclick="filterStatus('Shipped', this)">Shipped</button>
+      <button class="filter-btn" onclick="filterStatus('Invoiced', this)">Invoiced</button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loadingState">
+      <span class="spinner"></span>Loading your orders...
+    </div>
+
+    <!-- Orders list -->
+    <div id="ordersList" style="display:none"></div>
+
+    <!-- Empty -->
+    <div class="empty" id="emptyState" style="display:none">
+      No orders yet. <a href="new-order.html">Place your first order →</a>
+    </div>
+  </div>
+
+  <script>
+    // ── Auth guard ────────────────────────────────────────
+    if (!isLoggedIn() || isAdmin()) {
+      window.location.href = 'index.html';
+    }
+
+    const session = getSession();
+    document.getElementById('navUser').textContent =
+      session.name || session.retailerId;
+
+    function logout() { clearSession(); window.location.href = 'index.html'; }
+
+    // ── State ─────────────────────────────────────────────
+    let allOrders     = [];
+    let orderDetails  = {};
+    let currentStatus = 'all';
+    let openOrderNum  = null;
+
+    // ── Format ────────────────────────────────────────────
+    function formatIDR(n) {
+      return 'Rp ' + Number(n).toLocaleString('id-ID');
+    }
+
+    function formatDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('id-ID', {
+        day: '2-digit', month: 'short', year: 'numeric'
+      });
+    }
+
+    function statusBadge(status) {
+      const map = {
+        'Draft'            : 'badge-grey',
+        'Pending Approval' : 'badge-amber',
+        'Confirmed'        : 'badge-blue',
+        'Shipped'          : 'badge-green',
+        'Invoiced'         : 'badge-green',
+        'Cancelled'        : 'badge-red',
+      };
+      return `<span class="badge ${map[status] || 'badge-grey'}">${status}</span>`;
+    }
+
+    // ── Load orders ───────────────────────────────────────
+    async function loadOrders() {
+      try {
+        const data = await apiGet('getSalesOrders', {
+          retailerId: session.retailerId,
+        });
+        allOrders = Array.isArray(data) ? data : [];
+        document.getElementById('loadingState').style.display = 'none';
+        renderOrders();
+      } catch (err) {
+        document.getElementById('loadingState').textContent =
+          'Error loading orders: ' + err.message;
+      }
+    }
+
+    function filterStatus(status, btn) {
+      currentStatus = status;
+      document.querySelectorAll('.filter-btn')
+        .forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      openOrderNum = null;
+      renderOrders();
+    }
+
+    function renderOrders() {
+      const filtered = allOrders.filter(o =>
+        currentStatus === 'all' || o.status === currentStatus
+      );
+
+      document.getElementById('orderCount').textContent =
+        `${filtered.length} order${filtered.length !== 1 ? 's' : ''}`;
+
+      if (filtered.length === 0) {
+        document.getElementById('ordersList').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('emptyState').style.display  = 'none';
+      document.getElementById('ordersList').style.display  = 'block';
+
+      document.getElementById('ordersList').innerHTML =
+        filtered.map(o => `
+          <div class="order-card ${o.status === 'Cancelled' ? 'cancelled' : ''}"
+            onclick="toggleDetail('${o.soNumber}')">
+            <div class="order-card-header">
+              <div class="order-meta">
+                <div class="order-number">${o.soNumber}</div>
+                <div class="order-info">
+                  <div class="order-brand">${o.brand}</div>
+                  <div class="order-date">${formatDate(o.orderDate)}</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px">
+                <div class="order-total">
+                  <div class="order-total-label">TOTAL IDR</div>
+                  <div class="order-total-value">${formatIDR(o.totalIDR)}</div>
+                </div>
+                ${statusBadge(o.status)}
+                <span style="color:#555;font-size:12px" id="chevron-${o.soNumber}">▼</span>
+              </div>
+            </div>
+            <div class="order-detail" id="detail-${o.soNumber}">
+              <div class="loading" id="loading-${o.soNumber}" style="padding:24px">
+                <span class="spinner"></span>Loading...
+              </div>
+              <div id="content-${o.soNumber}" style="display:none"></div>
+            </div>
+          </div>
+        `).join('');
+    }
+
+    // ── Toggle detail ─────────────────────────────────────
+    async function toggleDetail(soNumber) {
+      const detailEl  = document.getElementById(`detail-${soNumber}`);
+      const chevronEl = document.getElementById(`chevron-${soNumber}`);
+
+      if (openOrderNum === soNumber) {
+        // Close
+        detailEl.classList.remove('open');
+        chevronEl.textContent = '▼';
+        openOrderNum = null;
+        return;
+      }
+
+      // Close previously open
+      if (openOrderNum) {
+        const prev = document.getElementById(`detail-${openOrderNum}`);
+        const prevChev = document.getElementById(`chevron-${openOrderNum}`);
+        if (prev) prev.classList.remove('open');
+        if (prevChev) prevChev.textContent = '▼';
+      }
+
+      openOrderNum = soNumber;
+      detailEl.classList.add('open');
+      chevronEl.textContent = '▲';
+
+      // Load detail if not cached
+      if (!orderDetails[soNumber]) {
+        try {
+          const data = await apiGet('getSODetail', { soNumber });
+          orderDetails[soNumber] = data;
+        } catch (err) {
+          document.getElementById(`loading-${soNumber}`).textContent =
+            'Error: ' + err.message;
+          return;
+        }
+      }
+
+      const d     = orderDetails[soNumber];
+      const h     = d.header;
+      const items = d.lineItems || [];
+
+      document.getElementById(`loading-${soNumber}`).style.display  = 'none';
+      document.getElementById(`content-${soNumber}`).style.display  = 'block';
+      document.getElementById(`content-${soNumber}`).innerHTML = `
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Order Type</label>
+            <div class="val">${h.orderType}</div>
+          </div>
+          <div class="detail-item">
+            <label>Tier</label>
+            <div class="val">${h.tier}</div>
+          </div>
+          ${h.poRef ? `
+          <div class="detail-item">
+            <label>PO Reference</label>
+            <div class="val" style="font-family:monospace">${h.poRef}</div>
+          </div>` : '<div></div>'}
+          ${h.notes ? `
+          <div class="detail-item">
+            <label>Notes</label>
+            <div class="val">${h.notes}</div>
+          </div>` : ''}
+        </div>
+
+        <table class="li-table">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Description</th>
+              <th>QTY</th>
+              <th>Unit Price</th>
+              <th>Line Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map(i => `
+              <tr>
+                <td style="font-family:monospace;font-size:12px">${i.sku}</td>
+                <td>${i.description}</td>
+                <td>${i.qty}</td>
+                <td>${formatIDR(i.unitPrice)}</td>
+                <td style="font-weight:600">${formatIDR(i.lineTotal)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="detail-totals">
+          <div class="totals-row">
+            <span>Subtotal</span>
+            <span>${formatIDR(h.subtotal)}</span>
+          </div>
+          <div class="totals-row">
+            <span>PPN</span>
+            <span>${formatIDR(h.ppn)}</span>
+          </div>
+          <div class="totals-row grand">
+            <span>Total IDR</span>
+            <span>${formatIDR(h.totalIDR)}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    loadOrders();
+  </script>
+
+</body>
+</html>
