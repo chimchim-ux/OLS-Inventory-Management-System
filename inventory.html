@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OLS — Inventory</title>
+  <script src="config.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0A0A0A; color: #FFF; min-height: 100vh;
+    }
+    nav {
+      background: #141414; border-bottom: 1px solid #222;
+      padding: 0 32px; display: flex; align-items: center;
+      justify-content: space-between; height: 56px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-brand { font-size: 16px; font-weight: 700; color: #FFF; letter-spacing: 1px; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      color: #666; text-decoration: none; font-size: 13px;
+      padding: 6px 12px; border-radius: 6px; transition: all 0.2s;
+    }
+    .nav-links a:hover { color: #FFF; background: #1E1E1E; }
+    .nav-links a.active { color: #FFF; background: #1E1E1E; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-user { font-size: 12px; color: #555; }
+    .btn-logout {
+      font-size: 12px; color: #555; background: none;
+      border: 1px solid #2A2A2A; border-radius: 6px;
+      padding: 6px 12px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-logout:hover { color: #FFF; border-color: #555; }
+
+    .page { max-width: 1200px; margin: 0 auto; padding: 32px; }
+
+    .page-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; margin-bottom: 32px;
+    }
+    .page-header h1 { font-size: 24px; font-weight: 700; }
+    .page-header p { font-size: 13px; color: #555; margin-top: 4px; }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex; gap: 0;
+      border-bottom: 1px solid #222;
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      padding: 10px 20px; background: none; border: none;
+      color: #555; font-size: 13px; font-weight: 600;
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; transition: all 0.2s;
+    }
+    .tab-btn:hover { color: #FFF; }
+    .tab-btn.active { color: #FFF; border-bottom-color: #00B4D8; }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: #141414; border: 1px solid #222;
+      border-radius: 10px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: #1A1A1A; padding: 12px 16px; text-align: left;
+      font-size: 11px; font-weight: 600; color: #555;
+      text-transform: uppercase; letter-spacing: 1px;
+      border-bottom: 1px solid #222;
+    }
+    tbody td {
+      padding: 12px 16px; font-size: 13px; color: #CCC;
+      border-bottom: 1px solid #1A1A1A;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #181818; }
+    .mono { font-family: 'Courier New', monospace; font-size: 12px; }
+
+    /* ── Badges ── */
+    .badge {
+      font-size: 11px; padding: 3px 8px;
+      border-radius: 20px; font-weight: 600;
+    }
+    .badge-red   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
+    .badge-green { background: #002A10; color: #52B788; border: 1px solid #003A18; }
+    .badge-blue  { background: #001A2A; color: #00B4D8; border: 1px solid #00253A; }
+    .badge-grey  { background: #1A1A1A; color: #666;    border: 1px solid #2A2A2A; }
+
+    /* ── Filters ── */
+    .filters {
+      display: flex; gap: 12px; margin-bottom: 20px;
+      align-items: center; flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 7px 16px; background: none;
+      border: 1px solid #2A2A2A; border-radius: 20px;
+      color: #666; font-size: 13px; cursor: pointer; transition: all 0.2s;
+    }
+    .filter-btn:hover { border-color: #555; color: #FFF; }
+    .filter-btn.active { background: #FFF; border-color: #FFF; color: #000; font-weight: 600; }
+    .search-input {
+      padding: 7px 14px; background: #1A1A1A;
+      border: 1px solid #2A2A2A; border-radius: 20px;
+      color: #FFF; font-size: 13px; outline: none;
+      width: 220px; transition: border-color 0.2s; margin-left: auto;
+    }
+    .search-input:focus { border-color: #00B4D8; }
+    .search-input::placeholder { color: #444; }
+
+    /* ── Loading / Empty ── */
+    .loading { padding: 48px; text-align: center; color: #444; font-size: 13px; }
+    .empty   { padding: 48px; text-align: center; color: #444; font-size: 13px; }
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid #333; border-top-color: #00B4D8;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+      margin-right: 8px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-brand">OLS</div>
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="catalogue.html">Catalogue</a>
+      <a href="inventory.html" class="active">Inventory</a>
+      <a href="packing-lists.html">Packing Lists</a>
+      <a href="sales-orders.html">Sales Orders</a>
+      <a href="settings.html">Settings</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user">Admin</span>
+      <button class="btn-logout" onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <div>
+        <h1>Inventory</h1>
+        <p>Stock levels and transaction history</p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('stock', this)">
+        Stock Levels
+      </button>
+      <button class="tab-btn" onclick="switchTab('log', this)">
+        Transaction Log
+      </button>
+    </div>
+
+    <!-- Stock Levels Tab -->
+    <div id="tabStock">
+      <div class="filters">
+        <button class="filter-btn active" onclick="filterStockBrand('all', this)">All</button>
+        <button class="filter-btn" onclick="filterStockBrand('Mofmofriends', this)">Mofmofriends</button>
+        <button class="filter-btn" onclick="filterStockBrand('Stojo', this)">Stojo</button>
+        <input class="search-input" type="text" id="stockSearch"
+          placeholder="Search SKU or product..." oninput="renderStock()">
+      </div>
+      <div class="table-wrap">
+        <div class="loading" id="loadingStock">
+          <span class="spinner"></span>Loading stock...
+        </div>
+        <table id="tableStock" style="display:none">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Product</th>
+              <th>Brand</th>
+              <th>Physical Stock</th>
+              <th>Committed</th>
+              <th>Available</th>
+              <th>Reorder Threshold</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="bodyStock"></tbody>
+        </table>
+        <div class="empty" id="emptyStock" style="display:none">No products found</div>
+      </div>
+    </div>
+
+    <!-- Transaction Log Tab -->
+    <div id="tabLog" style="display:none">
+      <div class="filters">
+        <button class="filter-btn active" onclick="filterLogType('all', this)">All</button>
+        <button class="filter-btn" onclick="filterLogType('IN', this)">IN only</button>
+        <button class="filter-btn" onclick="filterLogType('OUT', this)">OUT only</button>
+        <input class="search-input" type="text" id="logSearch"
+          placeholder="Search SKU or reference..." oninput="renderLog()">
+      </div>
+      <div class="table-wrap">
+        <div class="loading" id="loadingLog">
+          <span class="spinner"></span>Loading log...
+        </div>
+        <table id="tableLog" style="display:none">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Type</th>
+              <th>SKU</th>
+              <th>Brand</th>
+              <th>QTY</th>
+              <th>Reference</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="bodyLog"></tbody>
+        </table>
+        <div class="empty" id="emptyLog" style="display:none">No transactions yet</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── Auth guard ────────────────────────────────────────
+    if (!isLoggedIn() || !isAdmin()) {
+      window.location.href = 'index.html';
+    }
+    function logout() { clearSession(); window.location.href = 'index.html'; }
+
+    // ── State ─────────────────────────────────────────────
+    let stockData    = [];
+    let logData      = [];
+    let stockBrand   = 'all';
+    let logType      = 'all';
+    let logLoaded    = false;
+
+    // ── Tab switch ────────────────────────────────────────
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tabStock').style.display = tab === 'stock' ? 'block' : 'none';
+      document.getElementById('tabLog').style.display   = tab === 'log'   ? 'block' : 'none';
+      if (tab === 'log' && !logLoaded) loadLog();
+    }
+
+    // ── Format ────────────────────────────────────────────
+    function formatTime(ts) {
+      if (!ts) return '—';
+      const d = new Date(ts);
+      return d.toLocaleDateString('id-ID', {
+        day: '2-digit', month: 'short', year: 'numeric'
+      }) + ' ' + d.toLocaleTimeString('id-ID', {
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    // ── Stock tab ─────────────────────────────────────────
+    async function loadStock() {
+      try {
+        const data = await apiGet('getStockSummary');
+        stockData  = Array.isArray(data) ? data : [];
+        document.getElementById('loadingStock').style.display = 'none';
+        renderStock();
+      } catch (err) {
+        document.getElementById('loadingStock').textContent =
+          'Error loading stock: ' + err.message;
+      }
+    }
+
+    function filterStockBrand(brand, btn) {
+      stockBrand = brand;
+      document.querySelectorAll('#tabStock .filter-btn')
+        .forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderStock();
+    }
+
+    function renderStock() {
+      const search   = document.getElementById('stockSearch').value.toLowerCase();
+      const filtered = stockData.filter(s => {
+        const brandMatch  = stockBrand === 'all' || s.brand === stockBrand;
+        const searchMatch = !search ||
+          s.sku.toLowerCase().includes(search) ||
+          s.productName.toLowerCase().includes(search);
+        return brandMatch && searchMatch;
+      });
+
+      if (filtered.length === 0) {
+        document.getElementById('tableStock').style.display = 'none';
+        document.getElementById('emptyStock').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('emptyStock').style.display  = 'none';
+      document.getElementById('tableStock').style.display  = 'table';
+      document.getElementById('bodyStock').innerHTML = filtered.map(s => {
+        const stockColor = s.availableStock <= 0 ? '#E63946'
+          : s.reorderFlag === 'REORDER' ? '#F4A261'
+          : '#52B788';
+        const flag = s.reorderFlag === 'REORDER'
+          ? '<span class="badge badge-red">REORDER</span>'
+          : s.reorderFlag === 'OK'
+          ? '<span class="badge badge-green">OK</span>'
+          : '<span class="badge badge-grey">—</span>';
+        return `
+          <tr>
+            <td class="mono">${s.sku}</td>
+            <td>${s.productName}</td>
+            <td style="color:#555">${s.brand}</td>
+            <td>${s.physicalStock}</td>
+            <td style="color:#555">${s.committedUnits}</td>
+            <td style="color:${stockColor};font-weight:600">${s.availableStock}</td>
+            <td style="color:#555">${s.reorderThreshold || '—'}</td>
+            <td>${flag}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ── Log tab ───────────────────────────────────────────
+    async function loadLog() {
+      logLoaded = true;
+      try {
+        const data = await apiGet('getInventoryLog');
+        logData    = Array.isArray(data) ? data : [];
+        document.getElementById('loadingLog').style.display = 'none';
+        renderLog();
+      } catch (err) {
+        document.getElementById('loadingLog').textContent =
+          'Error loading log: ' + err.message;
+      }
+    }
+
+    function filterLogType(type, btn) {
+      logType = type;
+      document.querySelectorAll('#tabLog .filter-btn')
+        .forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderLog();
+    }
+
+    function renderLog() {
+      const search   = document.getElementById('logSearch').value.toLowerCase();
+      const filtered = logData.filter(r => {
+        const typeMatch   = logType === 'all' || r.type === logType;
+        const searchMatch = !search ||
+          r.sku.toLowerCase().includes(search) ||
+          String(r.referenceId).toLowerCase().includes(search);
+        return typeMatch && searchMatch;
+      });
+
+      if (filtered.length === 0) {
+        document.getElementById('tableLog').style.display = 'none';
+        document.getElementById('emptyLog').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('emptyLog').style.display  = 'none';
+      document.getElementById('tableLog').style.display  = 'table';
+      document.getElementById('bodyLog').innerHTML = filtered.map(r => `
+        <tr>
+          <td style="color:#555;font-size:12px">${formatTime(r.timestamp)}</td>
+          <td>
+            <span class="badge ${r.type === 'IN' ? 'badge-green' : 'badge-red'}">
+              ${r.type}
+            </span>
+          </td>
+          <td class="mono">${r.sku}</td>
+          <td style="color:#555">${r.brand}</td>
+          <td style="font-weight:600;color:${r.type === 'IN' ? '#52B788' : '#E63946'}">
+            ${r.type === 'IN' ? '+' : '-'}${r.qty}
+          </td>
+          <td class="mono">${r.referenceId || '—'}</td>
+          <td style="color:#555">${r.notes || '—'}</td>
+        </tr>
+      `).join('');
+    }
+
+    loadStock();
+  </script>
+
+</body>
+</html>
