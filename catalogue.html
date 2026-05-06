@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OLS — Catalogue</title>
+  <script src="config.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0A0A0A;
+      color: #FFFFFF;
+      min-height: 100vh;
+    }
+
+    nav {
+      background: #141414;
+      border-bottom: 1px solid #222;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-brand { font-size: 16px; font-weight: 700; color: #FFF; letter-spacing: 1px; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      color: #666; text-decoration: none; font-size: 13px;
+      padding: 6px 12px; border-radius: 6px; transition: all 0.2s;
+    }
+    .nav-links a:hover { color: #FFF; background: #1E1E1E; }
+    .nav-links a.active { color: #FFF; background: #1E1E1E; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-user { font-size: 12px; color: #555; }
+    .btn-logout {
+      font-size: 12px; color: #555; background: none;
+      border: 1px solid #2A2A2A; border-radius: 6px;
+      padding: 6px 12px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-logout:hover { color: #FFF; border-color: #555; }
+
+    .page { max-width: 1200px; margin: 0 auto; padding: 32px; }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .page-header h1 { font-size: 24px; font-weight: 700; }
+    .page-header p { font-size: 13px; color: #555; margin-top: 4px; }
+
+    /* ── Filters ── */
+    .filters {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 7px 16px;
+      background: none;
+      border: 1px solid #2A2A2A;
+      border-radius: 20px;
+      color: #666;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover { border-color: #555; color: #FFF; }
+    .filter-btn.active {
+      background: #FFF;
+      border-color: #FFF;
+      color: #000;
+      font-weight: 600;
+    }
+
+    .search-input {
+      padding: 7px 14px;
+      background: #1A1A1A;
+      border: 1px solid #2A2A2A;
+      border-radius: 20px;
+      color: #FFF;
+      font-size: 13px;
+      outline: none;
+      width: 220px;
+      transition: border-color 0.2s;
+      margin-left: auto;
+    }
+    .search-input:focus { border-color: #00B4D8; }
+    .search-input::placeholder { color: #444; }
+
+    /* ── Grid ── */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .product-card {
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .product-card:hover { border-color: #333; }
+
+    .product-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      background: #1A1A1A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      font-size: 12px;
+    }
+
+    .product-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .product-body { padding: 16px; }
+
+    .product-sku {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    .product-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #FFF;
+      margin-bottom: 4px;
+    }
+
+    .product-brand {
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 12px;
+    }
+
+    .product-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .product-price {
+      font-size: 15px;
+      font-weight: 700;
+      color: #FFF;
+    }
+
+    .product-price-label {
+      font-size: 10px;
+      color: #444;
+      margin-bottom: 2px;
+    }
+
+    .stock-info {
+      text-align: right;
+    }
+
+    .stock-count {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .stock-label {
+      font-size: 10px;
+      color: #444;
+      margin-bottom: 2px;
+    }
+
+    .product-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid #1E1E1E;
+    }
+
+    .product-detail {
+      font-size: 11px;
+      color: #444;
+    }
+
+    /* ── Badges ── */
+    .badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .badge-red   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
+    .badge-green { background: #002A10; color: #52B788; border: 1px solid #003A18; }
+    .badge-grey  { background: #1A1A1A; color: #666;    border: 1px solid #2A2A2A; }
+
+    /* ── Table view ── */
+    .table-wrap {
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead th {
+      background: #1A1A1A;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid #222;
+    }
+
+    tbody td {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #CCC;
+      border-bottom: 1px solid #1A1A1A;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #181818; }
+    .mono { font-family: 'Courier New', monospace; font-size: 12px; }
+
+    /* ── View toggle ── */
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+    }
+
+    .view-btn {
+      padding: 6px 10px;
+      background: none;
+      border: 1px solid #2A2A2A;
+      border-radius: 6px;
+      color: #555;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .view-btn.active { background: #1E1E1E; color: #FFF; border-color: #444; }
+
+    /* ── Loading / Empty ── */
+    .loading {
+      padding: 64px;
+      text-align: center;
+      color: #444;
+      font-size: 13px;
+    }
+
+    .empty {
+      padding: 64px;
+      text-align: center;
+      color: #444;
+      font-size: 13px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid #333;
+      border-top-color: #00B4D8;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 32px; right: 32px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .toast.success { background: #002A10; color: #52B788; border: 1px solid #003A18; }
+    .toast.error   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
+    .toast.visible { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-brand">OLS</div>
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="catalogue.html" class="active">Catalogue</a>
+      <a href="inventory.html">Inventory</a>
+      <a href="packing-lists.html">Packing Lists</a>
+      <a href="sales-orders.html">Sales Orders</a>
+      <a href="settings.html">Settings</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user">Admin</span>
+      <button class="btn-logout" onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <div>
+        <h1>Catalogue</h1>
+        <p id="productCount">Loading products...</p>
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" id="btnGrid" onclick="setView('grid')" title="Grid view">⊞</button>
+        <button class="view-btn" id="btnTable" onclick="setView('table')" title="Table view">☰</button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterBrand('all', this)">All</button>
+      <button class="filter-btn" onclick="filterBrand('Mofmofriends', this)">Mofmofriends</button>
+      <button class="filter-btn" onclick="filterBrand('Stojo', this)">Stojo</button>
+      <input
+        class="search-input"
+        type="text"
+        id="searchInput"
+        placeholder="Search SKU or product name..."
+        oninput="applyFilters()"
+      />
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loadingState">
+      <span class="spinner"></span>Loading catalogue...
+    </div>
+
+    <!-- Grid view -->
+    <div class="product-grid" id="gridView" style="display:none"></div>
+
+    <!-- Table view -->
+    <div class="table-wrap" id="tableView" style="display:none">
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Product Name</th>
+            <th>Brand</th>
+            <th>Cost SGD</th>
+            <th>T1 Price</th>
+            <th>T2 Price</th>
+            <th>Available</th>
+            <th>Reorder</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Empty -->
+    <div class="empty" id="emptyState" style="display:none">
+      No products found
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── Auth guard ────────────────────────────────────────
+    if (!isLoggedIn()) {
+      window.location.href = 'index.html';
+    }
+
+    function logout() {
+      clearSession();
+      window.location.href = 'index.html';
+    }
+
+    // ── State ─────────────────────────────────────────────
+    let allProducts  = [];
+    let currentBrand = 'all';
+    let currentView  = 'grid';
+
+    // ── Toast ─────────────────────────────────────────────
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type} visible`;
+      setTimeout(() => t.classList.remove('visible'), 3000);
+    }
+
+    // ── Format helpers ────────────────────────────────────
+    function formatIDR(n) {
+      return 'Rp ' + Number(n).toLocaleString('id-ID');
+    }
+
+    function reorderBadge(flag) {
+      if (flag === 'REORDER') return '<span class="badge badge-red">REORDER</span>';
+      if (flag === 'OK')      return '<span class="badge badge-green">OK</span>';
+      return '<span class="badge badge-grey">—</span>';
+    }
+
+    // ── Load catalogue ────────────────────────────────────
+    async function loadCatalogue() {
+      try {
+        // Admin view — no tier needed, show cost price + all tiers
+        const data = await apiGet('getCatalogue');
+        allProducts = Array.isArray(data) ? data : [];
+        renderProducts();
+      } catch (err) {
+        document.getElementById('loadingState').innerHTML =
+          'Error loading catalogue — ' + err.message;
+        showToast('Failed to load catalogue', 'error');
+      }
+    }
+
+    // ── Filter logic ──────────────────────────────────────
+    function filterBrand(brand, btn) {
+      currentBrand = brand;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderProducts();
+    }
+
+    function applyFilters() { renderProducts(); }
+
+    function getFiltered() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      return allProducts.filter(p => {
+        const brandMatch = currentBrand === 'all' || p.brand === currentBrand;
+        const searchMatch = !search ||
+          p.sku.toLowerCase().includes(search) ||
+          p.productName.toLowerCase().includes(search);
+        return brandMatch && searchMatch;
+      });
+    }
+
+    // ── Render ────────────────────────────────────────────
+    function renderProducts() {
+      const filtered = getFiltered();
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('productCount').textContent =
+        `${filtered.length} product${filtered.length !== 1 ? 's' : ''}`;
+
+      if (filtered.length === 0) {
+        document.getElementById('gridView').style.display  = 'none';
+        document.getElementById('tableView').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('emptyState').style.display = 'none';
+
+      if (currentView === 'grid') {
+        document.getElementById('tableView').style.display = 'none';
+        document.getElementById('gridView').style.display  = 'grid';
+        renderGrid(filtered);
+      } else {
+        document.getElementById('gridView').style.display  = 'none';
+        document.getElementById('tableView').style.display = 'block';
+        renderTable(filtered);
+      }
+    }
+
+    function renderGrid(products) {
+      document.getElementById('gridView').innerHTML = products.map(p => {
+        const t1 = calcWholesaleIDR(p.costSGD, 'T1');
+        const stockColor = p.availableStock <= 0 ? '#E63946'
+          : p.availableStock <= p.reorderThreshold ? '#F4A261'
+          : '#52B788';
+
+        return `
+          <div class="product-card">
+            <div class="product-img">
+              ${p.imageUrl
+                ? `<img src="${p.imageUrl}" alt="${p.productName}"
+                       onerror="this.parentElement.innerHTML='No image'">`
+                : 'No image'
+              }
+            </div>
+            <div class="product-body">
+              <div class="product-sku">${p.sku}</div>
+              <div class="product-name">${p.productName}</div>
+              <div class="product-brand">${p.brand}</div>
+              <div class="product-meta">
+                <div>
+                  <div class="product-price-label">COST SGD</div>
+                  <div class="product-price">S$ ${Number(p.costSGD).toFixed(2)}</div>
+                </div>
+                <div class="stock-info">
+                  <div class="stock-label">AVAILABLE</div>
+                  <div class="stock-count" style="color:${stockColor}">
+                    ${p.availableStock}
+                  </div>
+                </div>
+              </div>
+              <div class="product-footer">
+                <div class="product-detail">
+                  T1: ${formatIDR(t1)} &nbsp;·&nbsp;
+                  ${p.unitsPerCarton} pcs/ctn
+                </div>
+                ${reorderBadge(p.reorderFlag)}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTable(products) {
+      document.getElementById('tableBody').innerHTML = products.map(p => {
+        const t1 = calcWholesaleIDR(p.costSGD, 'T1');
+        const t2 = calcWholesaleIDR(p.costSGD, 'T2');
+        const stockColor = p.availableStock <= 0 ? '#E63946'
+          : p.availableStock <= p.reorderThreshold ? '#F4A261'
+          : '#52B788';
+        return `
+          <tr>
+            <td class="mono">${p.sku}</td>
+            <td>${p.productName}</td>
+            <td style="color:#555">${p.brand}</td>
+            <td>S$ ${Number(p.costSGD).toFixed(2)}</td>
+            <td>${formatIDR(t1)}</td>
+            <td>${formatIDR(t2)}</td>
+            <td style="color:${stockColor}">${p.availableStock}</td>
+            <td>${reorderBadge(p.reorderFlag)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ── Price calc (mirrors Settings.gs logic) ────────────
+    function calcWholesaleIDR(costSGD, tier) {
+      const margins = { T1: 30, T2: 35, T3: 37.5, T4: 45 };
+      const rate    = 14000;
+      const margin  = margins[tier] || 0;
+      const raw     = costSGD * rate * (1 + margin / 100);
+      return Math.round(raw / 100) * 100;
+    }
+
+    // ── View toggle ───────────────────────────────────────
+    function setView(view) {
+      currentView = view;
+      document.getElementById('btnGrid').classList.toggle('active',  view === 'grid');
+      document.getElementById('btnTable').classList.toggle('active', view === 'table');
+      renderProducts();
+    }
+
+    loadCatalogue();
+  </script>
+
+</body>
+</html>
