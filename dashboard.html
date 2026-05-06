@@ -424,12 +424,12 @@
 
   <script>
     // ── Auth guard ────────────────────────────────────────
-    if (!isLoggedIn() || !isAdmin()) {
+    if (!isLoggedIn() || (!isAdmin() && !isViewer())) {
       window.location.href = 'index.html';
     }
 
     // ── Init ──────────────────────────────────────────────
-    document.getElementById('navUser').textContent = 'Admin';
+    document.getElementById('navUser').textContent = isViewer() ? 'Viewer' : 'Admin';
 
     function logout() {
       clearSession();
