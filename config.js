@@ -70,3 +70,6 @@ async function apiPost(action, body = {}) {
   const data = await res.json();
   return data;
 }
+function isViewer() {
+  return sessionStorage.getItem('ols_role') === 'viewer';
+}
