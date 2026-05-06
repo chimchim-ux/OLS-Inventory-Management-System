@@ -35,7 +35,6 @@
     .btn-logout:hover { color: #FFF; border-color: #555; }
 
     .page { max-width: 1200px; margin: 0 auto; padding: 32px; }
-
     .page-header {
       display: flex; align-items: center;
       justify-content: space-between; margin-bottom: 24px;
@@ -43,7 +42,6 @@
     .page-header h1 { font-size: 24px; font-weight: 700; }
     .page-header p { font-size: 13px; color: #555; margin-top: 4px; }
 
-    /* ── Buttons ── */
     .btn-primary {
       padding: 10px 20px; background: #00B4D8; border: none;
       border-radius: 8px; color: #000; font-size: 13px;
@@ -51,7 +49,6 @@
     }
     .btn-primary:hover { background: #0096B4; }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
     .btn-secondary {
       padding: 8px 16px; background: none;
       border: 1px solid #2A2A2A; border-radius: 8px;
@@ -59,7 +56,6 @@
       cursor: pointer; transition: all 0.2s;
     }
     .btn-secondary:hover { border-color: #555; color: #FFF; }
-
     .btn-success {
       padding: 8px 16px; background: #002A10;
       border: 1px solid #003A18; border-radius: 8px;
@@ -68,7 +64,6 @@
     }
     .btn-success:hover { background: #003A18; }
 
-    /* ── Filters ── */
     .filters {
       display: flex; gap: 12px; margin-bottom: 20px;
       align-items: center; flex-wrap: wrap;
@@ -81,7 +76,6 @@
     .filter-btn:hover { border-color: #555; color: #FFF; }
     .filter-btn.active { background: #FFF; border-color: #FFF; color: #000; font-weight: 600; }
 
-    /* ── Table ── */
     .table-wrap {
       background: #141414; border: 1px solid #222;
       border-radius: 10px; overflow: hidden;
@@ -101,16 +95,11 @@
     tbody tr:hover td { background: #181818; }
     .mono { font-family: 'Courier New', monospace; font-size: 12px; }
 
-    /* ── Badges ── */
-    .badge {
-      font-size: 11px; padding: 3px 8px;
-      border-radius: 20px; font-weight: 600;
-    }
+    .badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
     .badge-amber { background: #2A1F00; color: #F4A261; border: 1px solid #3A2A00; }
     .badge-green { background: #002A10; color: #52B788; border: 1px solid #003A18; }
     .badge-grey  { background: #1A1A1A; color: #666;    border: 1px solid #2A2A2A; }
 
-    /* ── Modal ── */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.8);
       display: flex; align-items: center; justify-content: center;
@@ -136,7 +125,6 @@
       display: flex; gap: 12px; justify-content: flex-end;
     }
 
-    /* ── Form ── */
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .form-group { margin-bottom: 16px; }
     label {
@@ -151,7 +139,6 @@
     input:focus, select:focus { border-color: #00B4D8; }
     select option { background: #1E1E1E; }
 
-    /* ── Line items ── */
     .line-items { margin-top: 8px; }
     .line-item-row {
       display: grid; grid-template-columns: 2fr 1fr 1fr auto;
@@ -170,7 +157,6 @@
     }
     .btn-add-line:hover { border-color: #555; color: #FFF; }
 
-    /* ── Detail panel ── */
     .detail-section { margin-bottom: 20px; }
     .detail-title {
       font-size: 12px; font-weight: 600; color: #555;
@@ -180,7 +166,6 @@
     .detail-item label { margin-bottom: 4px; }
     .detail-item .value { font-size: 14px; color: #FFF; }
 
-    /* ── Loading / Empty ── */
     .loading { padding: 48px; text-align: center; color: #444; font-size: 13px; }
     .empty   { padding: 48px; text-align: center; color: #444; font-size: 13px; }
     .spinner {
@@ -191,7 +176,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Toast ── */
     .toast {
       position: fixed; bottom: 32px; right: 32px;
       padding: 12px 20px; border-radius: 8px; font-size: 13px;
@@ -216,7 +200,7 @@
       <a href="settings.html">Settings</a>
     </div>
     <div class="nav-right">
-      <span class="nav-user">Admin</span>
+      <span class="nav-user" id="navUser">—</span>
       <button class="btn-logout" onclick="logout()">Log out</button>
     </div>
   </nav>
@@ -227,19 +211,18 @@
         <h1>Packing Lists</h1>
         <p>Manage inbound stock from suppliers</p>
       </div>
-      <button class="btn-primary" onclick="openCreateModal()">
+      <button class="btn-primary" onclick="openCreateModal()"
+        id="btnNewPL" style="display:none">
         + New Packing List
       </button>
     </div>
 
-    <!-- Filters -->
     <div class="filters">
       <button class="filter-btn active" onclick="filterStatus('all', this)">All</button>
       <button class="filter-btn" onclick="filterStatus('Pending Receipt', this)">Pending Receipt</button>
       <button class="filter-btn" onclick="filterStatus('Received', this)">Received</button>
     </div>
 
-    <!-- Table -->
     <div class="table-wrap">
       <div class="loading" id="loadingState">
         <span class="spinner"></span>Loading packing lists...
@@ -290,7 +273,6 @@
           <label>Expected Arrival Date</label>
           <input type="date" id="newArrivalDate" />
         </div>
-
         <div class="form-group">
           <label>Line Items</label>
           <div class="line-item-row" style="margin-bottom:4px">
@@ -329,13 +311,25 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    if (!isLoggedIn() || (!isAdmin() && !isViewer())) { window.location.href = 'index.html'; }
+    // ── Auth guard ────────────────────────────────────────
+    if (!isLoggedIn() || (!isAdmin() && !isViewer())) {
+      window.location.href = 'index.html';
+    }
+
+    // Show New PL button for admin only
+    if (isAdmin()) {
+      document.getElementById('btnNewPL').style.display = 'inline-block';
+    }
+
+    // Set nav user label
+    document.getElementById('navUser').textContent = isViewer() ? 'Viewer' : 'Admin';
+
     function logout() { clearSession(); window.location.href = 'index.html'; }
 
     // ── State ─────────────────────────────────────────────
-    let allPLs       = [];
+    let allPLs        = [];
     let currentStatus = 'all';
-    let catalogue    = [];
+    let catalogue     = [];
 
     // ── Toast ─────────────────────────────────────────────
     function showToast(msg, type = 'success') {
@@ -408,7 +402,7 @@
               onclick="openDetail('${pl.plId}')">
               View
             </button>
-            ${pl.status === 'Pending Receipt' ? `
+            ${pl.status === 'Pending Receipt' && isAdmin() ? `
               <button class="btn-success" style="font-size:12px;padding:5px 10px;margin-left:6px"
                 onclick="markReceived('${pl.plId}')">
                 Mark Received
@@ -421,7 +415,6 @@
 
     // ── Create modal ──────────────────────────────────────
     async function openCreateModal() {
-      // Load catalogue for SKU dropdown
       if (catalogue.length === 0) {
         catalogue = await apiGet('getCatalogue') || [];
       }
@@ -437,8 +430,8 @@
     }
 
     function addLineItem() {
-      const brand = document.getElementById('newBrand').value;
-      const skus  = catalogue.filter(p => !brand || p.brand === brand);
+      const brand   = document.getElementById('newBrand').value;
+      const skus    = catalogue.filter(p => !brand || p.brand === brand);
       const options = skus.map(p =>
         `<option value="${p.sku}">${p.sku} — ${p.productName}</option>`
       ).join('');
@@ -506,8 +499,8 @@
       document.getElementById('detailModal').style.display = 'flex';
 
       try {
-        const data = await apiGet('getPLDetail', { plId });
-        const h    = data.header;
+        const data  = await apiGet('getPLDetail', { plId });
+        const h     = data.header;
         const items = data.lineItems || [];
 
         document.getElementById('detailBody').innerHTML = `
@@ -567,7 +560,7 @@
           </div>
         `;
 
-        if (h.status === 'Pending Receipt') {
+        if (h.status === 'Pending Receipt' && isAdmin()) {
           document.getElementById('detailFooter').innerHTML = `
             <button class="btn-secondary" onclick="closeDetailModal()">Close</button>
             <button class="btn-success" onclick="markReceived('${h.plId}')">
@@ -613,6 +606,5 @@
 
     loadPLs();
   </script>
-
 </body>
 </html>
