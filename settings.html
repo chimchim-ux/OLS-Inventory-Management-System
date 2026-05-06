@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OLS — Settings</title>
+  <script src="config.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0A0A0A;
+      color: #FFFFFF;
+      min-height: 100vh;
+    }
+
+    nav {
+      background: #141414;
+      border-bottom: 1px solid #222;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-brand { font-size: 16px; font-weight: 700; color: #FFF; letter-spacing: 1px; }
+
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      color: #666; text-decoration: none; font-size: 13px;
+      padding: 6px 12px; border-radius: 6px; transition: all 0.2s;
+    }
+    .nav-links a:hover { color: #FFF; background: #1E1E1E; }
+    .nav-links a.active { color: #FFF; background: #1E1E1E; }
+
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-user { font-size: 12px; color: #555; }
+    .btn-logout {
+      font-size: 12px; color: #555; background: none;
+      border: 1px solid #2A2A2A; border-radius: 6px;
+      padding: 6px 12px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-logout:hover { color: #FFF; border-color: #555; }
+
+    .page {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .page-header p {
+      font-size: 13px;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #FFF;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #222;
+    }
+
+    /* ── Form ── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group.full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      background: #1E1E1E;
+      border: 1px solid #2A2A2A;
+      border-radius: 8px;
+      color: #FFF;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: #00B4D8; }
+    input[readonly] { color: #555; cursor: default; }
+
+    .input-hint {
+      font-size: 11px;
+      color: #444;
+      margin-top: 6px;
+    }
+
+    /* ── Buttons ── */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .btn-primary {
+      padding: 10px 20px;
+      background: #00B4D8;
+      border: none;
+      border-radius: 8px;
+      color: #000;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: #0096B4; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-secondary {
+      padding: 10px 20px;
+      background: none;
+      border: 1px solid #2A2A2A;
+      border-radius: 8px;
+      color: #888;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { border-color: #555; color: #FFF; }
+    .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .toast.success { background: #002A10; color: #52B788; border: 1px solid #003A18; }
+    .toast.error   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
+    .toast.visible { opacity: 1; }
+
+    /* ── Loading ── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid #333;
+      border-top-color: #00B4D8;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .sync-result {
+      font-size: 12px;
+      color: #52B788;
+      margin-left: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-brand">OLS</div>
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="catalogue.html">Catalogue</a>
+      <a href="inventory.html">Inventory</a>
+      <a href="packing-lists.html">Packing Lists</a>
+      <a href="sales-orders.html">Sales Orders</a>
+      <a href="settings.html" class="active">Settings</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user">Admin</span>
+      <button class="btn-logout" onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <h1>Settings</h1>
+      <p>Configure system-wide values. Changes take effect immediately.</p>
+    </div>
+
+    <!-- Pricing -->
+    <div class="card">
+      <div class="card-title">Pricing & Tax</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>SGD → IDR Rate</label>
+          <input type="number" id="sgdIdrRate" placeholder="14000" />
+          <div class="input-hint">Current exchange rate used for all price calculations</div>
+        </div>
+        <div class="form-group">
+          <label>PPN (%)</label>
+          <input type="number" id="ppnPercent" placeholder="12" />
+          <div class="input-hint">Applied to all Sales Order totals</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="savePricing()">Save Pricing</button>
+      </div>
+    </div>
+
+    <!-- Tier Margins -->
+    <div class="card">
+      <div class="card-title">Tier Margins (%)</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>T1 Margin</label>
+          <input type="number" id="t1Margin" placeholder="30" />
+        </div>
+        <div class="form-group">
+          <label>T2 Margin</label>
+          <input type="number" id="t2Margin" placeholder="35" />
+        </div>
+        <div class="form-group">
+          <label>T3 Margin</label>
+          <input type="number" id="t3Margin" placeholder="37.5" />
+        </div>
+        <div class="form-group">
+          <label>T4 Margin</label>
+          <input type="number" id="t4Margin" placeholder="45" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="saveMargins()">Save Margins</button>
+      </div>
+    </div>
+
+    <!-- Drive & Images -->
+    <div class="card">
+      <div class="card-title">Product Images</div>
+      <div class="form-group">
+        <label>Google Drive Folder ID</label>
+        <input type="text" id="driveFolderId" placeholder="1Lftrh..." />
+        <div class="input-hint">
+          Folder containing product images named {SKU}.jpg
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="saveDriveFolder()">Save Folder ID</button>
+        <button class="btn-secondary" id="syncBtn" onclick="syncImages()">
+          Sync Product Images
+        </button>
+        <span class="sync-result" id="syncResult"></span>
+      </div>
+    </div>
+
+    <!-- Admin info -->
+    <div class="card">
+      <div class="card-title">Admin Account</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Admin Email</label>
+          <input type="text" id="adminEmail" readonly />
+          <div class="input-hint">Edit directly in Google Sheets Settings tab</div>
+        </div>
+        <div class="form-group">
+          <label>Admin Access Code</label>
+          <input type="text" value="••••••" readonly />
+          <div class="input-hint">Rotates automatically on 1st of each month</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── Auth guard ────────────────────────────────────────
+    if (!isLoggedIn() || !isAdmin()) {
+      window.location.href = 'index.html';
+    }
+
+    function logout() {
+      clearSession();
+      window.location.href = 'index.html';
+    }
+
+    // ── Toast ─────────────────────────────────────────────
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type} visible`;
+      setTimeout(() => t.classList.remove('visible'), 3000);
+    }
+
+    // ── Load settings ─────────────────────────────────────
+    async function loadSettings() {
+      try {
+        const data = await apiGet('getSettings');
+        document.getElementById('sgdIdrRate').value   = data.sgdIdrRate   || '';
+        document.getElementById('ppnPercent').value   = data.ppnPercent   || '';
+        document.getElementById('t1Margin').value     = data.tierMargins?.T1 || '';
+        document.getElementById('t2Margin').value     = data.tierMargins?.T2 || '';
+        document.getElementById('t3Margin').value     = data.tierMargins?.T3 || '';
+        document.getElementById('t4Margin').value     = data.tierMargins?.T4 || '';
+        document.getElementById('driveFolderId').value = data.driveFolderId || '';
+        document.getElementById('adminEmail').value   = data.adminEmail   || '';
+      } catch (err) {
+        showToast('Failed to load settings', 'error');
+      }
+    }
+
+    // ── Save helpers ──────────────────────────────────────
+    async function saveUpdates(updates, label) {
+      try {
+        const res = await apiPost('updateSettings', {
+          updates,
+          updatedBy: 'admin',
+        });
+        if (res.success) {
+          showToast(`${label} saved successfully`);
+        } else {
+          showToast(res.error || 'Save failed', 'error');
+        }
+      } catch (err) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    function savePricing() {
+      saveUpdates({
+        SGD_IDR_RATE : Number(document.getElementById('sgdIdrRate').value),
+        PPN_PERCENT  : Number(document.getElementById('ppnPercent').value),
+      }, 'Pricing');
+    }
+
+    function saveMargins() {
+      saveUpdates({
+        TIER_T1_MARGIN : Number(document.getElementById('t1Margin').value),
+        TIER_T2_MARGIN : Number(document.getElementById('t2Margin').value),
+        TIER_T3_MARGIN : Number(document.getElementById('t3Margin').value),
+        TIER_T4_MARGIN : Number(document.getElementById('t4Margin').value),
+      }, 'Margins');
+    }
+
+    function saveDriveFolder() {
+      saveUpdates({
+        DRIVE_FOLDER_ID: document.getElementById('driveFolderId').value.trim(),
+      }, 'Drive Folder ID');
+    }
+
+    // ── Image sync ────────────────────────────────────────
+    async function syncImages() {
+      const btn    = document.getElementById('syncBtn');
+      const result = document.getElementById('syncResult');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Syncing...';
+      result.textContent = '';
+
+      try {
+        const res = await apiGet('syncImageURLs');
+        if (res.success) {
+          result.textContent = `✓ ${res.updatedCount} URLs updated`;
+          showToast(`Images synced — ${res.updatedCount} URLs updated`);
+        } else {
+          result.textContent = '';
+          showToast(res.error || 'Sync failed', 'error');
+        }
+      } catch (err) {
+        showToast('Connection error', 'error');
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'Sync Product Images';
+    }
+
+    loadSettings();
+  </script>
+
+</body>
+</html>
