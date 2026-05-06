@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OLS — New Order</title>
+  <script src="config.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0A0A0A; color: #FFF; min-height: 100vh;
+    }
+    nav {
+      background: #141414; border-bottom: 1px solid #222;
+      padding: 0 32px; display: flex; align-items: center;
+      justify-content: space-between; height: 56px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-brand { font-size: 16px; font-weight: 700; color: #FFF; letter-spacing: 1px; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      color: #666; text-decoration: none; font-size: 13px;
+      padding: 6px 12px; border-radius: 6px; transition: all 0.2s;
+    }
+    .nav-links a:hover { color: #FFF; background: #1E1E1E; }
+    .nav-links a.active { color: #FFF; background: #1E1E1E; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-user { font-size: 12px; color: #555; }
+    .btn-logout {
+      font-size: 12px; color: #555; background: none;
+      border: 1px solid #2A2A2A; border-radius: 6px;
+      padding: 6px 12px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-logout:hover { color: #FFF; border-color: #555; }
+
+    .page { max-width: 800px; margin: 0 auto; padding: 32px; }
+    .page-header { margin-bottom: 32px; }
+    .page-header h1 { font-size: 24px; font-weight: 700; }
+    .page-header p { font-size: 13px; color: #555; margin-top: 4px; }
+
+    /* ── Card ── */
+    .card {
+      background: #141414; border: 1px solid #222;
+      border-radius: 10px; padding: 24px; margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 14px; font-weight: 600; color: #FFF;
+      margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #222;
+    }
+
+    /* ── Form ── */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-group { margin-bottom: 16px; }
+    label {
+      display: block; font-size: 11px; font-weight: 600; color: #555;
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+    }
+    input, select {
+      width: 100%; padding: 10px 14px; background: #1E1E1E;
+      border: 1px solid #2A2A2A; border-radius: 8px; color: #FFF;
+      font-size: 14px; outline: none; transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    input:focus, select:focus { border-color: #00B4D8; }
+    select option { background: #1E1E1E; }
+
+    /* ── Line items ── */
+    .li-header {
+      display: grid;
+      grid-template-columns: 2.5fr 1fr 1.5fr 1.5fr auto;
+      gap: 8px; margin-bottom: 6px;
+    }
+    .li-header span {
+      font-size: 11px; color: #555;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .li-row {
+      display: grid;
+      grid-template-columns: 2.5fr 1fr 1.5fr 1.5fr auto;
+      gap: 8px; align-items: start; margin-bottom: 8px;
+    }
+    .li-total-cell {
+      padding: 10px 14px; background: #1A1A1A;
+      border: 1px solid #222; border-radius: 8px;
+      font-size: 13px; color: #888;
+    }
+    .btn-remove {
+      background: none; border: none; color: #555;
+      font-size: 18px; cursor: pointer; padding: 8px; line-height: 1;
+    }
+    .btn-remove:hover { color: #E63946; }
+    .btn-add-line {
+      width: 100%; padding: 10px; background: none;
+      border: 1px dashed #2A2A2A; border-radius: 8px;
+      color: #555; font-size: 13px; cursor: pointer;
+      transition: all 0.2s; margin-top: 4px;
+    }
+    .btn-add-line:hover { border-color: #555; color: #FFF; }
+
+    .stock-warning {
+      font-size: 11px; color: #E63946; margin-top: 4px; display: none;
+    }
+    .stock-warning.visible { display: block; }
+
+    /* ── Totals ── */
+    .totals-card {
+      background: #1A1A1A; border: 1px solid #222;
+      border-radius: 8px; padding: 16px; margin-top: 16px;
+    }
+    .totals-row {
+      display: flex; justify-content: space-between;
+      font-size: 13px; color: #888; margin-bottom: 8px;
+    }
+    .totals-row.grand {
+      font-size: 18px; font-weight: 700; color: #FFF;
+      margin-bottom: 0; padding-top: 8px; border-top: 1px solid #333;
+    }
+    .totals-row span:last-child { color: #FFF; }
+
+    /* ── Buttons ── */
+    .btn-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+    .btn-primary {
+      padding: 12px 28px; background: #00B4D8; border: none;
+      border-radius: 8px; color: #000; font-size: 14px;
+      font-weight: 700; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-primary:hover { background: #0096B4; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      padding: 12px 24px; background: none;
+      border: 1px solid #2A2A2A; border-radius: 8px;
+      color: #888; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+      display: inline-flex; align-items: center;
+    }
+    .btn-secondary:hover { border-color: #555; color: #FFF; }
+
+    /* ── Success state ── */
+    .success-card {
+      background: #002A10; border: 1px solid #003A18;
+      border-radius: 10px; padding: 48px; text-align: center;
+      display: none;
+    }
+    .success-icon { font-size: 48px; margin-bottom: 16px; }
+    .success-title { font-size: 22px; font-weight: 700; color: #52B788; margin-bottom: 8px; }
+    .success-sub { font-size: 14px; color: #52B788; opacity: 0.7; margin-bottom: 24px; }
+    .success-so { font-family: monospace; font-size: 18px; color: #52B788; margin-bottom: 24px; }
+
+    /* ── Loading ── */
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid #000; border-top-color: transparent;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+      margin-right: 8px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 32px; right: 32px;
+      padding: 12px 20px; border-radius: 8px; font-size: 13px;
+      font-weight: 600; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none; z-index: 999;
+    }
+    .toast.success { background: #002A10; color: #52B788; border: 1px solid #003A18; }
+    .toast.error   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
+    .toast.visible { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-brand">OLS</div>
+    <div class="nav-links">
+      <a href="retailer-catalogue.html">Catalogue</a>
+      <a href="new-order.html" class="active">New Order</a>
+      <a href="order-history.html">My Orders</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user" id="navUser">—</span>
+      <button class="btn-logout" onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <h1>New Order</h1>
+      <p id="pageSubtitle">Loading...</p>
+    </div>
+
+    <!-- Order form -->
+    <div id="orderForm">
+      <div class="card">
+        <div class="card-title">Order Details</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Brand</label>
+            <select id="orderBrand" onchange="onBrandChange()">
+              <option value="Mofmofriends">Mofmofriends</option>
+              <option value="Stojo">Stojo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Order Type</label>
+            <select id="orderType" onchange="togglePORef()">
+              <option value="Retailer PO">Retailer PO</option>
+              <option value="Direct Buy">Direct Buy</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Order Date</label>
+            <input type="date" id="orderDate" />
+          </div>
+          <div class="form-group" id="poRefGroup">
+            <label>PO Reference</label>
+            <input type="text" id="poRef" placeholder="e.g. PO-2026-001" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notes (optional)</label>
+          <input type="text" id="orderNotes" placeholder="Any special instructions..." />
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Line Items</div>
+        <div class="li-header">
+          <span>SKU</span>
+          <span>QTY</span>
+          <span>Unit Price</span>
+          <span>Line Total</span>
+          <span></span>
+        </div>
+        <div id="lineItems"></div>
+        <button class="btn-add-line" onclick="addLineItem()">+ Add SKU</button>
+
+        <div class="totals-card">
+          <div class="totals-row">
+            <span>Subtotal</span>
+            <span id="totSubtotal">Rp 0</span>
+          </div>
+          <div class="totals-row">
+            <span id="ppnLabel">PPN (12%)</span>
+            <span id="totPPN">Rp 0</span>
+          </div>
+          <div class="totals-row grand">
+            <span>Total IDR</span>
+            <span id="totTotal">Rp 0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <a href="retailer-catalogue.html" class="btn-secondary">← Back to Catalogue</a>
+        <button class="btn-primary" id="submitBtn" onclick="submitOrder()">
+          Submit Order
+        </button>
+      </div>
+    </div>
+
+    <!-- Success state -->
+    <div class="success-card" id="successCard">
+      <div class="success-icon">✓</div>
+      <div class="success-title">Order Submitted!</div>
+      <div class="success-so" id="successSONumber"></div>
+      <div class="success-sub">Your order has been received and is pending approval.</div>
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:8px">
+        <a href="order-history.html" class="btn-secondary">View My Orders</a>
+        <a href="new-order.html" class="btn-primary" onclick="resetForm()">New Order</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── Auth guard ────────────────────────────────────────
+    if (!isLoggedIn() || isAdmin()) {
+      window.location.href = 'index.html';
+    }
+
+    const session = getSession();
+    document.getElementById('navUser').textContent =
+      session.name || session.retailerId;
+    document.getElementById('pageSubtitle').textContent =
+      `${session.retailerId} — Tier ${session.tier}`;
+
+    function logout() { clearSession(); window.location.href = 'index.html'; }
+
+    // ── State ─────────────────────────────────────────────
+    let catalogue = [];
+    let settings  = null;
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type} visible`;
+      setTimeout(() => t.classList.remove('visible'), 4000);
+    }
+
+    function formatIDR(n) {
+      return 'Rp ' + Number(n).toLocaleString('id-ID');
+    }
+
+    // ── Init ──────────────────────────────────────────────
+    async function init() {
+      document.getElementById('orderDate').value =
+        new Date().toISOString().split('T')[0];
+
+      try {
+        const [catData, setData] = await Promise.all([
+          apiGet('getCatalogue', { tier: session.tier }),
+          apiGet('getSettings'),
+        ]);
+        catalogue = Array.isArray(catData) ? catData : [];
+        settings  = setData;
+
+        // Update PPN label
+        document.getElementById('ppnLabel').textContent =
+          `PPN (${settings?.ppnPercent || 12}%)`;
+
+        // Check if coming from quick order
+        const quickSKU = sessionStorage.getItem('quick_sku');
+        const quickQTY = sessionStorage.getItem('quick_qty');
+        sessionStorage.removeItem('quick_sku');
+        sessionStorage.removeItem('quick_qty');
+
+        if (quickSKU) {
+          addLineItem(quickSKU, parseInt(quickQTY) || 1);
+        } else {
+          addLineItem();
+        }
+
+      } catch (err) {
+        showToast('Error loading data: ' + err.message, 'error');
+        addLineItem();
+      }
+    }
+
+    // ── Form helpers ──────────────────────────────────────
+    function togglePORef() {
+      const type = document.getElementById('orderType').value;
+      document.getElementById('poRefGroup').style.display =
+        type === 'Retailer PO' ? 'block' : 'none';
+    }
+
+    function onBrandChange() {
+      // Refresh SKU dropdowns when brand changes
+      const brand = document.getElementById('orderBrand').value;
+      document.querySelectorAll('.li-sku-select').forEach(sel => {
+        const skus = catalogue.filter(p => p.brand === brand);
+        sel.innerHTML = skus.map(p =>
+          `<option value="${p.sku}" data-price="${p.retailPriceIDR}"
+            data-avail="${p.availableStock}">${p.sku} — ${p.productName}</option>`
+        ).join('') || '<option value="">No SKUs for this brand</option>';
+      });
+      updateTotals();
+    }
+
+    function addLineItem(preselectedSKU = '', preselectedQTY = 1) {
+      const brand = document.getElementById('orderBrand').value;
+      const skus  = catalogue.filter(p => p.brand === brand);
+      const opts  = skus.map(p =>
+        `<option value="${p.sku}"
+          data-price="${p.retailPriceIDR}"
+          data-avail="${p.availableStock}"
+          ${p.sku === preselectedSKU ? 'selected' : ''}>
+          ${p.sku} — ${p.productName}
+        </option>`
+      ).join('') || '<option value="">No SKUs</option>';
+
+      const row = document.createElement('div');
+      row.innerHTML = `
+        <div class="li-row">
+          <select class="li-sku-select" onchange="onSKUChange(this); updateTotals()">
+            ${opts}
+          </select>
+          <input type="number" class="li-qty" value="${preselectedQTY}"
+            min="1" oninput="validateStock(this); updateTotals()" />
+          <div class="li-total-cell" data-unit>—</div>
+          <div class="li-total-cell" data-line>—</div>
+          <button class="btn-remove" onclick="removeRow(this)">×</button>
+        </div>
+        <div class="stock-warning" data-warn>
+          Only <span class="avail-count"></span> units available
+        </div>
+      `;
+      document.getElementById('lineItems').appendChild(row);
+      updateTotals();
+    }
+
+    function removeRow(btn) {
+      btn.closest('.li-row').nextElementSibling?.remove();
+      btn.closest('.li-row').remove();
+      updateTotals();
+    }
+
+    function onSKUChange(sel) {
+      validateStock(sel.closest('.li-row').querySelector('.li-qty'));
+    }
+
+    function validateStock(qtyInput) {
+      const row     = qtyInput.closest('.li-row');
+      const warn    = row.nextElementSibling;
+      const sel     = row.querySelector('.li-sku-select');
+      const opt     = sel?.options[sel.selectedIndex];
+      const avail   = parseInt(opt?.dataset.avail) || 0;
+      const qty     = parseInt(qtyInput.value) || 0;
+
+      if (qty > avail) {
+        qtyInput.style.borderColor = '#E63946';
+        if (warn) {
+          warn.classList.add('visible');
+          const span = warn.querySelector('.avail-count');
+          if (span) span.textContent = avail;
+        }
+      } else {
+        qtyInput.style.borderColor = '';
+        if (warn) warn.classList.remove('visible');
+      }
+    }
+
+    function updateTotals() {
+      const ppnPct = settings?.ppnPercent || 12;
+      let subtotal = 0;
+      let hasError = false;
+
+      document.querySelectorAll('.li-row').forEach(row => {
+        const sel     = row.querySelector('.li-sku-select');
+        const qty     = parseInt(row.querySelector('.li-qty')?.value) || 0;
+        const opt     = sel?.options[sel.selectedIndex];
+        const price   = parseFloat(opt?.dataset.price) || 0;
+        const avail   = parseInt(opt?.dataset.avail) || 0;
+        const unitEl  = row.querySelector('[data-unit]');
+        const lineEl  = row.querySelector('[data-line]');
+        const line    = price * qty;
+
+        if (unitEl) unitEl.textContent = formatIDR(price);
+        if (lineEl) lineEl.textContent = formatIDR(line);
+        subtotal += line;
+        if (qty > avail) hasError = true;
+      });
+
+      const ppn   = Math.round(subtotal * ppnPct / 100);
+      const total = subtotal + ppn;
+
+      document.getElementById('totSubtotal').textContent = formatIDR(subtotal);
+      document.getElementById('totPPN').textContent      = formatIDR(ppn);
+      document.getElementById('totTotal').textContent    = formatIDR(total);
+      document.getElementById('submitBtn').disabled      = hasError;
+    }
+
+    // ── Submit ────────────────────────────────────────────
+    async function submitOrder() {
+      const brand     = document.getElementById('orderBrand').value;
+      const orderType = document.getElementById('orderType').value;
+      const orderDate = document.getElementById('orderDate').value;
+      const poRef     = document.getElementById('poRef').value.trim();
+      const notes     = document.getElementById('orderNotes').value.trim();
+
+      if (!orderDate) { showToast('Order date is required', 'error'); return; }
+
+      const rows = document.querySelectorAll('#lineItems .li-row');
+      if (rows.length === 0) { showToast('Add at least one line item', 'error'); return; }
+
+      const lineItems = Array.from(rows).map(row => ({
+        sku : row.querySelector('.li-sku-select')?.value,
+        qty : Number(row.querySelector('.li-qty')?.value),
+      })).filter(i => i.sku && i.qty > 0);
+
+      if (lineItems.length === 0) { showToast('No valid line items', 'error'); return; }
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Submitting...';
+
+      try {
+        const res = await apiPost('createSO', {
+          brand,
+          retailerId : session.retailerId,
+          orderType,
+          orderDate,
+          poRef,
+          notes,
+          lineItems,
+          createdBy  : session.retailerId,
+        });
+
+        if (res.success) {
+          document.getElementById('orderForm').style.display    = 'none';
+          document.getElementById('successCard').style.display  = 'block';
+          document.getElementById('successSONumber').textContent = res.soNumber;
+        } else if (res.stockErrors) {
+          const msg = res.stockErrors.map(e =>
+            `${e.sku}: only ${e.available} available`
+          ).join(', ');
+          showToast('Stock issue: ' + msg, 'error');
+          btn.disabled = false;
+          btn.textContent = 'Submit Order';
+        } else {
+          showToast(res.error || 'Submit failed', 'error');
+          btn.disabled = false;
+          btn.textContent = 'Submit Order';
+        }
+      } catch (err) {
+        showToast('Connection error', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Submit Order';
+      }
+    }
+
+    function resetForm() {
+      document.getElementById('orderForm').style.display   = 'block';
+      document.getElementById('successCard').style.display = 'none';
+      document.getElementById('lineItems').innerHTML = '';
+      addLineItem();
+      updateTotals();
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
