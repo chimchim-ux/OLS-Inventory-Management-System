@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OLS — Dashboard</title>
+  <script src="config.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0A0A0A;
+      color: #FFFFFF;
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    nav {
+      background: #141414;
+      border-bottom: 1px solid #222;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-brand {
+      font-size: 16px;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: 1px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 4px;
+    }
+
+    .nav-links a {
+      color: #666;
+      text-decoration: none;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover { color: #FFF; background: #1E1E1E; }
+    .nav-links a.active { color: #FFF; background: #1E1E1E; }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-user {
+      font-size: 12px;
+      color: #555;
+    }
+
+    .btn-logout {
+      font-size: 12px;
+      color: #555;
+      background: none;
+      border: 1px solid #2A2A2A;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover { color: #FFF; border-color: #555; }
+
+    /* ── Page ── */
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    .page-header p {
+      font-size: 13px;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    /* ── Stat cards ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    .stat-sub {
+      font-size: 12px;
+      color: #444;
+      margin-top: 4px;
+    }
+
+    .stat-card.alert { border-color: #E63946; }
+    .stat-card.alert .stat-value { color: #E63946; }
+
+    /* ── Section ── */
+    .section {
+      margin-bottom: 32px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .badge-amber { background: #2A1F00; color: #F4A261; border: 1px solid #3A2A00; }
+    .badge-red   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
+    .badge-green { background: #002A10; color: #52B788; border: 1px solid #003A18; }
+    .badge-blue  { background: #001A2A; color: #00B4D8; border: 1px solid #00253A; }
+    .badge-grey  { background: #1A1A1A; color: #666;    border: 1px solid #2A2A2A; }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      background: #1A1A1A;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid #222;
+    }
+
+    tbody td {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #CCC;
+      border-bottom: 1px solid #1A1A1A;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #181818; }
+
+    .mono { font-family: 'Courier New', monospace; font-size: 12px; }
+
+    /* ── Two col layout ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    /* ── Empty state ── */
+    .empty {
+      padding: 32px;
+      text-align: center;
+      color: #444;
+      font-size: 13px;
+    }
+
+    /* ── Loading ── */
+    .loading {
+      padding: 32px;
+      text-align: center;
+      color: #444;
+      font-size: 13px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #333;
+      border-top-color: #00B4D8;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Link button ── */
+    .btn-link {
+      font-size: 12px;
+      color: #00B4D8;
+      text-decoration: none;
+      padding: 4px 10px;
+      border: 1px solid #00B4D8;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .btn-link:hover { background: #00B4D8; color: #000; }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="nav-brand">OLS</div>
+    <div class="nav-links">
+      <a href="dashboard.html" class="active">Dashboard</a>
+      <a href="catalogue.html">Catalogue</a>
+      <a href="inventory.html">Inventory</a>
+      <a href="packing-lists.html">Packing Lists</a>
+      <a href="sales-orders.html">Sales Orders</a>
+      <a href="settings.html">Settings</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user" id="navUser">Admin</span>
+      <button class="btn-logout" onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <!-- Page -->
+  <div class="page">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <p id="lastUpdated">Loading...</p>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="stat-grid">
+      <div class="stat-card" id="cardTotalOrders">
+        <div class="stat-label">Total Orders</div>
+        <div class="stat-value" id="statTotalOrders">—</div>
+        <div class="stat-sub" id="statPending">— pending approval</div>
+      </div>
+      <div class="stat-card" id="cardRevenue">
+        <div class="stat-label">Invoiced Revenue</div>
+        <div class="stat-value" id="statRevenue">—</div>
+        <div class="stat-sub">Invoiced SOs only</div>
+      </div>
+      <div class="stat-card" id="cardStock">
+        <div class="stat-label">Total SKUs</div>
+        <div class="stat-value" id="statSKUs">—</div>
+        <div class="stat-sub" id="statPendingPL">— pending receipt</div>
+      </div>
+      <div class="stat-card" id="cardAlerts">
+        <div class="stat-label">Reorder Alerts</div>
+        <div class="stat-value" id="statAlerts">—</div>
+        <div class="stat-sub">SKUs below threshold</div>
+      </div>
+    </div>
+
+    <!-- Two column -->
+    <div class="two-col">
+
+      <!-- Pending SOs -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Pending Approval</span>
+          <a href="sales-orders.html" class="btn-link">View all</a>
+        </div>
+        <div class="table-wrap">
+          <div class="loading" id="loadingPendingSOs">
+            <span class="spinner"></span>Loading...
+          </div>
+          <table id="tablePendingSOs" style="display:none">
+            <thead>
+              <tr>
+                <th>SO Number</th>
+                <th>Retailer</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="bodyPendingSOs"></tbody>
+          </table>
+          <div class="empty" id="emptyPendingSOs" style="display:none">
+            No orders pending approval
+          </div>
+        </div>
+      </div>
+
+      <!-- Reorder alerts -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Reorder Alerts</span>
+          <a href="inventory.html" class="btn-link">View stock</a>
+        </div>
+        <div class="table-wrap">
+          <div class="loading" id="loadingAlerts">
+            <span class="spinner"></span>Loading...
+          </div>
+          <table id="tableAlerts" style="display:none">
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>Product</th>
+                <th>Available</th>
+              </tr>
+            </thead>
+            <tbody id="bodyAlerts"></tbody>
+          </table>
+          <div class="empty" id="emptyAlerts" style="display:none">
+            All SKUs above threshold ✓
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Recent activity -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">Recent Activity</span>
+      </div>
+      <div class="table-wrap">
+        <div class="loading" id="loadingActivity">
+          <span class="spinner"></span>Loading...
+        </div>
+        <table id="tableActivity" style="display:none">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Action</th>
+              <th>Detail</th>
+              <th>User</th>
+              <th>Reference</th>
+            </tr>
+          </thead>
+          <tbody id="bodyActivity"></tbody>
+        </table>
+        <div class="empty" id="emptyActivity" style="display:none">
+          No activity yet
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock summary -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">Stock Summary</span>
+        <a href="inventory.html" class="btn-link">Full inventory</a>
+      </div>
+      <div class="table-wrap">
+        <div class="loading" id="loadingStock">
+          <span class="spinner"></span>Loading...
+        </div>
+        <table id="tableStock" style="display:none">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Product</th>
+              <th>Brand</th>
+              <th>Physical</th>
+              <th>Committed</th>
+              <th>Available</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="bodyStock"></tbody>
+        </table>
+        <div class="empty" id="emptyStock" style="display:none">
+          No products in catalogue
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── Auth guard ────────────────────────────────────────
+    if (!isLoggedIn() || !isAdmin()) {
+      window.location.href = 'index.html';
+    }
+
+    // ── Init ──────────────────────────────────────────────
+    document.getElementById('navUser').textContent = 'Admin';
+
+    function logout() {
+      clearSession();
+      window.location.href = 'index.html';
+    }
+
+    // ── Format helpers ────────────────────────────────────
+    function formatIDR(n) {
+      return 'Rp ' + Number(n).toLocaleString('id-ID');
+    }
+
+    function formatTime(ts) {
+      if (!ts) return '—';
+      const d = new Date(ts);
+      return d.toLocaleDateString('id-ID', {
+        day: '2-digit', month: 'short', year: 'numeric'
+      }) + ' ' + d.toLocaleTimeString('id-ID', {
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    function statusBadge(status) {
+      const map = {
+        'Draft'            : 'badge-grey',
+        'Pending Approval' : 'badge-amber',
+        'Confirmed'        : 'badge-blue',
+        'Shipped'          : 'badge-green',
+        'Invoiced'         : 'badge-green',
+        'Cancelled'        : 'badge-red',
+        'Pending Receipt'  : 'badge-amber',
+        'Received'         : 'badge-green',
+      };
+      const cls = map[status] || 'badge-grey';
+      return `<span class="badge ${cls}">${status}</span>`;
+    }
+
+    function actionBadge(action) {
+      const map = {
+        'CREATE_SO'      : 'badge-blue',
+        'UPDATE_STATUS'  : 'badge-amber',
+        'CREATE_PL'      : 'badge-blue',
+        'RECEIVE_PL'     : 'badge-green',
+        'ROTATE_CODES'   : 'badge-grey',
+        'SYNC_IMAGES'    : 'badge-grey',
+        'UPDATE_SETTINGS': 'badge-grey',
+      };
+      const cls = map[action] || 'badge-grey';
+      return `<span class="badge ${cls}">${action}</span>`;
+    }
+
+    // ── Load dashboard ────────────────────────────────────
+    async function loadDashboard() {
+      try {
+        const data = await apiGet('getDashboard');
+
+        // Update timestamp
+        document.getElementById('lastUpdated').textContent =
+          'Last updated: ' + new Date().toLocaleTimeString('id-ID');
+
+        // ── Stat cards ──
+        const so = data.soSummary;
+        document.getElementById('statTotalOrders').textContent =
+          so.totalOrders || 0;
+        document.getElementById('statPending').textContent =
+          (data.pendingSOs?.length || 0) + ' pending approval';
+        document.getElementById('statRevenue').textContent =
+          formatIDR(so.totalRevenue || 0);
+        document.getElementById('statSKUs').textContent =
+          data.stockSummary?.length || 0;
+        document.getElementById('statPendingPL').textContent =
+          (data.pendingPLs?.length || 0) + ' pending receipt';
+
+        const alertCount = data.reorderAlerts?.length || 0;
+        document.getElementById('statAlerts').textContent = alertCount;
+        if (alertCount > 0) {
+          document.getElementById('cardAlerts').classList.add('alert');
+        }
+
+        // ── Pending SOs ──
+        document.getElementById('loadingPendingSOs').style.display = 'none';
+        const pendingSOs = data.pendingSOs || [];
+        if (pendingSOs.length > 0) {
+          document.getElementById('tablePendingSOs').style.display = 'table';
+          document.getElementById('bodyPendingSOs').innerHTML =
+            pendingSOs.slice(0, 5).map(so => `
+              <tr>
+                <td class="mono">${so.soNumber}</td>
+                <td>${so.retailerId}</td>
+                <td>${formatIDR(so.totalIDR)}</td>
+              </tr>
+            `).join('');
+        } else {
+          document.getElementById('emptyPendingSOs').style.display = 'block';
+        }
+
+        // ── Reorder alerts ──
+        document.getElementById('loadingAlerts').style.display = 'none';
+        const alerts = data.reorderAlerts || [];
+        if (alerts.length > 0) {
+          document.getElementById('tableAlerts').style.display = 'table';
+          document.getElementById('bodyAlerts').innerHTML =
+            alerts.map(a => `
+              <tr>
+                <td class="mono">${a.sku}</td>
+                <td>${a.productName}</td>
+                <td style="color:#E63946">${a.availableStock}</td>
+              </tr>
+            `).join('');
+        } else {
+          document.getElementById('emptyAlerts').style.display = 'block';
+        }
+
+        // ── Recent activity ──
+        document.getElementById('loadingActivity').style.display = 'none';
+        const activity = data.recentActivity || [];
+        if (activity.length > 0) {
+          document.getElementById('tableActivity').style.display = 'table';
+          document.getElementById('bodyActivity').innerHTML =
+            activity.map(a => `
+              <tr>
+                <td style="color:#555;font-size:12px">${formatTime(a.timestamp)}</td>
+                <td>${actionBadge(a.action)}</td>
+                <td>${a.detail}</td>
+                <td style="color:#555">${a.user}</td>
+                <td class="mono">${a.referenceId || '—'}</td>
+              </tr>
+            `).join('');
+        } else {
+          document.getElementById('emptyActivity').style.display = 'block';
+        }
+
+        // ── Stock summary ──
+        document.getElementById('loadingStock').style.display = 'none';
+        const stock = data.stockSummary || [];
+        if (stock.length > 0) {
+          document.getElementById('tableStock').style.display = 'table';
+          document.getElementById('bodyStock').innerHTML =
+            stock.map(s => `
+              <tr>
+                <td class="mono">${s.sku}</td>
+                <td>${s.productName}</td>
+                <td style="color:#555">${s.brand}</td>
+                <td>${s.physicalStock}</td>
+                <td style="color:#555">${s.committedUnits}</td>
+                <td style="color:${s.availableStock <= 0 ? '#E63946' : '#52B788'}">
+                  ${s.availableStock}
+                </td>
+                <td>${s.reorderFlag === 'REORDER'
+                  ? '<span class="badge badge-red">REORDER</span>'
+                  : s.reorderFlag === 'OK'
+                  ? '<span class="badge badge-green">OK</span>'
+                  : '<span class="badge badge-grey">—</span>'
+                }</td>
+              </tr>
+            `).join('');
+        } else {
+          document.getElementById('emptyStock').style.display = 'block';
+        }
+
+      } catch (err) {
+        document.getElementById('lastUpdated').textContent =
+          'Error loading dashboard — ' + err.message;
+      }
+    }
+
+    loadDashboard();
+  </script>
+
+</body>
+</html>
