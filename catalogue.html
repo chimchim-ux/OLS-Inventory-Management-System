@@ -389,7 +389,7 @@
 
   <script>
     // ── Auth guard ────────────────────────────────────────
-    if (!isLoggedIn()) {
+    if (!isLoggedIn() || (!isAdmin() && !isViewer())) {
       window.location.href = 'index.html';
     }
 
