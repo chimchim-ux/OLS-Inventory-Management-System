@@ -220,13 +220,15 @@
     }
 
     function redirectByRole(role) {
-      const r = role || sessionStorage.getItem('ols_role');
-      if (r === 'admin') {
-        window.location.href = 'dashboard.html';
-      } else {
-        window.location.href = 'retailer-catalogue.html';
-      }
-    }
+  const r = role || sessionStorage.getItem('ols_role');
+  if (r === 'admin') {
+    window.location.href = 'dashboard.html';
+  } else if (r === 'viewer') {
+    window.location.href = 'dashboard.html';
+  } else {
+    window.location.href = 'retailer-catalogue.html';
+  }
+}
 
     // Allow Enter key to submit
     document.getElementById('code').addEventListener('keydown', function(e) {
