@@ -224,7 +224,7 @@
 
   <script>
     // ── Auth guard ────────────────────────────────────────
-    if (!isLoggedIn() || !isAdmin()) {
+    if (!isLoggedIn() || (!isAdmin() && !isViewer())) {
       window.location.href = 'index.html';
     }
     function logout() { clearSession(); window.location.href = 'index.html'; }
