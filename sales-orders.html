@@ -419,7 +419,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    if (!isLoggedIn() || !isAdmin()) { window.location.href = 'index.html'; }
+    if (!isLoggedIn() || (!isAdmin() && !isViewer())) { window.location.href = 'index.html'; }
     function logout() { clearSession(); window.location.href = 'index.html'; }
 
     // ── State ─────────────────────────────────────────────
