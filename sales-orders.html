@@ -42,7 +42,6 @@
     .page-header h1 { font-size: 24px; font-weight: 700; }
     .page-header p { font-size: 13px; color: #555; margin-top: 4px; }
 
-    /* ── Buttons ── */
     .btn-primary {
       padding: 10px 20px; background: #00B4D8; border: none;
       border-radius: 8px; color: #000; font-size: 13px;
@@ -65,7 +64,6 @@
     }
     .btn-danger:hover { background: #3A0000; }
 
-    /* ── Filters ── */
     .filters {
       display: flex; gap: 8px; margin-bottom: 20px;
       align-items: center; flex-wrap: wrap;
@@ -86,7 +84,6 @@
     .search-input:focus { border-color: #00B4D8; }
     .search-input::placeholder { color: #444; }
 
-    /* ── Table ── */
     .table-wrap {
       background: #141414; border: 1px solid #222;
       border-radius: 10px; overflow: hidden;
@@ -106,18 +103,13 @@
     tbody tr:hover td { background: #181818; }
     .mono { font-family: 'Courier New', monospace; font-size: 12px; }
 
-    /* ── Badges ── */
-    .badge {
-      font-size: 11px; padding: 3px 8px;
-      border-radius: 20px; font-weight: 600;
-    }
+    .badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
     .badge-grey  { background: #1A1A1A; color: #666;    border: 1px solid #2A2A2A; }
     .badge-amber { background: #2A1F00; color: #F4A261; border: 1px solid #3A2A00; }
     .badge-blue  { background: #001A2A; color: #00B4D8; border: 1px solid #00253A; }
     .badge-green { background: #002A10; color: #52B788; border: 1px solid #003A18; }
     .badge-red   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
 
-    /* ── Modal ── */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.85);
       display: flex; align-items: center; justify-content: center;
@@ -145,7 +137,6 @@
       position: sticky; bottom: 0; background: #141414;
     }
 
-    /* ── Form ── */
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .form-group { margin-bottom: 16px; }
     label {
@@ -159,29 +150,20 @@
       font-family: inherit;
     }
     input:focus, select:focus { border-color: #00B4D8; }
-    input.field-error { border-color: #E63946; }
     select option { background: #1E1E1E; }
-    .field-error-msg {
-      font-size: 11px; color: #E63946; margin-top: 4px; display: none;
-    }
-    .field-error-msg.visible { display: block; }
 
-    /* ── Line items builder ── */
     .section-divider {
       font-size: 12px; font-weight: 600; color: #555;
       text-transform: uppercase; letter-spacing: 1px;
-      margin: 20px 0 12px; padding-bottom: 8px;
-      border-bottom: 1px solid #222;
+      margin: 20px 0 12px; padding-bottom: 8px; border-bottom: 1px solid #222;
     }
     .li-header {
-      display: grid;
-      grid-template-columns: 2.5fr 1fr 1.5fr 1.5fr auto;
+      display: grid; grid-template-columns: 2.5fr 1fr 1.5fr 1.5fr auto;
       gap: 8px; margin-bottom: 6px;
     }
     .li-header span { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; }
     .li-row {
-      display: grid;
-      grid-template-columns: 2.5fr 1fr 1.5fr 1.5fr auto;
+      display: grid; grid-template-columns: 2.5fr 1fr 1.5fr 1.5fr auto;
       gap: 8px; align-items: start; margin-bottom: 8px;
     }
     .li-row input { font-size: 13px; }
@@ -191,8 +173,7 @@
     }
     .btn-remove {
       background: none; border: none; color: #555;
-      font-size: 18px; cursor: pointer; padding: 8px;
-      line-height: 1;
+      font-size: 18px; cursor: pointer; padding: 8px; line-height: 1;
     }
     .btn-remove:hover { color: #E63946; }
     .btn-add-line {
@@ -203,10 +184,9 @@
     }
     .btn-add-line:hover { border-color: #555; color: #FFF; }
 
-    /* ── SO totals ── */
     .so-totals {
-      background: #1A1A1A; border: 1px solid #222; border-radius: 8px;
-      padding: 16px; margin-top: 16px;
+      background: #1A1A1A; border: 1px solid #222;
+      border-radius: 8px; padding: 16px; margin-top: 16px;
     }
     .so-totals-row {
       display: flex; justify-content: space-between;
@@ -218,17 +198,10 @@
     }
     .so-totals-row span:last-child { color: #FFF; }
 
-    /* ── Detail view ── */
     .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
     .detail-item label { margin-bottom: 4px; }
     .detail-item .val { font-size: 14px; color: #FFF; }
 
-    /* ── Status flow ── */
-    .status-flow {
-      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;
-    }
-
-    /* ── Loading/Empty ── */
     .loading { padding: 48px; text-align: center; color: #444; font-size: 13px; }
     .empty   { padding: 48px; text-align: center; color: #444; font-size: 13px; }
     .spinner {
@@ -239,7 +212,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Toast ── */
     .toast {
       position: fixed; bottom: 32px; right: 32px;
       padding: 12px 20px; border-radius: 8px; font-size: 13px;
@@ -264,7 +236,7 @@
       <a href="settings.html">Settings</a>
     </div>
     <div class="nav-right">
-      <span class="nav-user">Admin</span>
+      <span class="nav-user" id="navUser">—</span>
       <button class="btn-logout" onclick="logout()">Log out</button>
     </div>
   </nav>
@@ -275,10 +247,12 @@
         <h1>Sales Orders</h1>
         <p id="soCount">Loading...</p>
       </div>
-      <button class="btn-primary" onclick="openCreateModal()">+ New SO</button>
+      <button class="btn-primary" id="btnNewSO"
+        onclick="openCreateModal()" style="display:none">
+        + New SO
+      </button>
     </div>
 
-    <!-- Filters -->
     <div class="filters">
       <button class="filter-btn active" onclick="filterStatus('all', this)">All</button>
       <button class="filter-btn" onclick="filterStatus('Draft', this)">Draft</button>
@@ -291,7 +265,6 @@
         placeholder="Search SO, retailer..." oninput="renderSOs()">
     </div>
 
-    <!-- Table -->
     <div class="table-wrap">
       <div class="loading" id="loadingState">
         <span class="spinner"></span>Loading sales orders...
@@ -324,7 +297,6 @@
         <button class="modal-close" onclick="closeCreateModal()">×</button>
       </div>
       <div class="modal-body">
-
         <div class="form-row">
           <div class="form-group">
             <label>Brand</label>
@@ -340,7 +312,6 @@
             </select>
           </div>
         </div>
-
         <div class="form-row">
           <div class="form-group">
             <label>Order Type</label>
@@ -354,44 +325,31 @@
             <input type="date" id="newOrderDate" />
           </div>
         </div>
-
         <div class="form-group" id="poRefGroup">
           <label>PO Reference</label>
           <input type="text" id="newPORef" placeholder="e.g. PO-2026-001" />
         </div>
-
         <div class="form-group">
           <label>Notes (optional)</label>
           <input type="text" id="newNotes" placeholder="Any additional notes..." />
         </div>
-
         <div class="section-divider">Line Items</div>
-
         <div class="li-header">
-          <span>SKU</span>
-          <span>QTY</span>
-          <span>Unit Price</span>
-          <span>Line Total</span>
-          <span></span>
+          <span>SKU</span><span>QTY</span>
+          <span>Unit Price</span><span>Line Total</span><span></span>
         </div>
         <div id="lineItems"></div>
         <button class="btn-add-line" onclick="addLineItem()">+ Add SKU</button>
-
-        <div class="so-totals" id="soTotals">
+        <div class="so-totals">
           <div class="so-totals-row">
-            <span>Subtotal</span>
+            <span>Subtotal (inc. PPN)</span>
             <span id="totSubtotal">Rp 0</span>
-          </div>
-          <div class="so-totals-row">
-            <span>PPN (12%)</span>
-            <span id="totPPN">Rp 0</span>
           </div>
           <div class="so-totals-row total">
             <span>Total IDR</span>
             <span id="totTotal">Rp 0</span>
           </div>
         </div>
-
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeCreateModal()">Cancel</button>
@@ -419,17 +377,28 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    if (!isLoggedIn() || (!isAdmin() && !isViewer())) { window.location.href = 'index.html'; }
+    // ── Auth guard ────────────────────────────────────────
+    if (!isLoggedIn() || (!isAdmin() && !isViewer())) {
+      window.location.href = 'index.html';
+    }
+
+    // Show New SO button for admin only
+    if (isAdmin()) {
+      document.getElementById('btnNewSO').style.display = 'inline-block';
+    }
+
+    // Set nav user label
+    document.getElementById('navUser').textContent = isViewer() ? 'Viewer' : 'Admin';
+
     function logout() { clearSession(); window.location.href = 'index.html'; }
 
     // ── State ─────────────────────────────────────────────
-    let allSOs      = [];
-    let retailers   = [];
-    let catalogue   = [];
-    let settings    = null;
+    let allSOs        = [];
+    let retailers     = [];
+    let catalogue     = [];
+    let settings      = null;
     let currentStatus = 'all';
 
-    // ── Toast ─────────────────────────────────────────────
     function showToast(msg, type = 'success') {
       const t = document.getElementById('toast');
       t.textContent = msg;
@@ -437,7 +406,6 @@
       setTimeout(() => t.classList.remove('visible'), 4000);
     }
 
-    // ── Format ────────────────────────────────────────────
     function formatIDR(n) {
       return 'Rp ' + Number(n).toLocaleString('id-ID');
     }
@@ -464,9 +432,8 @@
     // ── Load data ─────────────────────────────────────────
     async function init() {
       try {
-        const [soData, retData, catData, setData] = await Promise.all([
+        const [soData, catData, setData] = await Promise.all([
           apiGet('getSalesOrders'),
-          apiGet('getCatalogue'),
           apiGet('getCatalogue'),
           apiGet('getSettings'),
         ]);
@@ -475,14 +442,12 @@
         catalogue = Array.isArray(catData) ? catData : [];
         settings  = setData;
 
-        // Load retailers from retailer directory
-        const rtlRes = await fetch(
-          `${CONFIG.API_URL}?action=getSalesOrders&code=${sessionStorage.getItem('ols_code')}`
-        );
-
         document.getElementById('loadingState').style.display = 'none';
         renderSOs();
-        populateRetailerDropdown();
+
+        if (isAdmin()) {
+          populateRetailerDropdown();
+        }
       } catch (err) {
         document.getElementById('loadingState').textContent =
           'Error loading data: ' + err.message;
@@ -490,27 +455,23 @@
     }
 
     async function populateRetailerDropdown() {
-      // Fetch retailer list via a catalogue call — retailers come from
-      // the Retailer Directory which we read via auth'd GET
       try {
-        const res = await fetch(
+        const res  = await fetch(
           `${CONFIG.API_URL}?action=getRetailerList&code=${sessionStorage.getItem('ols_code')}`
         );
         const data = await res.json();
-        retailers = Array.isArray(data) ? data : [];
+        retailers  = Array.isArray(data) ? data : [];
       } catch {
         retailers = [];
       }
 
-      const sel = document.getElementById('newRetailer');
-      // Fallback: use known test retailers if API not yet wired
       const rtlOptions = retailers.length > 0 ? retailers : [
         { retailerId: 'RTL-000', name: 'Direct Sale' },
         { retailerId: 'RTL-001', name: 'Test Retailer One' },
         { retailerId: 'RTL-002', name: 'Test Retailer Two' },
       ];
 
-      sel.innerHTML = rtlOptions.map(r =>
+      document.getElementById('newRetailer').innerHTML = rtlOptions.map(r =>
         `<option value="${r.retailerId}">${r.retailerId} — ${r.name}</option>`
       ).join('');
     }
@@ -586,19 +547,17 @@
         type === 'Retailer PO' ? 'block' : 'none';
     }
 
-    function onRetailerChange() {
-      // Could auto-set tier based on retailer — future enhancement
-    }
+    function onRetailerChange() {}
 
     function refreshLineItemSKUs() {
-      // Refresh SKU dropdowns when brand changes
-      const rows = document.querySelectorAll('.li-sku-select');
       const brand = document.getElementById('newBrand').value;
       const skus  = catalogue.filter(p => p.brand === brand);
       const opts  = skus.map(p =>
         `<option value="${p.sku}">${p.sku} — ${p.productName}</option>`
       ).join('');
-      rows.forEach(sel => { sel.innerHTML = opts; });
+      document.querySelectorAll('.li-sku-select').forEach(sel => {
+        sel.innerHTML = opts;
+      });
       updateTotals();
     }
 
@@ -612,11 +571,9 @@
       const row = document.createElement('div');
       row.className = 'li-row';
       row.innerHTML = `
-        <select class="li-sku-select" onchange="updateTotals()">
-          ${opts}
-        </select>
+        <select class="li-sku-select" onchange="updateTotals()">${opts}</select>
         <input type="number" class="li-qty" value="1" min="1"
-          oninput="validateQTY(this); updateTotals()" />
+          oninput="updateTotals()" />
         <div class="li-total" data-unit>—</div>
         <div class="li-total" data-line>—</div>
         <button class="btn-remove" onclick="removeLineItem(this)">×</button>
@@ -630,63 +587,45 @@
       updateTotals();
     }
 
-    function validateQTY(input) {
-      // Stock validation placeholder — full check on server
-      input.classList.remove('field-error');
-    }
-
-    function getRetailerTier() {
-      // Default to T2 for now — could be read from retailer dropdown selection
-      return 'T2';
-    }
-
-    function calcWholesaleIDR(costSGD, tier) {
+    function calcPriceIDR(costSGD, tier) {
       const margins = {
         T1: settings?.tierMargins?.T1 || 30,
         T2: settings?.tierMargins?.T2 || 35,
         T3: settings?.tierMargins?.T3 || 37.5,
         T4: settings?.tierMargins?.T4 || 45,
       };
-      const rate   = settings?.sgdIdrRate || 14000;
-      const margin = margins[tier] || 35;
-      const raw    = costSGD * rate * (1 + margin / 100);
-      return Math.round(raw / 100) * 100;
+      const rate    = settings?.sgdIdrRate  || 14000;
+      const ppnPct  = settings?.ppnPercent  || 12;
+      const margin  = margins[tier] || 35;
+      const wholesale = costSGD * rate * (1 + margin / 100);
+      const incPPN    = wholesale * (1 + ppnPct / 100);
+      return Math.round(incPPN / 1000) * 1000;
     }
 
     function updateTotals() {
-      const tier  = getRetailerTier();
-      const ppnPct = settings?.ppnPercent || 12;
+      const tier = 'T2'; // preview only — server applies correct tier per retailer
       let subtotal = 0;
 
       document.querySelectorAll('.li-row').forEach(row => {
-        const sel      = row.querySelector('.li-sku-select');
-        const qtyInput = row.querySelector('.li-qty');
-        const unitEl   = row.querySelector('[data-unit]');
-        const lineEl   = row.querySelector('[data-line]');
-
-        if (!sel || !sel.value) return;
-
-        const opt     = sel.options[sel.selectedIndex];
-        const costSGD = parseFloat(opt.dataset.cost) || 0;
-        const qty     = parseInt(qtyInput.value) || 0;
-        const unit    = calcWholesaleIDR(costSGD, tier);
-        const line    = unit * qty;
-
-        unitEl.textContent = formatIDR(unit);
-        lineEl.textContent = formatIDR(line);
+        const sel    = row.querySelector('.li-sku-select');
+        const qty    = parseInt(row.querySelector('.li-qty')?.value) || 0;
+        const opt    = sel?.options[sel.selectedIndex];
+        const cost   = parseFloat(opt?.dataset.cost) || 0;
+        const unit   = calcPriceIDR(cost, tier);
+        const line   = unit * qty;
+        const unitEl = row.querySelector('[data-unit]');
+        const lineEl = row.querySelector('[data-line]');
+        if (unitEl) unitEl.textContent = formatIDR(unit);
+        if (lineEl) lineEl.textContent = formatIDR(line);
         subtotal += line;
       });
 
-      const ppn   = Math.round(subtotal * ppnPct / 100);
-      const total = subtotal + ppn;
-
       document.getElementById('totSubtotal').textContent = formatIDR(subtotal);
-      document.getElementById('totPPN').textContent      = formatIDR(ppn);
-      document.getElementById('totTotal').textContent    = formatIDR(total);
+      document.getElementById('totTotal').textContent    = formatIDR(subtotal);
     }
 
     async function submitCreate() {
-      const brand     = document.getElementById('newBrand').value;
+      const brand      = document.getElementById('newBrand').value;
       const retailerId = document.getElementById('newRetailer').value;
       const orderType  = document.getElementById('newOrderType').value;
       const orderDate  = document.getElementById('newOrderDate').value;
@@ -704,7 +643,7 @@
         qty : Number(row.querySelector('.li-qty').value),
       })).filter(i => i.sku && i.qty > 0);
 
-      if (lineItems.length === 0) { showToast('Add at least one valid line item', 'error'); return; }
+      if (lineItems.length === 0) { showToast('No valid line items', 'error'); return; }
 
       const btn = document.getElementById('createBtn');
       btn.disabled = true;
@@ -722,7 +661,6 @@
           allSOs = await apiGet('getSalesOrders') || [];
           renderSOs();
         } else if (res.stockErrors) {
-          // Stock validation errors
           const msgs = res.stockErrors.map(e =>
             `${e.sku}: requested ${e.requested}, only ${e.available} available`
           ).join('\n');
@@ -748,10 +686,9 @@
       document.getElementById('detailModal').style.display = 'flex';
 
       try {
-        const data = await apiGet('getSODetail', { soNumber });
-        const h    = data.header;
+        const data  = await apiGet('getSODetail', { soNumber });
+        const h     = data.header;
         const items = data.lineItems || [];
-        const ppnPct = settings?.ppnPercent || 12;
 
         document.getElementById('detailBody').innerHTML = `
           <div class="detail-grid">
@@ -779,13 +716,11 @@
               <label>Tier</label>
               <div class="val">${h.tier}</div>
             </div>
-            ${h.poRef ? `
-            <div class="detail-item">
+            ${h.poRef ? `<div class="detail-item">
               <label>PO Reference</label>
               <div class="val mono">${h.poRef}</div>
             </div>` : ''}
-            ${h.notes ? `
-            <div class="detail-item">
+            ${h.notes ? `<div class="detail-item">
               <label>Notes</label>
               <div class="val">${h.notes}</div>
             </div>` : ''}
@@ -798,8 +733,9 @@
                 <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">SKU</th>
                 <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Description</th>
                 <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">QTY</th>
-                <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Unit Price</th>
-                <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Line Total</th>
+                <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Unit Price (inc. PPN)</th>
+                <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Discount %</th>
+                <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Final Total</th>
               </tr>
             </thead>
             <tbody>
@@ -809,21 +745,25 @@
                   <td style="padding:8px;font-size:13px;border-bottom:1px solid #1A1A1A">${i.description}</td>
                   <td style="padding:8px;font-size:13px;border-bottom:1px solid #1A1A1A">${i.qty}</td>
                   <td style="padding:8px;font-size:13px;border-bottom:1px solid #1A1A1A">${formatIDR(i.unitPrice)}</td>
-                  <td style="padding:8px;font-size:13px;font-weight:600;border-bottom:1px solid #1A1A1A">${formatIDR(i.lineTotal)}</td>
+                  <td style="padding:8px;font-size:13px;border-bottom:1px solid #1A1A1A;color:${i.discountPct > 0 ? '#52B788' : '#555'}">
+                    ${i.discountPct > 0 ? i.discountPct + '%' : '0%'}
+                  </td>
+                  <td style="padding:8px;font-size:13px;font-weight:600;border-bottom:1px solid #1A1A1A">${formatIDR(i.finalTotal || i.lineTotal)}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
 
           <div class="so-totals">
+            ${h.discountAmt > 0 ? `
             <div class="so-totals-row">
-              <span>Subtotal</span>
+              <span>Subtotal (inc. PPN)</span>
               <span>${formatIDR(h.subtotal)}</span>
             </div>
-            <div class="so-totals-row">
-              <span>PPN (${ppnPct}%)</span>
-              <span>${formatIDR(h.ppn)}</span>
-            </div>
+            <div class="so-totals-row" style="color:#52B788">
+              <span>Discount (${h.discountPct}%)</span>
+              <span>-${formatIDR(h.discountAmt)}</span>
+            </div>` : ''}
             <div class="so-totals-row total">
               <span>Total IDR</span>
               <span>${formatIDR(h.totalIDR)}</span>
@@ -831,9 +771,8 @@
           </div>
         `;
 
-        // Build action buttons based on current status
-        const footer = buildStatusActions(h.soNumber, h.status);
-        document.getElementById('detailFooter').innerHTML = footer;
+        document.getElementById('detailFooter').innerHTML =
+          buildStatusActions(h.soNumber, h.status);
 
       } catch (err) {
         document.getElementById('detailBody').innerHTML =
@@ -851,9 +790,12 @@
         'Cancelled'        : [],
       };
 
-      const next = transitions[status] || [];
       let btns = `<button class="btn-secondary" onclick="closeDetailModal()">Close</button>`;
 
+      // Viewer sees Close only
+      if (isViewer()) return btns;
+
+      const next = transitions[status] || [];
       next.forEach(newStatus => {
         if (newStatus === 'Cancelled') {
           btns += `<button class="btn-danger"
@@ -875,7 +817,6 @@
       document.getElementById('detailModal').style.display = 'none';
     }
 
-    // ── Update status ─────────────────────────────────────
     async function updateStatus(soNumber, newStatus) {
       const confirm_msg = newStatus === 'Cancelled'
         ? `Cancel ${soNumber}? This cannot be undone.`
@@ -905,6 +846,5 @@
 
     init();
   </script>
-
 </body>
 </html>
