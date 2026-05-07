@@ -282,19 +282,10 @@
       window.location.href = 'index.html';
     }
 
-    const session = getSession();
+        const session = getSession();
     document.getElementById('navUser').textContent =
       session.name || session.retailerId;
-    document.getElementById('pageSubtitle').textContent =
-      `${session.retailerId} — Tier ${session.tier}`;
-
-      // ── Session Validation ───────────────────────────────
-if (!session.tier) {
-  console.error('Retailer session missing tier:', session);
-  showToast('Account configuration error. Please contact admin.', 'error');
-  // Fallback: try to reload session
-  setTimeout(() => window.location.reload(), 2000);
-}
+    // Don't set pageSubtitle yet - do it in init() after validation
 
     function logout() { clearSession(); window.location.href = 'index.html'; }
 
@@ -315,27 +306,43 @@ if (!session.tier) {
 
     // ── Init ──────────────────────────────────────────────
     async function init() {
-  document.getElementById('orderDate').value =
-    new Date().toISOString().split('T')[0];
+      // 1. Validate session FIRST
+      if (!session.tier) {
+        console.error('Retailer session missing tier:', session);
+        showToast('Account configuration error. Please contact admin.', 'error');
+        setTimeout(() => window.location.reload(), 2000);
+        return;  // Stop execution
+      }
 
-  try {
-    console.log('Loading catalogue with tier:', session.tier);
-    
-    const [catData, setData] = await Promise.all([
-      apiGet('getCatalogue', { tier: session.tier }),
-      apiGet('getSettings'),
-    ]);
-    
-    console.log('Catalogue loaded:', catData?.length, 'products');
-    console.log('Sample product:', catData?.[0]);
-    
-    catalogue = Array.isArray(catData) ? catData : [];
-    settings  = setData;
+      // 2. Set page subtitle now that tier is confirmed
+      document.getElementById('pageSubtitle').textContent =
+        `${session.retailerId} — Tier ${session.tier}`;
 
-    // Update PPN label
-    document.getElementById('ppnLabel').textContent =
-      `PPN (${settings?.ppnPercent || 12}%)`;
+      // 3. Debug logs
+      console.log('Session:', session);
+      console.log('Tier:', session.tier);
 
+      // 4. Set default order date
+      document.getElementById('orderDate').value =
+        new Date().toISOString().split('T')[0];
+
+      try {
+        console.log('Loading catalogue with tier:', session.tier);
+        
+        const [catData, setData] = await Promise.all([
+          apiGet('getCatalogue', { tier: session.tier }),  // ← Now inside try/catch!
+          apiGet('getSettings'),
+        ]);
+        
+        console.log('Catalogue loaded:', catData?.length, 'products');
+        console.log('Sample product:', catData?.[0]);
+        
+        catalogue = Array.isArray(catData) ? catData : [];
+        settings  = setData;
+
+        // Update PPN label
+        document.getElementById('ppnLabel').textContent =
+          `PPN (${settings?.ppnPercent || 12}%)`;
 
         // Check if coming from quick order
         const quickSKU = sessionStorage.getItem('quick_sku');
