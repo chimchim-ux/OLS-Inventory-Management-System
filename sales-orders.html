@@ -590,60 +590,151 @@
     }
 
     function getRetailerTier(retailerId) {
-     const retailer = retailers.find(r => r.retailerId === retailerId);
-     return retailer?.tier || 'T2'; // Default to T2 if not found
-    }
+  if (!retailerId) {
+    throw new Error('No retailer selected');
+  }
+  
+  const retailer = retailers.find(r => r.retailerId === retailerId);
+  
+  if (!retailer) {
+    throw new Error(`Retailer ${retailerId} not found in directory`);
+  }
+  
+  if (!retailer.tier) {
+    throw new Error(`Retailer ${retailerId} (${retailer.name}) has no tier assigned`);
+  }
+  
+  return retailer.tier;
+}
 
-    function calcPriceIDR(costSGD, tier) {
-      const margins = {
-        T1: settings?.tierMargins?.T1 || 30,
-        T2: settings?.tierMargins?.T2 || 35,
-        T3: settings?.tierMargins?.T3 || 37.5,
-        T4: settings?.tierMargins?.T4 || 45,
-      };
-      const rate      = settings?.sgdIdrRate || 13500;
-      const ppnPct    = settings?.ppnPercent || 12;
-      const orderType = document.getElementById('newOrderType')?.value || 'Retailer PO';
+    // ─ Helper: Get Tier (Strict: No defaults, must exist) ──
+function getRetailerTier(retailerId) {
+  if (!retailerId) throw new Error('Please select a retailer first');
+  
+  const retailer = retailers.find(r => r.retailerId === retailerId);
+  if (!retailer) throw new Error(`Retailer ${retailerId} not found`);
+  if (!retailer.tier) throw new Error(`Retailer ${retailerId} has no Tier assigned`);
+  
+  return retailer.tier;
+}
 
-      let base;
-      if (orderType === 'Wholesale') {
-        base = costSGD * rate * 1.05;
-      } else {
-        const margin = margins[tier] || 35;
-        base = costSGD * rate * 1.05 * (1 + margin / 100);
-      }
+// ── Helper: Get Margin % for a Tier ──
+function getTierMargin(tier) {
+  const margins = {
+    'T1': settings?.tierMargins?.T1 || 30,
+    'T2': settings?.tierMargins?.T2 || 35,
+    'T3': settings?.tierMargins?.T3 || 37.5,
+    'T4': settings?.tierMargins?.T4 || 45,
+    'WHOLESALE': 5
+  };
+  return margins[tier] || 35;
+}
 
-      const incPPN = base * (1 + ppnPct / 100);
-      return Math.round(incPPN / 1000) * 1000;
-    }
+// ── Helper: Calculate Est. Margin Amount ──
+function calcMarginAmount(totalCostSGD, tier, orderType) {
+  const rate = settings?.sgdIdrRate || 13500;
+  const margin = getTierMargin(tier);
+  
+  if (orderType === 'Wholesale') {
+    // Wholesale margin is just the 5% handling fee
+    return Math.round((totalCostSGD * rate * 0.05) / 1000) * 1000;
+  }
+  
+  // Retailer PO Margin
+  const baseWithHandling = totalCostSGD * rate * 1.05;
+  const marginAmount = baseWithHandling * (margin / 100);
+  return Math.round(marginAmount / 1000) * 1000;
+}
 
-    function updateTotals() {
-     const retailerId = document.getElementById('newRetailer').value;
-     const tier = getRetailerTier(retailerId);  // ← Dynamic tier from retailer data
-     const ppnPct = settings?.ppnPercent || 12;
-     let total = 0;
+// ── Helper: Update Margin Display in UI ──
+function updateMarginDisplay(orderType, tier, marginPct, marginAmt) {
+  const existing = document.getElementById('marginDisplay');
+  if (existing) existing.remove();
+
+  // Only show for Retailer PO
+  if (orderType !== 'Retailer PO') return;
+
+  const totalsDiv = document.querySelector('.so-totals');
+  const marginRow = document.createElement('div');
+  marginRow.id = 'marginDisplay';
+  marginRow.className = 'so-totals-row';
+  marginRow.style.color = '#00B4D8'; // Blue for Est Margin
+  marginRow.innerHTML = `
+    <span>Est. Margin ${tier} (${marginPct}%)</span>
+    <span>+${formatIDR(marginAmt)}</span>
+  `;
+
+  const totalRow = totalsDiv.querySelector('.so-totals-row.total');
+  totalsDiv.insertBefore(marginRow, totalRow);
+}
+
+// ── Core: Calculate Price ──
+function calcPriceIDR(costSGD, tier) {
+  const margin = getTierMargin(tier);
+  const rate   = settings?.sgdIdrRate || 13500;
+  const ppnPct = settings?.ppnPercent || 12;
+  const orderType = document.getElementById('newOrderType').value;
+
+  let base;
+  if (orderType === 'Wholesale') {
+    base = costSGD * rate * 1.05; // Cost + 5% handling
+  } else {
+    base = costSGD * rate * 1.05 * (1 + margin / 100);
+  }
+
+  const incPPN = base * (1 + ppnPct / 100);
+  return Math.round(incPPN / 1000) * 1000;
+}
+
+// ── Core: Update Totals ──
+function updateTotals() {
+  try {
+    const retailerId = document.getElementById('newRetailer').value;
+    const orderType  = document.getElementById('newOrderType').value;
+    const tier       = getRetailerTier(retailerId); // ← Dynamic Tier
+    const ppnPct     = settings?.ppnPercent || 12;
+    let total        = 0;
+    let totalCostSGD = 0;
 
     document.querySelectorAll('.li-row').forEach(row => {
-     const sel    = row.querySelector('.li-sku-select');
-     const qty    = parseInt(row.querySelector('.li-qty')?.value) || 0;
-     const opt    = sel?.options[sel.selectedIndex];
-     const cost   = parseFloat(opt?.dataset.cost) || 0;
-     const unit   = calcPriceIDR(cost, tier);
-     const line   = unit * qty;
-     const unitEl = row.querySelector('[data-unit]');
-     const lineEl = row.querySelector('[data-line]');
-     if (unitEl) unitEl.textContent = formatIDR(unit);
-     if (lineEl) lineEl.textContent = formatIDR(line);
-     total += line;
-   });
+      const sel    = row.querySelector('.li-sku-select');
+      const qty    = parseInt(row.querySelector('.li-qty')?.value) || 0;
+      const opt    = sel?.options[sel.selectedIndex];
+      const cost   = parseFloat(opt?.dataset.cost) || 0;
+      const unit   = calcPriceIDR(cost, tier);
+      const line   = unit * qty;
+      
+      row.querySelector('[data-unit]').textContent = formatIDR(unit);
+      row.querySelector('[data-line]').textContent = formatIDR(line);
+      
+      total += line;
+      totalCostSGD += (cost * qty);
+    });
 
-     const subtotalExcl = Math.round(total / (1 + ppnPct / 100) / 1000) * 1000;
-     const ppnAmt       = total - subtotalExcl;
+    // 1. Standard Totals
+    const subtotalExcl = Math.round(total / (1 + ppnPct / 100) / 1000) * 1000;
+    const ppnAmt       = total - subtotalExcl;
 
-     document.getElementById('totSubtotal').textContent = formatIDR(subtotalExcl);
-     document.getElementById('totPPN').textContent      = formatIDR(ppnAmt);
-     document.getElementById('totTotal').textContent    = formatIDR(total);
-    }  
+    document.getElementById('totSubtotal').textContent = formatIDR(subtotalExcl);
+    document.getElementById('totPPN').textContent      = formatIDR(ppnAmt);
+    document.getElementById('totTotal').textContent    = formatIDR(total);
+
+    // 2. Margin Display (Only for Retailer PO)
+    if (orderType === 'Retailer PO') {
+      const marginPct = getTierMargin(tier);
+      const marginAmt = calcMarginAmount(totalCostSGD, tier, orderType);
+      updateMarginDisplay(orderType, tier, marginPct, marginAmt);
+    } else {
+      // Remove margin display if switching to Wholesale/Direct Buy
+      const existing = document.getElementById('marginDisplay');
+      if (existing) existing.remove();
+    }
+
+  } catch (err) {
+    console.error('Update Totals Error:', err);
+    // Don't block UI, just log or show toast if critical
+  }
+}
     
     async function submitCreate() {
       const brand      = document.getElementById('newBrand').value;

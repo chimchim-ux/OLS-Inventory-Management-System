@@ -310,7 +310,8 @@
       if (!n) return '—';
       return 'Rp ' + Number(n).toLocaleString('id-ID');
     }
-
+    
+    console.log('Session:', getSession());
     async function loadCatalogue() {
       try {
         const tier = session.tier || 'T2';
