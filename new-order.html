@@ -230,7 +230,7 @@
         <div class="li-header">
           <span>SKU</span>
           <span>QTY</span>
-          <span>Unit Price</span>
+          <span>Unit Price (SRP)</span>
           <span>Line Total</span>
           <span></span>
         </div>
@@ -239,7 +239,7 @@
 
         <div class="totals-card">
           <div class="totals-row">
-            <span>Subtotal</span>
+            <span>Subtotal (Gross)</span>
             <span id="totSubtotal">Rp 0</span>
           </div>
           <div class="totals-row">
@@ -247,7 +247,7 @@
             <span id="totPPN">Rp 0</span>
           </div>
           <div class="totals-row grand">
-            <span>Total IDR</span>
+            <span>Total Invoice</span>
             <span id="totTotal">Rp 0</span>
           </div>
         </div>
@@ -282,10 +282,9 @@
       window.location.href = 'index.html';
     }
 
-        const session = getSession();
+    const session = getSession();
     document.getElementById('navUser').textContent =
       session.name || session.retailerId;
-    // Don't set pageSubtitle yet - do it in init() after validation
 
     function logout() { clearSession(); window.location.href = 'index.html'; }
 
@@ -304,47 +303,41 @@
       return 'Rp ' + Number(n).toLocaleString('id-ID');
     }
 
+    // ── Helper: Get Margin % for Tier (STRICT) ──
+    function getTierMargin(tier) {
+      if (!settings || !settings.tierMargins) return null;
+      const margin = settings.tierMargins[tier];
+      if (margin === undefined || margin === null || margin < 0) return null;
+      return margin;
+    }
+
     // ── Init ──────────────────────────────────────────────
     async function init() {
-      // 1. Validate session FIRST
       if (!session.tier) {
         console.error('Retailer session missing tier:', session);
         showToast('Account configuration error. Please contact admin.', 'error');
         setTimeout(() => window.location.reload(), 2000);
-        return;  // Stop execution
+        return;
       }
 
-      // 2. Set page subtitle now that tier is confirmed
       document.getElementById('pageSubtitle').textContent =
         `${session.retailerId} — Tier ${session.tier}`;
 
-      // 3. Debug logs
-      console.log('Session:', session);
-      console.log('Tier:', session.tier);
-
-      // 4. Set default order date
       document.getElementById('orderDate').value =
         new Date().toISOString().split('T')[0];
 
       try {
-        console.log('Loading catalogue with tier:', session.tier);
-        
         const [catData, setData] = await Promise.all([
-          apiGet('getCatalogue', { tier: session.tier }),  // ← Now inside try/catch!
+          apiGet('getCatalogue', { tier: session.tier }),
           apiGet('getSettings'),
         ]);
-        
-        console.log('Catalogue loaded:', catData?.length, 'products');
-        console.log('Sample product:', catData?.[0]);
         
         catalogue = Array.isArray(catData) ? catData : [];
         settings  = setData;
 
-        // Update PPN label
         document.getElementById('ppnLabel').textContent =
           `PPN (${settings?.ppnPercent || 12}%)`;
 
-        // Check if coming from quick order
         const quickSKU = sessionStorage.getItem('quick_sku');
         const quickQTY = sessionStorage.getItem('quick_qty');
         sessionStorage.removeItem('quick_sku');
@@ -370,41 +363,40 @@
     }
 
     function onBrandChange() {
-  const brand = document.getElementById('orderBrand').value;
-  document.querySelectorAll('.li-sku-select').forEach(sel => {
-    const skus = catalogue.filter(p => p.brand === brand);
-    
-    sel.innerHTML = skus.map(p => {
-      // Fallback: calculate price if retailPriceIDR missing
-      const price = p.retailPriceIDR || p.wholesaleIDR || 0;
-      const avail = p.availableStock || 0;
-      
-      return `<option value="${p.sku}" 
-        data-price="${price}"
-        data-avail="${avail}">
-        ${p.sku} — ${p.productName}
-      </option>`;
-    }).join('') || '<option value="">No SKUs for this brand</option>';
-  });
-  updateTotals();
-}
+      const brand = document.getElementById('orderBrand').value;
+      document.querySelectorAll('.li-sku-select').forEach(sel => {
+        const skus = catalogue.filter(p => p.brand === brand);
+        
+        sel.innerHTML = skus.map(p => {
+          // Use SRP (Gross Price) from backend
+          const srp = p.srp || p.retailPriceIDR || 0;
+          const avail = p.availableStock || 0;
+          
+          return `<option value="${p.sku}" 
+            data-srp="${srp}"
+            data-avail="${avail}">
+            ${p.sku} — ${p.productName}
+          </option>`;
+        }).join('') || '<option value="">No SKUs for this brand</option>';
+      });
+      updateTotals();
+    }
 
     function addLineItem(preselectedSKU = '', preselectedQTY = 1) {
-  const brand = document.getElementById('orderBrand').value;
-  const skus  = catalogue.filter(p => p.brand === brand);
-  
-  const opts = skus.map(p => {
-    // Same fallback logic
-    const price = p.retailPriceIDR || p.wholesaleIDR || 0;
-    const avail = p.availableStock || 0;
-    
-    return `<option value="${p.sku}"
-      data-price="${price}"
-      data-avail="${avail}"
-      ${p.sku === preselectedSKU ? 'selected' : ''}>
-      ${p.sku} — ${p.productName}
-    </option>`;
-  }).join('') || '<option value="">No SKUs</option>';
+      const brand = document.getElementById('orderBrand').value;
+      const skus  = catalogue.filter(p => p.brand === brand);
+      
+      const opts = skus.map(p => {
+        const srp = p.srp || p.retailPriceIDR || 0;
+        const avail = p.availableStock || 0;
+        
+        return `<option value="${p.sku}"
+          data-srp="${srp}"
+          data-avail="${avail}"
+          ${p.sku === preselectedSKU ? 'selected' : ''}>
+          ${p.sku} — ${p.productName}
+        </option>`;
+      }).join('') || '<option value="">No SKUs</option>';
 
       const row = document.createElement('div');
       row.innerHTML = `
@@ -457,34 +449,45 @@
       }
     }
 
+    // ── Core: Update Totals (SRP-based, CEILING 1000) ──
     function updateTotals() {
       const ppnPct = settings?.ppnPercent || 12;
-      let subtotal = 0;
+      let grossSubtotal = 0;  // SRP × Qty (before discount/PPN)
       let hasError = false;
 
       document.querySelectorAll('.li-row').forEach(row => {
         const sel     = row.querySelector('.li-sku-select');
         const qty     = parseInt(row.querySelector('.li-qty')?.value) || 0;
         const opt     = sel?.options[sel.selectedIndex];
-        const price   = parseFloat(opt?.dataset.price) || 0;
+        const srp     = parseFloat(opt?.dataset.srp) || 0;  // SRP (Gross, excl. PPN)
         const avail   = parseInt(opt?.dataset.avail) || 0;
         const unitEl  = row.querySelector('[data-unit]');
         const lineEl  = row.querySelector('[data-line]');
-        const line    = price * qty;
-
-        if (unitEl) unitEl.textContent = formatIDR(price);
-        if (lineEl) lineEl.textContent = formatIDR(line);
-        subtotal += line;
+        
+        // SRP-based calculation with CEILING 1000 for PPN
+        const lineGross = srp * qty;
+        const discountPct = 0; // Add discount field later if needed
+        const discountAmt = Math.round(lineGross * discountPct / 100 / 1000) * 1000;
+        const afterDiscount = lineGross - discountAmt;
+        const ppnAmt = Math.ceil(afterDiscount * ppnPct / 100 / 1000) * 1000;  // ← CEILING
+        const lineFinal = afterDiscount + ppnAmt;
+        
+        if (unitEl) unitEl.textContent = formatIDR(srp);  // Show SRP
+        if (lineEl) lineEl.textContent = formatIDR(lineFinal);  // Show final with PPN
+        
+        grossSubtotal += lineGross;
         if (qty > avail) hasError = true;
       });
 
-      const ppn   = Math.round(subtotal * ppnPct / 100);
-      const total = subtotal + ppn;
+      // Calculate final totals
+      const afterDiscountTotal = grossSubtotal;  // No discount for now
+      const ppnTotal = Math.ceil(afterDiscountTotal * ppnPct / 100 / 1000) * 1000;
+      const finalTotal = afterDiscountTotal + ppnTotal;
 
-      document.getElementById('totSubtotal').textContent = formatIDR(subtotal);
-      document.getElementById('totPPN').textContent      = formatIDR(ppn);
-      document.getElementById('totTotal').textContent    = formatIDR(total);
-      document.getElementById('submitBtn').disabled      = hasError;
+      document.getElementById('totSubtotal').textContent = formatIDR(grossSubtotal);
+      document.getElementById('totPPN').textContent = formatIDR(ppnTotal);
+      document.getElementById('totTotal').textContent = formatIDR(finalTotal);
+      document.getElementById('submitBtn').disabled = hasError;
     }
 
     // ── Submit ────────────────────────────────────────────
