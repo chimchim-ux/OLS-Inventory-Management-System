@@ -440,31 +440,30 @@
           </table>
 
             <div class="totals-section">
-            <div class="totals-box">
-              <div class="totals-row">
-                <span class="label">Subtotal (excl. PPN)</span>
-                <span class="value">${formatIDR(Math.round(h.subtotal / 1.12 / 1000) * 1000)}</span>
-              </div>
-              <div class="totals-row">
-                <span class="label">PPN 12%</span>
-                <span class="value">${formatIDR(h.subtotal - Math.round(h.subtotal / 1.12 / 1000) * 1000)}</span>
-              </div>
-              ${h.orderType === 'Retailer PO' && h.tier ? `
-              <div class="totals-row" style="color: #00B4D8;">
-                <span class="label">Est. Margin ${h.tier} (${getTierMargin(h.tier)}%)</span>
-                <span class="value">${formatIDR(calcMarginFromTotalPDF(h.totalIDR, h.tier))}</span>
-              </div>` : ''}
-              ${h.discountAmt > 0 ? `
-              <div class="totals-row" style="color: #2E7D32;">
-                <span class="label">Discount (${h.discountPct}%)</span>
-                <span class="value">-${formatIDR(h.discountAmt)}</span>
-              </div>` : ''}
-              <div class="totals-row grand">
-                <span class="label">Total IDR</span>
-                <span class="value">${formatIDR(h.totalIDR)}</span>
-              </div>
-            </div>
-          </div>
+  <div class="totals-box">
+    <div class="totals-row">
+      <span class="label">Subtotal (excl. PPN)</span>
+      <span class="value">${formatIDR(Math.round(h.subtotal / 1.12 / 1000) * 1000)}</span>
+    </div>
+    <div class="totals-row">
+      <span class="label">PPN 12%</span>
+      <span class="value">${formatIDR(h.subtotal - Math.round(h.subtotal / 1.12 / 1000) * 1000)}</span>
+    </div>
+    ${h.orderType === 'Retailer PO' && h.tier ? `
+    <div class="totals-row" style="color: #00B4D8;">
+      <span class="label">Est. Margin ${h.tier} (${getTierMargin(h.tier)}%)</span>
+      <span class="value">${formatIDR(calcMarginFromTotalPDF(h.totalIDR, h.tier))}</span>
+    </div>` : ''}
+    <div class="totals-row" style="color: ${h.discountPct > 0 ? '#2E7D32' : '#888'};">
+      <span class="label">Discount (${h.discountPct || 0}%)</span>
+      <span class="value">-${formatIDR(h.discountAmt || 0)}</span>
+    </div>
+    <div class="totals-row grand">
+      <span class="label">Total IDR</span>
+      <span class="value">${formatIDR(h.totalIDR)}</span>
+    </div>
+  </div>
+</div>
 
           <div class="doc-footer">
             <div class="footer-note">
