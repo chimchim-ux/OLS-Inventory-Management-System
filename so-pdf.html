@@ -430,9 +430,9 @@
                   <td>${i.description}</td>
                   <td>${i.qty}</td>
                   <td>${formatIDR(i.unitPrice)}</td>
-                  <td class="discount-cell">
-                    ${i.discountPct > 0 ? i.discountPct + '%' : '—'}
-                  </td>
+                  <td class="discount-cell" style="color: ${i.discountPct > 0 ? '#2E7D32' : '#888'};">
+                      ${i.discountPct > 0 ? i.discountPct + '%' : '0%'}
+                </td>
                   <td>${formatIDR(i.finalTotal || i.lineTotal)}</td>
                 </tr>
               `).join('')}
