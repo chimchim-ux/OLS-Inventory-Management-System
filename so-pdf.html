@@ -1,4 +1,5 @@
 <script>
+  window.addEventListener('DOMContentLoaded', function() {
   // ── Auth from URL params ──────────────────────────────
   const params   = new URLSearchParams(window.location.search);
   const soNumber = params.get('so');
@@ -189,4 +190,5 @@
         `<div class="loading">Error loading SO: ${err.message}</div>`;
     }
   }
+  }); // end DOMContentLoaded
 </script>
