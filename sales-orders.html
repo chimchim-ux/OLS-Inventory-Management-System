@@ -547,7 +547,9 @@
       updateTotals();
     }
 
-    function onRetailerChange() {}
+    function onRetailerChange() {
+        updateTotals();
+    }
 
     function refreshLineItemSKUs() {
       const brand = document.getElementById('newBrand').value;
@@ -587,6 +589,11 @@
       updateTotals();
     }
 
+    function getRetailerTier(retailerId) {
+     const retailer = retailers.find(r => r.retailerId === retailerId);
+     return retailer?.tier || 'T2'; // Default to T2 if not found
+    }
+
     function calcPriceIDR(costSGD, tier) {
       const margins = {
         T1: settings?.tierMargins?.T1 || 30,
@@ -611,34 +618,33 @@
     }
 
     function updateTotals() {
-      const tier   = 'T2';
-      const ppnPct = settings?.ppnPercent || 12;
-      let total    = 0;
+     const retailerId = document.getElementById('newRetailer').value;
+     const tier = getRetailerTier(retailerId);  // ← Dynamic tier from retailer data
+     const ppnPct = settings?.ppnPercent || 12;
+     let total = 0;
 
-      document.querySelectorAll('.li-row').forEach(row => {
-        const sel    = row.querySelector('.li-sku-select');
-        const qty    = parseInt(row.querySelector('.li-qty')?.value) || 0;
-        const opt    = sel?.options[sel.selectedIndex];
-        const cost   = parseFloat(opt?.dataset.cost) || 0;
-        const unit   = calcPriceIDR(cost, tier);
-        const line   = unit * qty;
-        const unitEl = row.querySelector('[data-unit]');
-        const lineEl = row.querySelector('[data-line]');
-        if (unitEl) unitEl.textContent = formatIDR(unit);
-        if (lineEl) lineEl.textContent = formatIDR(line);
-        total += line;
-      });
+    document.querySelectorAll('.li-row').forEach(row => {
+     const sel    = row.querySelector('.li-sku-select');
+     const qty    = parseInt(row.querySelector('.li-qty')?.value) || 0;
+     const opt    = sel?.options[sel.selectedIndex];
+     const cost   = parseFloat(opt?.dataset.cost) || 0;
+     const unit   = calcPriceIDR(cost, tier);
+     const line   = unit * qty;
+     const unitEl = row.querySelector('[data-unit]');
+     const lineEl = row.querySelector('[data-line]');
+     if (unitEl) unitEl.textContent = formatIDR(unit);
+     if (lineEl) lineEl.textContent = formatIDR(line);
+     total += line;
+   });
 
-      // Break down: total already includes PPN
-      // subtotal excl PPN = total / (1 + ppnPct/100)
-      const subtotalExcl = Math.round(total / (1 + ppnPct / 100) / 1000) * 1000;
-      const ppnAmt       = total - subtotalExcl;
+     const subtotalExcl = Math.round(total / (1 + ppnPct / 100) / 1000) * 1000;
+     const ppnAmt       = total - subtotalExcl;
 
-      document.getElementById('totSubtotal').textContent = formatIDR(subtotalExcl);
-      document.getElementById('totPPN').textContent      = formatIDR(ppnAmt);
-      document.getElementById('totTotal').textContent    = formatIDR(total);
-    }
-
+     document.getElementById('totSubtotal').textContent = formatIDR(subtotalExcl);
+     document.getElementById('totPPN').textContent      = formatIDR(ppnAmt);
+     document.getElementById('totTotal').textContent    = formatIDR(total);
+    }  
+    
     async function submitCreate() {
       const brand      = document.getElementById('newBrand').value;
       const retailerId = document.getElementById('newRetailer').value;
