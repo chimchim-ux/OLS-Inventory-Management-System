@@ -344,8 +344,12 @@
         <button class="btn-add-line" onclick="addLineItem()">+ Add SKU</button>
         <div class="so-totals">
           <div class="so-totals-row">
-            <span>Subtotal (inc. PPN)</span>
+            <span>Subtotal (excl. PPN)</span>
             <span id="totSubtotal">Rp 0</span>
+          </div>
+          <div class="so-totals-row">
+            <span>PPN 12%</span>
+            <span id="totPPN">Rp 0</span>
           </div>
           <div class="so-totals-row total">
             <span>Total IDR</span>
@@ -379,22 +383,18 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // ── Auth guard ────────────────────────────────────────
     if (!isLoggedIn() || (!isAdmin() && !isViewer())) {
       window.location.href = 'index.html';
     }
 
-    // Show New SO button for admin only
     if (isAdmin()) {
       document.getElementById('btnNewSO').style.display = 'inline-block';
     }
 
-    // Set nav user label
     document.getElementById('navUser').textContent = isViewer() ? 'Viewer' : 'Admin';
 
     function logout() { clearSession(); window.location.href = 'index.html'; }
 
-    // ── State ─────────────────────────────────────────────
     let allSOs        = [];
     let retailers     = [];
     let catalogue     = [];
@@ -431,7 +431,6 @@
       return `<span class="badge ${map[status] || 'badge-grey'}">${status}</span>`;
     }
 
-    // ── Load data ─────────────────────────────────────────
     async function init() {
       try {
         const [soData, catData, setData] = await Promise.all([
@@ -478,7 +477,6 @@
       ).join('');
     }
 
-    // ── Filter & render ───────────────────────────────────
     function filterStatus(status, btn) {
       currentStatus = status;
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -527,7 +525,6 @@
       `).join('');
     }
 
-    // ── Create modal ──────────────────────────────────────
     function openCreateModal() {
       document.getElementById('lineItems').innerHTML = '';
       document.getElementById('newOrderDate').value =
@@ -547,7 +544,7 @@
       const type = document.getElementById('newOrderType').value;
       document.getElementById('poRefGroup').style.display =
         type === 'Retailer PO' ? 'block' : 'none';
-      updateTotals(); // recalculate preview when order type changes
+      updateTotals();
     }
 
     function onRetailerChange() {}
@@ -596,28 +593,27 @@
         T2: settings?.tierMargins?.T2 || 35,
         T3: settings?.tierMargins?.T3 || 37.5,
         T4: settings?.tierMargins?.T4 || 45,
-    };
-       const rate   = settings?.sgdIdrRate || 13500;
-       const ppnPct = settings?.ppnPercent || 12;
-       const orderType = document.getElementById('newOrderType')?.value || 'Retailer PO';
+      };
+      const rate      = settings?.sgdIdrRate || 13500;
+      const ppnPct    = settings?.ppnPercent || 12;
+      const orderType = document.getElementById('newOrderType')?.value || 'Retailer PO';
 
-       let base;
-       if (orderType === 'Wholesale') {
-        // Wholesale: Cost × Rate × 1.05, no tier margin
+      let base;
+      if (orderType === 'Wholesale') {
         base = costSGD * rate * 1.05;
-    } else {
-        // Retailer: Cost × Rate × 1.05 × (1 + tier%)
+      } else {
         const margin = margins[tier] || 35;
         base = costSGD * rate * 1.05 * (1 + margin / 100);
+      }
+
+      const incPPN = base * (1 + ppnPct / 100);
+      return Math.round(incPPN / 1000) * 1000;
     }
 
-  const incPPN = base * (1 + ppnPct / 100);
-  return Math.round(incPPN / 1000) * 1000;
-}
-
     function updateTotals() {
-      const tier = 'T2'; // preview only — server applies correct tier per retailer
-      let subtotal = 0;
+      const tier   = 'T2';
+      const ppnPct = settings?.ppnPercent || 12;
+      let total    = 0;
 
       document.querySelectorAll('.li-row').forEach(row => {
         const sel    = row.querySelector('.li-sku-select');
@@ -630,11 +626,17 @@
         const lineEl = row.querySelector('[data-line]');
         if (unitEl) unitEl.textContent = formatIDR(unit);
         if (lineEl) lineEl.textContent = formatIDR(line);
-        subtotal += line;
+        total += line;
       });
 
-      document.getElementById('totSubtotal').textContent = formatIDR(subtotal);
-      document.getElementById('totTotal').textContent    = formatIDR(subtotal);
+      // Break down: total already includes PPN
+      // subtotal excl PPN = total / (1 + ppnPct/100)
+      const subtotalExcl = Math.round(total / (1 + ppnPct / 100) / 1000) * 1000;
+      const ppnAmt       = total - subtotalExcl;
+
+      document.getElementById('totSubtotal').textContent = formatIDR(subtotalExcl);
+      document.getElementById('totPPN').textContent      = formatIDR(ppnAmt);
+      document.getElementById('totTotal').textContent    = formatIDR(total);
     }
 
     async function submitCreate() {
@@ -690,7 +692,6 @@
       btn.textContent = 'Create SO';
     }
 
-    // ── Detail modal ──────────────────────────────────────
     async function openDetail(soNumber) {
       document.getElementById('detailTitle').textContent = soNumber;
       document.getElementById('detailBody').innerHTML =
@@ -702,6 +703,14 @@
         const data  = await apiGet('getSODetail', { soNumber });
         const h     = data.header;
         const items = data.lineItems || [];
+
+        // Calculate PPN from total — works for both old and new SOs
+        const ppnPct      = settings?.ppnPercent || 12;
+        const totalIDR    = Number(h.totalIDR)    || 0;
+        const discountAmt = Number(h.discountAmt) || 0;
+        const totalBeforeDiscount = totalIDR + discountAmt;
+        const subtotalExcl = Math.round(totalBeforeDiscount / (1 + ppnPct / 100) / 1000) * 1000;
+        const ppnAmt       = totalBeforeDiscount - subtotalExcl;
 
         document.getElementById('detailBody').innerHTML = `
           <div class="detail-grid">
@@ -769,23 +778,23 @@
 
           <div class="so-totals">
             <div class="so-totals-row">
-             <span>Subtotal (excl. PPN)</span>
-             <span>${formatIDR(h.subtotal - h.ppn)}</span>
+              <span>Subtotal (excl. PPN)</span>
+              <span>${formatIDR(subtotalExcl)}</span>
             </div>
             <div class="so-totals-row">
-             <span>PPN 12%</span>
-             <span>${formatIDR(h.ppn)}</span>
+              <span>PPN ${ppnPct}%</span>
+              <span>${formatIDR(ppnAmt)}</span>
             </div>
-            ${h.discountAmt > 0 ? `
+            ${discountAmt > 0 ? `
             <div class="so-totals-row" style="color:#52B788">
-             <span>Discount (${h.discountPct}%)</span>
-             <span>-${formatIDR(h.discountAmt)}</span>
+              <span>Discount (${h.discountPct}%)</span>
+              <span>-${formatIDR(discountAmt)}</span>
             </div>` : ''}
             <div class="so-totals-row total">
-             <span>Total IDR</span>
-             <span>${formatIDR(h.totalIDR)}</span>
-         </div>
-         </div>
+              <span>Total IDR</span>
+              <span>${formatIDR(totalIDR)}</span>
+            </div>
+          </div>
         `;
 
         document.getElementById('detailFooter').innerHTML =
@@ -797,43 +806,43 @@
       }
     }
 
-function buildStatusActions(soNumber, status) {
-  let btns = `<button class="btn-secondary" onclick="closeDetailModal()">Close</button>`;
-  const code = sessionStorage.getItem('ols_code') || '';
-  
-  btns += `<a href="so-pdf.html?so=${soNumber}&code=${code}" target="_blank"
-    class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px">
-    ↓ PDF
-  </a>`;
+    function buildStatusActions(soNumber, status) {
+      let btns = `<button class="btn-secondary" onclick="closeDetailModal()">Close</button>`;
+      const code = sessionStorage.getItem('ols_code') || '';
 
-  if (isViewer()) return btns;
+      btns += `<a href="so-pdf.html?so=${soNumber}&code=${code}" target="_blank"
+        class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px">
+        ↓ PDF
+      </a>`;
 
-  const transitions = {
-    'Draft'            : ['Pending Approval', 'Cancelled'],
-    'Pending Approval' : ['Confirmed', 'Cancelled'],
-    'Confirmed'        : ['Shipped', 'Cancelled'],
-    'Shipped'          : ['Invoiced'],
-    'Invoiced'         : [],
-    'Cancelled'        : [],
-  };
+      if (isViewer()) return btns;
 
-  const next = transitions[status] || [];
-  next.forEach(newStatus => {
-    if (newStatus === 'Cancelled') {
-      btns += `<button class="btn-danger"
-        onclick="updateStatus('${soNumber}', '${newStatus}')">
-        Cancel Order
-      </button>`;
-    } else {
-      btns += `<button class="btn-primary"
-        onclick="updateStatus('${soNumber}', '${newStatus}')">
-        → ${newStatus}
-      </button>`;
+      const transitions = {
+        'Draft'            : ['Pending Approval', 'Cancelled'],
+        'Pending Approval' : ['Confirmed', 'Cancelled'],
+        'Confirmed'        : ['Shipped', 'Cancelled'],
+        'Shipped'          : ['Invoiced'],
+        'Invoiced'         : [],
+        'Cancelled'        : [],
+      };
+
+      const next = transitions[status] || [];
+      next.forEach(newStatus => {
+        if (newStatus === 'Cancelled') {
+          btns += `<button class="btn-danger"
+            onclick="updateStatus('${soNumber}', '${newStatus}')">
+            Cancel Order
+          </button>`;
+        } else {
+          btns += `<button class="btn-primary"
+            onclick="updateStatus('${soNumber}', '${newStatus}')">
+            → ${newStatus}
+          </button>`;
+        }
+      });
+
+      return btns;
     }
-  });
-
-  return btns;
-}
 
     function closeDetailModal() {
       document.getElementById('detailModal').style.display = 'none';
