@@ -73,3 +73,6 @@ async function apiPost(action, body = {}) {
 function isViewer() {
   return sessionStorage.getItem('ols_role') === 'viewer';
 }
+function isRetailer() {
+  return sessionStorage.getItem('ols_role') === 'retailer';
+}
