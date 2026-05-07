@@ -241,7 +241,7 @@
 <body>
 
   <div class="screen-controls">
-    <a class="btn-back" onclick="history.back()">← Back</a>
+    <a class="btn-back" href="sales-orders.html" onclick="navigateBack(event)">← Back</a>
     <span id="controlTitle">Loading...</span>
     <button class="btn-print" onclick="window.print()">
       Download / Print PDF
@@ -276,6 +276,40 @@
 
     function formatIDR(n) {
       return 'Rp ' + Number(n).toLocaleString('id-ID');
+    }
+
+        // ── Helper: Get Margin % for Tier ──
+    function getTierMargin(tier) {
+      const margins = {
+        'T1': 30,
+        'T2': 35,
+        'T3': 37.5,
+        'T4': 45,
+        'WHOLESALE': 5
+      };
+      return margins[tier] || 37.5;
+    }
+
+        function navigateBack(e) {
+      e.preventDefault();
+      
+      // Try to go back in history first (if same tab)
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        // Otherwise, redirect to SO page with auth code
+        const code = sessionStorage.getItem('ols_code') || '';
+        window.location.href = `sales-orders.html?code=${encodeURIComponent(code)}`;
+      }
+    }
+
+    // ── Helper: Calc Margin from Total (for PDF) ──
+    function calcMarginFromTotalPDF(totalIDR, tier, ppnPct = 12) {
+      const marginPct = getTierMargin(tier);
+      const totalExclPPN = totalIDR / (1 + ppnPct / 100);
+      const baseWithHandling = totalExclPPN / (1 + marginPct / 100);
+      const marginAmount = baseWithHandling * (marginPct / 100);
+      return Math.ceil(marginAmount / 1000) * 1000;
     }
 
     function formatDate(d) {
@@ -405,14 +439,23 @@
             </tbody>
           </table>
 
-          <div class="totals-section">
+            <div class="totals-section">
             <div class="totals-box">
               <div class="totals-row">
-                <span class="label">Subtotal (inc. PPN)</span>
-                <span class="value">${formatIDR(h.subtotal)}</span>
+                <span class="label">Subtotal (excl. PPN)</span>
+                <span class="value">${formatIDR(Math.round(h.subtotal / 1.12 / 1000) * 1000)}</span>
               </div>
+              <div class="totals-row">
+                <span class="label">PPN 12%</span>
+                <span class="value">${formatIDR(h.subtotal - Math.round(h.subtotal / 1.12 / 1000) * 1000)}</span>
+              </div>
+              ${h.orderType === 'Retailer PO' && h.tier ? `
+              <div class="totals-row" style="color: #00B4D8;">
+                <span class="label">Est. Margin ${h.tier} (${getTierMargin(h.tier)}%)</span>
+                <span class="value">${formatIDR(calcMarginFromTotalPDF(h.totalIDR, h.tier))}</span>
+              </div>` : ''}
               ${h.discountAmt > 0 ? `
-              <div class="totals-row discount">
+              <div class="totals-row" style="color: #2E7D32;">
                 <span class="label">Discount (${h.discountPct}%)</span>
                 <span class="value">-${formatIDR(h.discountAmt)}</span>
               </div>` : ''}
