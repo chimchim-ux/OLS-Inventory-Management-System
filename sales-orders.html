@@ -319,6 +319,7 @@
             <select id="newOrderType" onchange="togglePORef()">
               <option value="Retailer PO">Retailer PO</option>
               <option value="Direct Buy">Direct Buy</option>
+              <option value="Wholesale">Wholesale</option>
             </select>
           </div>
           <div class="form-group">
@@ -546,6 +547,7 @@
       const type = document.getElementById('newOrderType').value;
       document.getElementById('poRefGroup').style.display =
         type === 'Retailer PO' ? 'block' : 'none';
+      updateTotals(); // recalculate preview when order type changes
     }
 
     function onRetailerChange() {}
@@ -594,14 +596,24 @@
         T2: settings?.tierMargins?.T2 || 35,
         T3: settings?.tierMargins?.T3 || 37.5,
         T4: settings?.tierMargins?.T4 || 45,
-      };
-      const rate    = settings?.sgdIdrRate  || 14000;
-      const ppnPct  = settings?.ppnPercent  || 12;
-      const margin  = margins[tier] || 35;
-      const wholesale = costSGD * rate * (1 + margin / 100);
-      const incPPN    = wholesale * (1 + ppnPct / 100);
-      return Math.round(incPPN / 1000) * 1000;
+    };
+       const rate   = settings?.sgdIdrRate || 13500;
+       const ppnPct = settings?.ppnPercent || 12;
+       const orderType = document.getElementById('newOrderType')?.value || 'Retailer PO';
+
+       let base;
+       if (orderType === 'Wholesale') {
+        // Wholesale: Cost × Rate × 1.05, no tier margin
+        base = costSGD * rate * 1.05;
+    } else {
+        // Retailer: Cost × Rate × 1.05 × (1 + tier%)
+        const margin = margins[tier] || 35;
+        base = costSGD * rate * 1.05 * (1 + margin / 100);
     }
+
+  const incPPN = base * (1 + ppnPct / 100);
+  return Math.round(incPPN / 1000) * 1000;
+}
 
     function updateTotals() {
       const tier = 'T2'; // preview only — server applies correct tier per retailer
