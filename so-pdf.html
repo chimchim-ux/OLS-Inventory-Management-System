@@ -386,9 +386,15 @@ const urlCode  = params.get('code');
     // ── Load and render ───────────────────────────────────
     async function loadSO(soNumber) {
       try {
-        const data  = await apiGet('getSODetail', { soNumber });
-        const h     = data.header;
-        const items = data.lineItems || [];
+        const raw   = await apiGet('getSODetail', { soNumber });
+        // Handle both direct and wrapped responses
+        const data  = raw.header ? raw : (raw.data || raw);
+        const h     = data.header || raw;
+        const items = data.lineItems || raw.lineItems || [];
+
+        if (!h || !h.soNumber) {
+            throw new Error('SO data not found — ' + JSON.stringify(raw));
+    }
 
         document.title = `${soNumber} — OLS`;
         document.getElementById('controlTitle').textContent = soNumber;
