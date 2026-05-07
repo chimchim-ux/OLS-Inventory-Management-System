@@ -49,7 +49,11 @@
   // ── Load and render ───────────────────────────────────
   async function loadSO(soNumber) {
     try {
-      const raw   = await apiGet('getSODetail', { soNumber });
+      const code = urlCode || sessionStorage.getItem('ols_code') || '';
+      const res  = await fetch(
+  `${CONFIG.API_URL}?action=getSODetail&soNumber=${encodeURIComponent(soNumber)}&code=${encodeURIComponent(code)}`
+);
+      const raw = await res.json();
       const h     = raw.header;
       const items = raw.lineItems || [];
 
