@@ -91,17 +91,29 @@
     .product-img img { width: 100%; height: 100%; object-fit: cover; }
 
     .product-body { padding: 16px; }
+
+    .product-classification {
+      font-size: 10px; font-weight: 700; color: #00B4D8;
+      letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;
+    }
+
     .product-sku { font-family: 'Courier New', monospace; font-size: 11px; color: #555; margin-bottom: 4px; }
-    .product-name { font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 4px; }
-    .product-brand { font-size: 12px; color: #555; margin-bottom: 12px; }
+    .product-name { font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 2px; }
+    .product-brand { font-size: 12px; color: #555; margin-bottom: 10px; }
+
+    .product-tags {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
+    }
+    .product-tag {
+      font-size: 10px; padding: 2px 7px; border-radius: 4px;
+      background: #1E1E1E; color: #666; border: 1px solid #2A2A2A;
+    }
 
     .product-price-row {
       display: flex; justify-content: space-between; align-items: flex-end;
       padding-top: 12px; border-top: 1px solid #1E1E1E;
     }
-    .product-price {
-      font-size: 16px; font-weight: 700; color: #FFF;
-    }
+    .product-price { font-size: 16px; font-weight: 700; color: #FFF; }
     .product-price-label { font-size: 10px; color: #444; margin-bottom: 2px; }
 
     .stock-pill {
@@ -121,7 +133,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Quick order modal ── */
+    /* ── Modal ── */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.85);
       display: flex; align-items: center; justify-content: center;
@@ -129,29 +141,49 @@
     }
     .modal {
       background: #141414; border: 1px solid #222; border-radius: 12px;
-      width: 100%; max-width: 480px;
+      width: 100%; max-width: 520px; max-height: 90vh;
+      display: flex; flex-direction: column;
     }
     .modal-header {
       padding: 20px 24px; border-bottom: 1px solid #222;
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-shrink: 0;
     }
     .modal-header h2 { font-size: 16px; font-weight: 700; }
+    .modal-header-sub { font-size: 12px; color: #555; margin-top: 3px; }
     .modal-close {
       background: none; border: none; color: #555;
-      font-size: 20px; cursor: pointer;
+      font-size: 22px; cursor: pointer; line-height: 1; flex-shrink: 0;
     }
     .modal-close:hover { color: #FFF; }
-    .modal-body { padding: 24px; }
+    .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
     .modal-footer {
       padding: 16px 24px; border-top: 1px solid #222;
-      display: flex; gap: 12px; justify-content: flex-end;
+      display: flex; gap: 12px; justify-content: flex-end; flex-shrink: 0;
     }
 
-    .product-detail-row {
-      display: flex; justify-content: space-between;
-      margin-bottom: 12px; font-size: 13px;
+    .modal-img {
+      width: 100%; height: 180px; background: #1A1A1A;
+      border-radius: 8px; margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: center;
+      color: #333; font-size: 13px; overflow: hidden;
     }
-    .product-detail-row span:first-child { color: #555; }
+    .modal-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .modal-section-title {
+      font-size: 11px; font-weight: 700; color: #555;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 12px; margin-top: 20px;
+      padding-bottom: 6px; border-bottom: 1px solid #1E1E1E;
+    }
+    .modal-section-title:first-of-type { margin-top: 0; }
+
+    .detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .detail-label { font-size: 11px; color: #555; margin-bottom: 3px; }
+    .detail-value { font-size: 13px; color: #CCC; }
+    .detail-value.mono { font-family: 'Courier New', monospace; font-size: 12px; }
 
     .qty-control {
       display: flex; align-items: center; gap: 12px; margin: 20px 0;
@@ -164,9 +196,7 @@
       transition: all 0.2s;
     }
     .qty-btn:hover { border-color: #00B4D8; color: #00B4D8; }
-    .qty-display {
-      font-size: 24px; font-weight: 700; min-width: 48px; text-align: center;
-    }
+    .qty-display { font-size: 24px; font-weight: 700; min-width: 48px; text-align: center; }
     .qty-stock { font-size: 12px; color: #555; }
 
     .line-total {
@@ -234,47 +264,17 @@
     <div class="empty" id="emptyState" style="display:none">No products found</div>
   </div>
 
-  <!-- Quick view modal -->
-  <div class="modal-overlay" id="quickModal" style="display:none">
+  <!-- Product detail + quick order modal -->
+  <div class="modal-overlay" id="quickModal" style="display:none" onclick="handleOverlayClick(event)">
     <div class="modal">
       <div class="modal-header">
-        <h2 id="modalTitle">Product</h2>
+        <div>
+          <h2 id="modalTitle">Product</h2>
+          <div class="modal-header-sub" id="modalSub">—</div>
+        </div>
         <button class="modal-close" onclick="closeModal()">×</button>
       </div>
-      <div class="modal-body">
-        <div class="product-detail-row">
-          <span>SKU</span>
-          <span class="mono" id="modalSKU" style="font-family:monospace"></span>
-        </div>
-        <div class="product-detail-row">
-          <span>Brand</span>
-          <span id="modalBrand"></span>
-        </div>
-        <div class="product-detail-row">
-          <span>Unit Price (inc. PPN)</span>
-          <span id="modalPrice" style="font-weight:700;color:#FFF"></span>
-        </div>
-        <div class="product-detail-row">
-          <span>Units per Carton</span>
-          <span id="modalUPC"></span>
-        </div>
-        <div class="product-detail-row">
-          <span>Available Stock</span>
-          <span id="modalStock"></span>
-        </div>
-
-        <div class="qty-control">
-          <button class="qty-btn" onclick="changeQTY(-1)">−</button>
-          <div class="qty-display" id="qtyDisplay">1</div>
-          <button class="qty-btn" onclick="changeQTY(1)">+</button>
-          <span class="qty-stock" id="qtyStock"></span>
-        </div>
-
-        <div class="line-total">
-          <div class="line-total-label">LINE TOTAL (inc. PPN)</div>
-          <div class="line-total-value" id="modalLineTotal">—</div>
-        </div>
-      </div>
+      <div class="modal-body" id="modalBody"></div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal()">Close</button>
         <button class="btn-primary" onclick="goToNewOrder()">Place Order</button>
@@ -285,22 +285,19 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // ── Auth guard ────────────────────────────────────────
     if (!isLoggedIn() || isAdmin()) {
       window.location.href = 'index.html';
     }
 
     const session = getSession();
-    document.getElementById('navUser').textContent =
-      session.name || session.retailerId;
+    document.getElementById('navUser').textContent = session.name || session.retailerId;
 
     function logout() { clearSession(); window.location.href = 'index.html'; }
 
-    // ── State ─────────────────────────────────────────────
-    let allProducts  = [];
-    let currentBrand = 'all';
+    let allProducts     = [];
+    let currentBrand    = 'all';
     let selectedProduct = null;
-    let currentQTY   = 1;
+    let currentQTY      = 1;
 
     function showToast(msg, type = 'success') {
       const t = document.getElementById('toast');
@@ -310,10 +307,10 @@
     }
 
     function formatIDR(n) {
+      if (!n) return '—';
       return 'Rp ' + Number(n).toLocaleString('id-ID');
     }
 
-    // ── Load catalogue ────────────────────────────────────
     async function loadCatalogue() {
       try {
         const tier = session.tier || 'T2';
@@ -322,8 +319,7 @@
         document.getElementById('loadingState').style.display = 'none';
         renderProducts();
       } catch (err) {
-        document.getElementById('loadingState').textContent =
-          'Error: ' + err.message;
+        document.getElementById('loadingState').textContent = 'Error: ' + err.message;
       }
     }
 
@@ -340,7 +336,8 @@
         const brandMatch  = currentBrand === 'all' || p.brand === currentBrand;
         const searchMatch = !search ||
           p.sku.toLowerCase().includes(search) ||
-          p.productName.toLowerCase().includes(search);
+          p.productName.toLowerCase().includes(search) ||
+          (p.classification || '').toLowerCase().includes(search);
         return brandMatch && searchMatch;
       });
 
@@ -358,13 +355,17 @@
 
       document.getElementById('productGrid').innerHTML = filtered.map(p => {
         const price = p.retailPriceIDR || 0;
-        const avail = p.availableStock || 0;
+        const avail = p.availableStock  || 0;
         const stockClass = avail <= 0 ? 'stock-out'
           : avail <= p.reorderThreshold ? 'stock-low'
           : 'stock-ok';
         const stockLabel = avail <= 0 ? 'Out of stock'
           : avail <= p.reorderThreshold ? `Low (${avail})`
           : `${avail} available`;
+        const tags = [p.size, p.sizeType, p.ageDetail]
+          .filter(Boolean)
+          .map(t => `<span class="product-tag">${t}</span>`)
+          .join('');
 
         return `
           <div class="product-card" onclick="openModal('${p.sku}')">
@@ -372,13 +373,14 @@
               ${p.imageUrl
                 ? `<img src="${p.imageUrl}" alt="${p.productName}"
                        onerror="this.parentElement.innerHTML='No image'">`
-                : 'No image'
-              }
+                : 'No image'}
             </div>
             <div class="product-body">
+              <div class="product-classification">${p.classification || ''}</div>
               <div class="product-sku">${p.sku}</div>
               <div class="product-name">${p.productName}</div>
               <div class="product-brand">${p.brand}</div>
+              ${tags ? `<div class="product-tags">${tags}</div>` : ''}
               <div class="product-price-row">
                 <div>
                   <div class="product-price-label">UNIT PRICE INC. PPN</div>
@@ -392,21 +394,73 @@
       }).join('');
     }
 
-    // ── Quick view modal ──────────────────────────────────
     function openModal(sku) {
-      const p = allProducts.find(p => p.sku === sku);
+      const p = allProducts.find(x => x.sku === sku);
       if (!p) return;
       selectedProduct = p;
       currentQTY = 1;
 
-      document.getElementById('modalTitle').textContent  = p.productName;
-      document.getElementById('modalSKU').textContent    = p.sku;
-      document.getElementById('modalBrand').textContent  = p.brand;
-      document.getElementById('modalPrice').textContent  = formatIDR(p.retailPriceIDR || 0);
-      document.getElementById('modalUPC').textContent    = p.unitsPerCarton + ' pcs';
-      document.getElementById('modalStock').textContent  = p.availableStock + ' units';
-      document.getElementById('qtyStock').textContent    = `max ${p.availableStock}`;
-      updateQTYDisplay();
+      document.getElementById('modalTitle').textContent = p.productName;
+      document.getElementById('modalSub').textContent   = `${p.brand} · ${p.sku}`;
+
+      const avail = p.availableStock || 0;
+
+      document.getElementById('modalBody').innerHTML = `
+        <div class="modal-img">
+          ${p.imageUrl
+            ? `<img src="${p.imageUrl}" alt="${p.productName}"
+                   onerror="this.style.display='none'">`
+            : 'No image'}
+        </div>
+
+        <div class="modal-section-title">Product Details</div>
+        <div class="detail-grid">
+          <div>
+            <div class="detail-label">Classification</div>
+            <div class="detail-value" style="color:#00B4D8">${p.classification || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Size</div>
+            <div class="detail-value">${p.size || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Size Type</div>
+            <div class="detail-value">${p.sizeType || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Age Detail</div>
+            <div class="detail-value">${p.ageDetail || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Material</div>
+            <div class="detail-value">${p.material || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">HS Code</div>
+            <div class="detail-value mono">${p.hsCode || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Units Per Carton</div>
+            <div class="detail-value">${p.unitsPerCarton || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Available Stock</div>
+            <div class="detail-value">${avail}</div>
+          </div>
+        </div>
+
+        <div class="modal-section-title">Order</div>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQTY(-1)">−</button>
+          <div class="qty-display" id="qtyDisplay">1</div>
+          <button class="qty-btn" onclick="changeQTY(1)">+</button>
+          <span class="qty-stock">max ${avail}</span>
+        </div>
+        <div class="line-total">
+          <div class="line-total-label">LINE TOTAL (INC. PPN)</div>
+          <div class="line-total-value" id="modalLineTotal">${formatIDR(p.retailPriceIDR)}</div>
+        </div>
+      `;
 
       document.getElementById('quickModal').style.display = 'flex';
     }
@@ -416,21 +470,20 @@
       selectedProduct = null;
     }
 
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('quickModal')) closeModal();
+    }
+
     function changeQTY(delta) {
       if (!selectedProduct) return;
       const max = selectedProduct.availableStock || 0;
       currentQTY = Math.max(1, Math.min(max, currentQTY + delta));
-      updateQTYDisplay();
-    }
-
-    function updateQTYDisplay() {
       document.getElementById('qtyDisplay').textContent = currentQTY;
-      const lineTotal = (selectedProduct?.retailPriceIDR || 0) * currentQTY;
+      const lineTotal = (selectedProduct.retailPriceIDR || 0) * currentQTY;
       document.getElementById('modalLineTotal').textContent = formatIDR(lineTotal);
     }
 
     function goToNewOrder() {
-      // Store selected product for new order page
       sessionStorage.setItem('quick_sku', selectedProduct?.sku || '');
       sessionStorage.setItem('quick_qty', currentQTY);
       window.location.href = 'new-order.html';

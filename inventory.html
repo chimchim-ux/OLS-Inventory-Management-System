@@ -35,7 +35,6 @@
     .btn-logout:hover { color: #FFF; border-color: #555; }
 
     .page { max-width: 1200px; margin: 0 auto; padding: 32px; }
-
     .page-header {
       display: flex; align-items: flex-start;
       justify-content: space-between; margin-bottom: 32px;
@@ -43,11 +42,9 @@
     .page-header h1 { font-size: 24px; font-weight: 700; }
     .page-header p { font-size: 13px; color: #555; margin-top: 4px; }
 
-    /* ── Tabs ── */
     .tabs {
       display: flex; gap: 0;
-      border-bottom: 1px solid #222;
-      margin-bottom: 24px;
+      border-bottom: 1px solid #222; margin-bottom: 24px;
     }
     .tab-btn {
       padding: 10px 20px; background: none; border: none;
@@ -58,7 +55,6 @@
     .tab-btn:hover { color: #FFF; }
     .tab-btn.active { color: #FFF; border-bottom-color: #00B4D8; }
 
-    /* ── Table ── */
     .table-wrap {
       background: #141414; border: 1px solid #222;
       border-radius: 10px; overflow: hidden;
@@ -75,10 +71,9 @@
       border-bottom: 1px solid #1A1A1A;
     }
     tbody tr:last-child td { border-bottom: none; }
-    tbody tr:hover td { background: #181818; }
+    tbody tr:hover td { background: #181818; cursor: pointer; }
     .mono { font-family: 'Courier New', monospace; font-size: 12px; }
 
-    /* ── Badges ── */
     .badge {
       font-size: 11px; padding: 3px 8px;
       border-radius: 20px; font-weight: 600;
@@ -88,7 +83,6 @@
     .badge-blue  { background: #001A2A; color: #00B4D8; border: 1px solid #00253A; }
     .badge-grey  { background: #1A1A1A; color: #666;    border: 1px solid #2A2A2A; }
 
-    /* ── Filters ── */
     .filters {
       display: flex; gap: 12px; margin-bottom: 20px;
       align-items: center; flex-wrap: wrap;
@@ -109,7 +103,6 @@
     .search-input:focus { border-color: #00B4D8; }
     .search-input::placeholder { color: #444; }
 
-    /* ── Loading / Empty ── */
     .loading { padding: 48px; text-align: center; color: #444; font-size: 13px; }
     .empty   { padding: 48px; text-align: center; color: #444; font-size: 13px; }
     .spinner {
@@ -119,6 +112,56 @@
       margin-right: 8px; vertical-align: middle;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Product Detail Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; padding: 24px;
+    }
+    .modal {
+      background: #141414; border: 1px solid #222; border-radius: 12px;
+      width: 100%; max-width: 560px; max-height: 90vh;
+      display: flex; flex-direction: column;
+    }
+    .modal-header {
+      padding: 20px 24px; border-bottom: 1px solid #222;
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .modal-header h2 { font-size: 16px; font-weight: 700; color: #FFF; }
+    .modal-header-sub { font-size: 12px; color: #555; margin-top: 3px; }
+    .modal-close {
+      background: none; border: none; color: #555;
+      font-size: 22px; cursor: pointer; line-height: 1; flex-shrink: 0;
+    }
+    .modal-close:hover { color: #FFF; }
+    .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+
+    .modal-section-title {
+      font-size: 11px; font-weight: 700; color: #555;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 12px; margin-top: 20px;
+      padding-bottom: 6px; border-bottom: 1px solid #1E1E1E;
+    }
+    .modal-section-title:first-of-type { margin-top: 0; }
+
+    .detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .detail-label { font-size: 11px; color: #555; margin-bottom: 3px; }
+    .detail-value { font-size: 13px; color: #CCC; }
+    .detail-value.mono { font-family: 'Courier New', monospace; font-size: 12px; }
+
+    .stock-summary-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+    }
+    .stock-box {
+      background: #1A1A1A; border: 1px solid #222;
+      border-radius: 8px; padding: 12px; text-align: center;
+    }
+    .stock-box-label { font-size: 10px; color: #555; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stock-box-value { font-size: 20px; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -135,7 +178,7 @@
       <a href="settings.html">Settings</a>
     </div>
     <div class="nav-right">
-      <span class="nav-user">Admin</span>
+      <span class="nav-user" id="navUser">Admin</span>
       <button class="btn-logout" onclick="logout()">Log out</button>
     </div>
   </nav>
@@ -148,14 +191,9 @@
       </div>
     </div>
 
-    <!-- Tabs -->
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('stock', this)">
-        Stock Levels
-      </button>
-      <button class="tab-btn" onclick="switchTab('log', this)">
-        Transaction Log
-      </button>
+      <button class="tab-btn active" onclick="switchTab('stock', this)">Stock Levels</button>
+      <button class="tab-btn" onclick="switchTab('log', this)">Transaction Log</button>
     </div>
 
     <!-- Stock Levels Tab -->
@@ -176,11 +214,11 @@
             <tr>
               <th>SKU</th>
               <th>Product</th>
+              <th>Classification</th>
               <th>Brand</th>
-              <th>Physical Stock</th>
+              <th>Physical</th>
               <th>Committed</th>
               <th>Available</th>
-              <th>Reorder Threshold</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -220,24 +258,38 @@
         <div class="empty" id="emptyLog" style="display:none">No transactions yet</div>
       </div>
     </div>
+  </div>
 
+  <!-- Product Detail Modal -->
+  <div class="modal-overlay" id="productModal" style="display:none" onclick="handleOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2 id="modalName">—</h2>
+          <div class="modal-header-sub" id="modalSub">—</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
   </div>
 
   <script>
-    // ── Auth guard ────────────────────────────────────────
     if (!isLoggedIn() || (!isAdmin() && !isViewer())) {
       window.location.href = 'index.html';
     }
+
+    document.getElementById('navUser').textContent = isAdmin() ? 'Admin' : 'Viewer';
+
     function logout() { clearSession(); window.location.href = 'index.html'; }
 
-    // ── State ─────────────────────────────────────────────
     let stockData    = [];
     let logData      = [];
+    let catalogueMap = {};
     let stockBrand   = 'all';
     let logType      = 'all';
     let logLoaded    = false;
 
-    // ── Tab switch ────────────────────────────────────────
     function switchTab(tab, btn) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -246,7 +298,6 @@
       if (tab === 'log' && !logLoaded) loadLog();
     }
 
-    // ── Format ────────────────────────────────────────────
     function formatTime(ts) {
       if (!ts) return '—';
       const d = new Date(ts);
@@ -257,11 +308,24 @@
       });
     }
 
-    // ── Stock tab ─────────────────────────────────────────
-    async function loadStock() {
+    function formatIDR(n) {
+      if (!n) return '—';
+      return 'Rp ' + Number(n).toLocaleString('id-ID');
+    }
+
+    // ── Init — load stock + catalogue in parallel ─────────
+    async function init() {
       try {
-        const data = await apiGet('getStockSummary');
-        stockData  = Array.isArray(data) ? data : [];
+        const [stockRes, catRes] = await Promise.all([
+          apiGet('getStockSummary'),
+          apiGet('getProducts'),
+        ]);
+
+        stockData = Array.isArray(stockRes) ? stockRes : [];
+
+        const products = Array.isArray(catRes) ? catRes : [];
+        products.forEach(p => { catalogueMap[p.sku] = p; });
+
         document.getElementById('loadingStock').style.display = 'none';
         renderStock();
       } catch (err) {
@@ -270,6 +334,7 @@
       }
     }
 
+    // ── Stock tab ─────────────────────────────────────────
     function filterStockBrand(brand, btn) {
       stockBrand = brand;
       document.querySelectorAll('#tabStock .filter-btn')
@@ -296,7 +361,10 @@
 
       document.getElementById('emptyStock').style.display  = 'none';
       document.getElementById('tableStock').style.display  = 'table';
+
       document.getElementById('bodyStock').innerHTML = filtered.map(s => {
+        const p = catalogueMap[s.sku];
+        const classification = p ? (p.classification || '—') : '—';
         const stockColor = s.availableStock <= 0 ? '#E63946'
           : s.reorderFlag === 'REORDER' ? '#F4A261'
           : '#52B788';
@@ -306,14 +374,14 @@
           ? '<span class="badge badge-green">OK</span>'
           : '<span class="badge badge-grey">—</span>';
         return `
-          <tr>
+          <tr onclick="openProductModal('${s.sku}')">
             <td class="mono">${s.sku}</td>
             <td>${s.productName}</td>
+            <td style="color:#00B4D8;font-size:11px">${classification}</td>
             <td style="color:#555">${s.brand}</td>
             <td>${s.physicalStock}</td>
             <td style="color:#555">${s.committedUnits}</td>
             <td style="color:${stockColor};font-weight:600">${s.availableStock}</td>
-            <td style="color:#555">${s.reorderThreshold || '—'}</td>
             <td>${flag}</td>
           </tr>
         `;
@@ -379,7 +447,114 @@
       `).join('');
     }
 
-    loadStock();
+    // ── Product detail modal ──────────────────────────────
+    function openProductModal(sku) {
+      const s = stockData.find(x => x.sku === sku);
+      const p = catalogueMap[sku];
+      if (!s) return;
+
+      document.getElementById('modalName').textContent = s.productName;
+      document.getElementById('modalSub').textContent  =
+        `${s.brand} · ${sku}${p && p.classification ? ' · ' + p.classification : ''}`;
+
+      const stockColor = s.availableStock <= 0 ? '#E63946'
+        : s.reorderFlag === 'REORDER' ? '#F4A261'
+        : '#52B788';
+
+      document.getElementById('modalBody').innerHTML = `
+        <div class="modal-section-title">Stock Summary</div>
+        <div class="stock-summary-grid">
+          <div class="stock-box">
+            <div class="stock-box-label">Physical</div>
+            <div class="stock-box-value" style="color:#CCC">${s.physicalStock}</div>
+          </div>
+          <div class="stock-box">
+            <div class="stock-box-label">Committed</div>
+            <div class="stock-box-value" style="color:#F4A261">${s.committedUnits}</div>
+          </div>
+          <div class="stock-box">
+            <div class="stock-box-label">Available</div>
+            <div class="stock-box-value" style="color:${stockColor}">${s.availableStock}</div>
+          </div>
+        </div>
+
+        ${p ? `
+        <div class="modal-section-title">Product Details</div>
+        <div class="detail-grid">
+          <div>
+            <div class="detail-label">Classification</div>
+            <div class="detail-value" style="color:#00B4D8">${p.classification || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Size</div>
+            <div class="detail-value">${p.size || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Size Type</div>
+            <div class="detail-value">${p.sizeType || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Age Detail</div>
+            <div class="detail-value">${p.ageDetail || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Material</div>
+            <div class="detail-value">${p.material || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">HS Code</div>
+            <div class="detail-value mono">${p.hsCode || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Barcode</div>
+            <div class="detail-value mono">${p.barcode || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Unit Type</div>
+            <div class="detail-value">${p.unitType || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Units Per Carton</div>
+            <div class="detail-value">${p.unitsPerCarton || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Reorder Threshold</div>
+            <div class="detail-value">${p.reorderThreshold || '—'}</div>
+          </div>
+        </div>
+
+        <div class="modal-section-title">Pricing</div>
+        <div class="detail-grid">
+          <div>
+            <div class="detail-label">Cost SGD</div>
+            <div class="detail-value" style="color:#F4A261">
+              S$ ${Number(p.costSGD || 0).toFixed(2)}
+            </div>
+          </div>
+          <div>
+            <div class="detail-label">Retail Price IDR</div>
+            <div class="detail-value" style="color:#52B788">${formatIDR(p.priceIDR)}</div>
+          </div>
+          <div>
+            <div class="detail-label">Wholesale IDR</div>
+            <div class="detail-value" style="color:#00B4D8">${formatIDR(p.wholesaleIDR)}</div>
+          </div>
+        </div>
+        ` : ''}
+      `;
+
+      document.getElementById('productModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('productModal').style.display = 'none';
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('productModal')) closeModal();
+    }
+
+    init();
   </script>
 
 </body>

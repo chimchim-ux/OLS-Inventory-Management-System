@@ -53,11 +53,9 @@
       justify-content: space-between;
       margin-bottom: 24px;
     }
-
     .page-header h1 { font-size: 24px; font-weight: 700; }
     .page-header p { font-size: 13px; color: #555; margin-top: 4px; }
 
-    /* ── Filters ── */
     .filters {
       display: flex;
       gap: 12px;
@@ -65,41 +63,22 @@
       align-items: center;
       flex-wrap: wrap;
     }
-
     .filter-btn {
-      padding: 7px 16px;
-      background: none;
-      border: 1px solid #2A2A2A;
-      border-radius: 20px;
-      color: #666;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.2s;
+      padding: 7px 16px; background: none;
+      border: 1px solid #2A2A2A; border-radius: 20px;
+      color: #666; font-size: 13px; cursor: pointer; transition: all 0.2s;
     }
     .filter-btn:hover { border-color: #555; color: #FFF; }
-    .filter-btn.active {
-      background: #FFF;
-      border-color: #FFF;
-      color: #000;
-      font-weight: 600;
-    }
-
+    .filter-btn.active { background: #FFF; border-color: #FFF; color: #000; font-weight: 600; }
     .search-input {
-      padding: 7px 14px;
-      background: #1A1A1A;
-      border: 1px solid #2A2A2A;
-      border-radius: 20px;
-      color: #FFF;
-      font-size: 13px;
-      outline: none;
-      width: 220px;
-      transition: border-color 0.2s;
-      margin-left: auto;
+      padding: 7px 14px; background: #1A1A1A;
+      border: 1px solid #2A2A2A; border-radius: 20px;
+      color: #FFF; font-size: 13px; outline: none;
+      width: 220px; transition: border-color 0.2s; margin-left: auto;
     }
     .search-input:focus { border-color: #00B4D8; }
     .search-input::placeholder { color: #444; }
 
-    /* ── Grid ── */
     .product-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -107,201 +86,162 @@
     }
 
     .product-card {
-      background: #141414;
-      border: 1px solid #222;
-      border-radius: 10px;
-      overflow: hidden;
-      transition: border-color 0.2s;
+      background: #141414; border: 1px solid #222;
+      border-radius: 10px; overflow: hidden;
+      transition: border-color 0.2s; cursor: pointer;
     }
-    .product-card:hover { border-color: #333; }
+    .product-card:hover { border-color: #00B4D8; }
 
     .product-img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-      background: #1A1A1A;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #333;
-      font-size: 12px;
+      width: 100%; height: 180px; background: #1A1A1A;
+      display: flex; align-items: center; justify-content: center;
+      color: #333; font-size: 12px; overflow: hidden;
     }
-
-    .product-img img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+    .product-img img { width: 100%; height: 100%; object-fit: cover; }
 
     .product-body { padding: 16px; }
 
+    .product-classification {
+      font-size: 10px; font-weight: 700; color: #00B4D8;
+      letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;
+    }
+
     .product-sku {
       font-family: 'Courier New', monospace;
-      font-size: 11px;
-      color: #555;
-      margin-bottom: 6px;
+      font-size: 11px; color: #555; margin-bottom: 4px;
     }
+    .product-name { font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 2px; }
+    .product-brand { font-size: 12px; color: #555; margin-bottom: 10px; }
 
-    .product-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: #FFF;
-      margin-bottom: 4px;
+    .product-tags {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
     }
-
-    .product-brand {
-      font-size: 12px;
-      color: #555;
-      margin-bottom: 12px;
+    .product-tag {
+      font-size: 10px; padding: 2px 7px; border-radius: 4px;
+      background: #1E1E1E; color: #666; border: 1px solid #2A2A2A;
     }
 
     .product-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .product-price {
-      font-size: 15px;
-      font-weight: 700;
-      color: #FFF;
-    }
-
-    .product-price-label {
-      font-size: 10px;
-      color: #444;
-      margin-bottom: 2px;
-    }
-
-    .stock-info {
-      text-align: right;
-    }
-
-    .stock-count {
-      font-size: 15px;
-      font-weight: 700;
-    }
-
-    .stock-label {
-      font-size: 10px;
-      color: #444;
-      margin-bottom: 2px;
-    }
-
-    .product-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-top: 12px;
+      display: flex; justify-content: space-between;
+      align-items: flex-end; padding-top: 12px;
       border-top: 1px solid #1E1E1E;
     }
+    .product-price-label { font-size: 10px; color: #444; margin-bottom: 2px; }
+    .product-price { font-size: 15px; font-weight: 700; color: #FFF; }
+    .stock-info { text-align: right; }
+    .stock-label { font-size: 10px; color: #444; margin-bottom: 2px; }
+    .stock-count { font-size: 15px; font-weight: 700; }
 
-    .product-detail {
-      font-size: 11px;
-      color: #444;
+    .view-toggle { display: flex; gap: 4px; }
+    .view-btn {
+      padding: 6px 10px; background: none;
+      border: 1px solid #2A2A2A; border-radius: 6px;
+      color: #555; cursor: pointer; font-size: 14px; transition: all 0.2s;
     }
+    .view-btn.active { background: #1E1E1E; color: #FFF; border-color: #444; }
 
-    /* ── Badges ── */
+    .table-wrap {
+      background: #141414; border: 1px solid #222;
+      border-radius: 10px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: #1A1A1A; padding: 12px 16px; text-align: left;
+      font-size: 11px; font-weight: 600; color: #555;
+      text-transform: uppercase; letter-spacing: 1px;
+      border-bottom: 1px solid #222;
+    }
+    tbody td {
+      padding: 12px 16px; font-size: 13px; color: #CCC;
+      border-bottom: 1px solid #1A1A1A;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #181818; cursor: pointer; }
+    .mono { font-family: 'Courier New', monospace; font-size: 12px; }
+
     .badge {
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 20px;
-      font-weight: 600;
+      font-size: 11px; padding: 3px 8px;
+      border-radius: 20px; font-weight: 600;
     }
     .badge-red   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
     .badge-green { background: #002A10; color: #52B788; border: 1px solid #003A18; }
     .badge-grey  { background: #1A1A1A; color: #666;    border: 1px solid #2A2A2A; }
 
-    /* ── Table view ── */
-    .table-wrap {
-      background: #141414;
-      border: 1px solid #222;
-      border-radius: 10px;
-      overflow: hidden;
+    /* ── Product Detail Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; padding: 24px;
     }
-
-    table { width: 100%; border-collapse: collapse; }
-
-    thead th {
-      background: #1A1A1A;
-      padding: 12px 16px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 600;
-      color: #555;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      border-bottom: 1px solid #222;
+    .modal {
+      background: #141414; border: 1px solid #222; border-radius: 12px;
+      width: 100%; max-width: 600px; max-height: 90vh;
+      display: flex; flex-direction: column;
     }
-
-    tbody td {
-      padding: 12px 16px;
-      font-size: 13px;
-      color: #CCC;
-      border-bottom: 1px solid #1A1A1A;
+    .modal-header {
+      padding: 20px 24px; border-bottom: 1px solid #222;
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-shrink: 0;
     }
-    tbody tr:last-child td { border-bottom: none; }
-    tbody tr:hover td { background: #181818; }
-    .mono { font-family: 'Courier New', monospace; font-size: 12px; }
-
-    /* ── View toggle ── */
-    .view-toggle {
-      display: flex;
-      gap: 4px;
+    .modal-header h2 { font-size: 16px; font-weight: 700; color: #FFF; }
+    .modal-header-sub { font-size: 12px; color: #555; margin-top: 3px; }
+    .modal-close {
+      background: none; border: none; color: #555;
+      font-size: 22px; cursor: pointer; line-height: 1; flex-shrink: 0;
     }
+    .modal-close:hover { color: #FFF; }
+    .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
 
-    .view-btn {
-      padding: 6px 10px;
-      background: none;
-      border: 1px solid #2A2A2A;
-      border-radius: 6px;
-      color: #555;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.2s;
+    .modal-img {
+      width: 100%; height: 200px; border-radius: 8px; margin-bottom: 20px;
+      background: #1A1A1A; display: flex; align-items: center;
+      justify-content: center; color: #333; font-size: 13px; overflow: hidden;
     }
-    .view-btn.active { background: #1E1E1E; color: #FFF; border-color: #444; }
+    .modal-img img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* ── Loading / Empty ── */
-    .loading {
-      padding: 64px;
-      text-align: center;
-      color: #444;
-      font-size: 13px;
+    .modal-section-title {
+      font-size: 11px; font-weight: 700; color: #555;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 12px; margin-top: 20px;
+      padding-bottom: 6px; border-bottom: 1px solid #1E1E1E;
     }
+    .modal-section-title:first-of-type { margin-top: 0; }
 
-    .empty {
-      padding: 64px;
-      text-align: center;
-      color: #444;
-      font-size: 13px;
+    .detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
     }
+    .detail-label { font-size: 11px; color: #555; margin-bottom: 3px; }
+    .detail-value { font-size: 13px; color: #CCC; }
+    .detail-value.mono { font-family: 'Courier New', monospace; font-size: 12px; }
 
+    .price-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+    }
+    .price-item {
+      background: #1A1A1A; border: 1px solid #222;
+      border-radius: 8px; padding: 12px;
+    }
+    .price-item-label { font-size: 10px; color: #555; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .price-item-value { font-size: 15px; font-weight: 700; }
+    .price-item-value.cost      { color: #F4A261; }
+    .price-item-value.retail    { color: #52B788; }
+    .price-item-value.wholesale { color: #00B4D8; }
+
+    .loading { padding: 64px; text-align: center; color: #444; font-size: 13px; }
+    .empty   { padding: 64px; text-align: center; color: #444; font-size: 13px; }
     .spinner {
-      display: inline-block;
-      width: 16px; height: 16px;
-      border: 2px solid #333;
-      border-top-color: #00B4D8;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-      margin-right: 8px;
-      vertical-align: middle;
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid #333; border-top-color: #00B4D8;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+      margin-right: 8px; vertical-align: middle;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Toast ── */
     .toast {
-      position: fixed;
-      bottom: 32px; right: 32px;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
-      z-index: 999;
+      position: fixed; bottom: 32px; right: 32px;
+      padding: 12px 20px; border-radius: 8px; font-size: 13px;
+      font-weight: 600; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none; z-index: 999;
     }
     .toast.success { background: #002A10; color: #52B788; border: 1px solid #003A18; }
     .toast.error   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
@@ -322,7 +262,7 @@
       <a href="settings.html">Settings</a>
     </div>
     <div class="nav-right">
-      <span class="nav-user">Admin</span>
+      <span class="nav-user" id="navUser">Admin</span>
       <button class="btn-logout" onclick="logout()">Log out</button>
     </div>
   </nav>
@@ -339,72 +279,71 @@
       </div>
     </div>
 
-    <!-- Filters -->
     <div class="filters">
       <button class="filter-btn active" onclick="filterBrand('all', this)">All</button>
       <button class="filter-btn" onclick="filterBrand('Mofmofriends', this)">Mofmofriends</button>
       <button class="filter-btn" onclick="filterBrand('Stojo', this)">Stojo</button>
-      <input
-        class="search-input"
-        type="text"
-        id="searchInput"
-        placeholder="Search SKU or product name..."
-        oninput="applyFilters()"
-      />
+      <input class="search-input" type="text" id="searchInput"
+        placeholder="Search SKU or product name..." oninput="applyFilters()">
     </div>
 
-    <!-- Loading -->
     <div class="loading" id="loadingState">
       <span class="spinner"></span>Loading catalogue...
     </div>
 
-    <!-- Grid view -->
     <div class="product-grid" id="gridView" style="display:none"></div>
 
-    <!-- Table view -->
     <div class="table-wrap" id="tableView" style="display:none">
       <table>
         <thead>
           <tr>
             <th>SKU</th>
             <th>Product Name</th>
-            <th>Brand</th>
+            <th>Classification</th>
+            <th>Size</th>
             <th>Cost SGD</th>
-            <th>T1 Price</th>
-            <th>T2 Price</th>
+            <th>Retail Price IDR</th>
+            <th>Wholesale IDR</th>
             <th>Available</th>
-            <th>Reorder</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
       </table>
     </div>
 
-    <!-- Empty -->
-    <div class="empty" id="emptyState" style="display:none">
-      No products found
+    <div class="empty" id="emptyState" style="display:none">No products found</div>
+  </div>
+
+  <!-- Product Detail Modal -->
+  <div class="modal-overlay" id="productModal" style="display:none" onclick="handleOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2 id="modalName">—</h2>
+          <div class="modal-header-sub" id="modalSub">—</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
     </div>
   </div>
 
   <div class="toast" id="toast"></div>
 
   <script>
-    // ── Auth guard ────────────────────────────────────────
     if (!isLoggedIn() || (!isAdmin() && !isViewer())) {
       window.location.href = 'index.html';
     }
 
-    function logout() {
-      clearSession();
-      window.location.href = 'index.html';
-    }
+    document.getElementById('navUser').textContent = isAdmin() ? 'Admin' : 'Viewer';
 
-    // ── State ─────────────────────────────────────────────
+    function logout() { clearSession(); window.location.href = 'index.html'; }
+
     let allProducts  = [];
     let currentBrand = 'all';
     let currentView  = 'grid';
 
-    // ── Toast ─────────────────────────────────────────────
     function showToast(msg, type = 'success') {
       const t = document.getElementById('toast');
       t.textContent = msg;
@@ -412,8 +351,8 @@
       setTimeout(() => t.classList.remove('visible'), 3000);
     }
 
-    // ── Format helpers ────────────────────────────────────
     function formatIDR(n) {
+      if (!n) return '—';
       return 'Rp ' + Number(n).toLocaleString('id-ID');
     }
 
@@ -423,11 +362,9 @@
       return '<span class="badge badge-grey">—</span>';
     }
 
-    // ── Load catalogue ────────────────────────────────────
     async function loadCatalogue() {
       try {
-        // Admin view — no tier needed, show cost price + all tiers
-        const data = await apiGet('getCatalogue');
+        const data  = await apiGet('getProducts');
         allProducts = Array.isArray(data) ? data : [];
         renderProducts();
       } catch (err) {
@@ -437,7 +374,6 @@
       }
     }
 
-    // ── Filter logic ──────────────────────────────────────
     function filterBrand(brand, btn) {
       currentBrand = brand;
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -450,15 +386,15 @@
     function getFiltered() {
       const search = document.getElementById('searchInput').value.toLowerCase();
       return allProducts.filter(p => {
-        const brandMatch = currentBrand === 'all' || p.brand === currentBrand;
+        const brandMatch  = currentBrand === 'all' || p.brand === currentBrand;
         const searchMatch = !search ||
           p.sku.toLowerCase().includes(search) ||
-          p.productName.toLowerCase().includes(search);
+          p.productName.toLowerCase().includes(search) ||
+          (p.classification || '').toLowerCase().includes(search);
         return brandMatch && searchMatch;
       });
     }
 
-    // ── Render ────────────────────────────────────────────
     function renderProducts() {
       const filtered = getFiltered();
       document.getElementById('loadingState').style.display = 'none';
@@ -466,8 +402,8 @@
         `${filtered.length} product${filtered.length !== 1 ? 's' : ''}`;
 
       if (filtered.length === 0) {
-        document.getElementById('gridView').style.display  = 'none';
-        document.getElementById('tableView').style.display = 'none';
+        document.getElementById('gridView').style.display   = 'none';
+        document.getElementById('tableView').style.display  = 'none';
         document.getElementById('emptyState').style.display = 'block';
         return;
       }
@@ -487,42 +423,36 @@
 
     function renderGrid(products) {
       document.getElementById('gridView').innerHTML = products.map(p => {
-        const t1 = calcWholesaleIDR(p.costSGD, 'T1');
         const stockColor = p.availableStock <= 0 ? '#E63946'
           : p.availableStock <= p.reorderThreshold ? '#F4A261'
           : '#52B788';
-
+        const tags = [p.size, p.sizeType, p.ageDetail]
+          .filter(Boolean)
+          .map(t => `<span class="product-tag">${t}</span>`)
+          .join('');
         return `
-          <div class="product-card">
+          <div class="product-card" onclick="openModal('${p.sku}')">
             <div class="product-img">
               ${p.imageUrl
                 ? `<img src="${p.imageUrl}" alt="${p.productName}"
                        onerror="this.parentElement.innerHTML='No image'">`
-                : 'No image'
-              }
+                : 'No image'}
             </div>
             <div class="product-body">
+              <div class="product-classification">${p.classification || ''}</div>
               <div class="product-sku">${p.sku}</div>
               <div class="product-name">${p.productName}</div>
               <div class="product-brand">${p.brand}</div>
+              ${tags ? `<div class="product-tags">${tags}</div>` : ''}
               <div class="product-meta">
                 <div>
-                  <div class="product-price-label">COST SGD</div>
-                  <div class="product-price">S$ ${Number(p.costSGD).toFixed(2)}</div>
+                  <div class="product-price-label">RETAIL IDR</div>
+                  <div class="product-price">${formatIDR(p.priceIDR)}</div>
                 </div>
                 <div class="stock-info">
                   <div class="stock-label">AVAILABLE</div>
-                  <div class="stock-count" style="color:${stockColor}">
-                    ${p.availableStock}
-                  </div>
+                  <div class="stock-count" style="color:${stockColor}">${p.availableStock}</div>
                 </div>
-              </div>
-              <div class="product-footer">
-                <div class="product-detail">
-                  T1: ${formatIDR(t1)} &nbsp;·&nbsp;
-                  ${p.unitsPerCarton} pcs/ctn
-                </div>
-                ${reorderBadge(p.reorderFlag)}
               </div>
             </div>
           </div>
@@ -532,36 +462,112 @@
 
     function renderTable(products) {
       document.getElementById('tableBody').innerHTML = products.map(p => {
-        const t1 = calcWholesaleIDR(p.costSGD, 'T1');
-        const t2 = calcWholesaleIDR(p.costSGD, 'T2');
         const stockColor = p.availableStock <= 0 ? '#E63946'
           : p.availableStock <= p.reorderThreshold ? '#F4A261'
           : '#52B788';
         return `
-          <tr>
+          <tr onclick="openModal('${p.sku}')">
             <td class="mono">${p.sku}</td>
             <td>${p.productName}</td>
-            <td style="color:#555">${p.brand}</td>
-            <td>S$ ${Number(p.costSGD).toFixed(2)}</td>
-            <td>${formatIDR(t1)}</td>
-            <td>${formatIDR(t2)}</td>
-            <td style="color:${stockColor}">${p.availableStock}</td>
+            <td style="color:#00B4D8;font-size:11px">${p.classification || '—'}</td>
+            <td style="color:#555">${[p.size, p.sizeType].filter(Boolean).join(' · ') || '—'}</td>
+            <td style="color:#F4A261">S$ ${Number(p.costSGD || 0).toFixed(2)}</td>
+            <td style="color:#52B788">${formatIDR(p.priceIDR)}</td>
+            <td style="color:#00B4D8">${formatIDR(p.wholesaleIDR)}</td>
+            <td style="color:${stockColor};font-weight:600">${p.availableStock}</td>
             <td>${reorderBadge(p.reorderFlag)}</td>
           </tr>
         `;
       }).join('');
     }
 
-    // ── Price calc (mirrors Settings.gs logic) ────────────
-    function calcWholesaleIDR(costSGD, tier) {
-      const margins = { T1: 30, T2: 35, T3: 37.5, T4: 45 };
-      const rate    = 14000;
-      const margin  = margins[tier] || 0;
-      const raw     = costSGD * rate * (1 + margin / 100);
-      return Math.round(raw / 100) * 100;
+    function openModal(sku) {
+      const p = allProducts.find(x => x.sku === sku);
+      if (!p) return;
+
+      document.getElementById('modalName').textContent = p.productName;
+      document.getElementById('modalSub').textContent  = `${p.brand} · ${p.sku}`;
+
+      document.getElementById('modalBody').innerHTML = `
+        <div class="modal-img">
+          ${p.imageUrl
+            ? `<img src="${p.imageUrl}" alt="${p.productName}"
+                   onerror="this.style.display='none'">`
+            : 'No image'}
+        </div>
+
+        <div class="modal-section-title">Product Details</div>
+        <div class="detail-grid">
+          <div>
+            <div class="detail-label">Classification</div>
+            <div class="detail-value" style="color:#00B4D8">${p.classification || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Size</div>
+            <div class="detail-value">${p.size || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Size Type</div>
+            <div class="detail-value">${p.sizeType || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Age Detail</div>
+            <div class="detail-value">${p.ageDetail || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Material</div>
+            <div class="detail-value">${p.material || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">HS Code</div>
+            <div class="detail-value mono">${p.hsCode || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Barcode</div>
+            <div class="detail-value mono">${p.barcode || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Unit Type</div>
+            <div class="detail-value">${p.unitType || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Units Per Carton</div>
+            <div class="detail-value">${p.unitsPerCarton || '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Available Stock</div>
+            <div class="detail-value">${p.availableStock}</div>
+          </div>
+        </div>
+
+        <div class="modal-section-title">Pricing</div>
+        <div class="price-grid">
+          <div class="price-item">
+            <div class="price-item-label">Cost SGD</div>
+            <div class="price-item-value cost">S$ ${Number(p.costSGD || 0).toFixed(2)}</div>
+          </div>
+          <div class="price-item">
+            <div class="price-item-label">Retail Price IDR</div>
+            <div class="price-item-value retail">${formatIDR(p.priceIDR)}</div>
+          </div>
+          <div class="price-item">
+            <div class="price-item-label">Wholesale IDR</div>
+            <div class="price-item-value wholesale">${formatIDR(p.wholesaleIDR)}</div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('productModal').style.display = 'flex';
     }
 
-    // ── View toggle ───────────────────────────────────────
+    function closeModal() {
+      document.getElementById('productModal').style.display = 'none';
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('productModal')) closeModal();
+    }
+
     function setView(view) {
       currentView = view;
       document.getElementById('btnGrid').classList.toggle('active',  view === 'grid');
