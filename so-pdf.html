@@ -1,536 +1,188 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SO — Print</title>
-  <script src="config.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+<script>
+  // ── Auth from URL params ──────────────────────────────
+  const params   = new URLSearchParams(window.location.search);
+  const soNumber = params.get('so');
+  const urlCode  = params.get('code');
 
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #FFFFFF;
-      color: #0A0A0A;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    /* ── Screen view (before print) ── */
-    .screen-controls {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      background: #0A0A0A;
-      padding: 12px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      z-index: 100;
-    }
-
-    .screen-controls span {
-      color: #FFF;
-      font-size: 13px;
-    }
-
-    .btn-print {
-      padding: 8px 20px;
-      background: #00B4D8;
-      border: none;
-      border-radius: 6px;
-      color: #000;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .btn-back {
-      padding: 8px 16px;
-      background: none;
-      border: 1px solid #444;
-      border-radius: 6px;
-      color: #CCC;
-      font-size: 13px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .document {
-      max-width: 794px;
-      margin: 80px auto 40px;
-      padding: 48px;
-      background: #FFF;
-    }
-
-    /* ── Loading / Error ── */
-    .loading {
-      text-align: center;
-      padding: 80px;
-      color: #888;
-      font-size: 14px;
-    }
-
-    /* ── Header ── */
-    .doc-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 40px;
-      padding-bottom: 24px;
-      border-bottom: 2px solid #0A0A0A;
-    }
-
-    .brand-name {
-      font-size: 28px;
-      font-weight: 800;
-      color: #0A0A0A;
-      letter-spacing: -0.5px;
-    }
-
-    .brand-sub {
-      font-size: 11px;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-top: 4px;
-    }
-
-    .doc-title {
-      text-align: right;
-    }
-
-    .doc-type {
-      font-size: 22px;
-      font-weight: 700;
-      color: #0A0A0A;
-    }
-
-    .doc-number {
-      font-family: 'Courier New', monospace;
-      font-size: 14px;
-      color: #555;
-      margin-top: 4px;
-    }
-
-    .doc-date {
-      font-size: 12px;
-      color: #888;
-      margin-top: 4px;
-    }
-
-    /* ── Info grid ── */
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 32px;
-      margin-bottom: 40px;
-    }
-
-    .info-block h3 {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: #888;
-      margin-bottom: 10px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #E5E5E5;
-    }
-
-    .info-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 4px;
-      font-size: 13px;
-    }
-
-    .info-label {
-      color: #888;
-      min-width: 110px;
-      flex-shrink: 0;
-    }
-
-    .info-value {
-      color: #0A0A0A;
-      font-weight: 500;
-    }
-
-    /* ── Status badge ── */
-    .status-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .status-draft     { background: #F0F0F0; color: #555; }
-    .status-pending   { background: #FFF3E0; color: #E65100; }
-    .status-confirmed { background: #E3F2FD; color: #1565C0; }
-    .status-shipped   { background: #E8F5E9; color: #2E7D32; }
-    .status-invoiced  { background: #E8F5E9; color: #2E7D32; }
-    .status-cancelled { background: #FFEBEE; color: #C62828; }
-
-    /* ── Line items table ── */
-    .section-title {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: #888;
-      margin-bottom: 12px;
-    }
-
-    .items-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 24px;
-    }
-
-    .items-table thead th {
-      background: #0A0A0A;
-      color: #FFF;
-      padding: 10px 12px;
-      text-align: left;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .items-table thead th:last-child {
-      text-align: right;
-    }
-
-    .items-table tbody td {
-      padding: 10px 12px;
-      border-bottom: 1px solid #F0F0F0;
-      font-size: 13px;
-      color: #0A0A0A;
-    }
-
-    .items-table tbody td:last-child {
-      text-align: right;
-      font-weight: 600;
-    }
-
-    .items-table tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-    .items-table .sku-cell {
-      font-family: 'Courier New', monospace;
-      font-size: 11px;
-      color: #555;
-    }
-
-    .discount-cell {
-      color: #2E7D32;
-      font-size: 12px;
-    }
-
-    /* ── Totals ── */
-    .totals-section {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 40px;
-    }
-
-    .totals-box {
-      width: 300px;
-      border: 1px solid #E5E5E5;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .totals-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 16px;
-      font-size: 13px;
-      border-bottom: 1px solid #F0F0F0;
-    }
-
-    .totals-row:last-child {
-      border-bottom: none;
-    }
-
-    .totals-row .label { color: #555; }
-    .totals-row .value { font-weight: 600; color: #0A0A0A; }
-
-    .totals-row.discount .label { color: #2E7D32; }
-    .totals-row.discount .value { color: #2E7D32; }
-
-    .totals-row.grand {
-      background: #0A0A0A;
-    }
-    .totals-row.grand .label { color: #FFF; font-weight: 700; }
-    .totals-row.grand .value { color: #FFF; font-weight: 700; font-size: 15px; }
-
-    /* ── Footer ── */
-    .doc-footer {
-      padding-top: 24px;
-      border-top: 1px solid #E5E5E5;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-    }
-
-    .footer-note {
-      font-size: 11px;
-      color: #888;
-      max-width: 300px;
-      line-height: 1.6;
-    }
-
-    .footer-stamp {
-      text-align: right;
-    }
-
-    .footer-stamp .generated {
-      font-size: 10px;
-      color: #CCC;
-    }
-
-    /* ── Print styles ── */
-    @media print {
-      .screen-controls { display: none !important; }
-      .document { margin: 0; padding: 32px; max-width: 100%; }
-      body { font-size: 12px; }
-      .doc-header { margin-bottom: 28px; padding-bottom: 16px; }
-      .brand-name { font-size: 22px; }
-      .doc-type { font-size: 18px; }
-    }
-
-    @page {
-      size: A4;
-      margin: 0;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Screen controls (hidden on print) -->
-  <div class="screen-controls">
-    <a class="btn-back" onclick="history.back()">← Back</a>
-    <span id="controlTitle">Loading...</span>
-    <button class="btn-print" onclick="window.print()">
-      Download / Print PDF
-    </button>
-  </div>
-
-  <!-- Document -->
-  <div class="document" id="document">
-    <div class="loading" id="loadingState">Loading order details...</div>
-  </div>
-
-  <script>
-    // ── Auth guard ────────────────────────────────────────
-    if (!isLoggedIn()) {
-        document.getElementById('document').innerHTML =
-            '<div class="loading">Session expired. Please <a href="index.html">log in</a> and try again.</div>';
-        document.getElementById('controlTitle').textContent = 'Not logged in';
-        // Don't redirect — let user see the message
-    }
-
-    // ── Auth from URL params ──────────────────────────────
-const params   = new URLSearchParams(window.location.search);
-const soNumber = params.get('so');
-const urlCode  = params.get('code');
-
-    // Store code in sessionStorage so apiGet() can use it
-    if (urlCode) {
+  // Restore session from URL code if present
+  if (urlCode) {
     sessionStorage.setItem('ols_code', urlCode);
-    sessionStorage.setItem('ols_role', 'admin'); // PDF only accessible to admin/viewer
-    }
+    sessionStorage.setItem('ols_role', 'admin');
+  }
 
-    if (!urlCode && !isLoggedIn()) {
+  // Now check auth
+  if (!isLoggedIn()) {
     document.getElementById('document').innerHTML =
-        '<div class="loading">Session expired. Please <a href="index.html">log in</a> and try again.</div>';
-    }
+      '<div class="loading">Session expired. Please <a href="index.html">log in</a> and try again.</div>';
+    document.getElementById('controlTitle').textContent = 'Not logged in';
+  } else if (!soNumber) {
+    document.getElementById('document').innerHTML =
+      '<div class="loading">No SO number provided.</div>';
+  } else {
+    loadSO(soNumber);
+  }
 
-    if (!soNumber) {
-      document.getElementById('loadingState').textContent =
-        'No SO number provided.';
-    } else {
-      loadSO(soNumber);
-    }
+  // ── Format helpers ────────────────────────────────────
+  function formatIDR(n) {
+    return 'Rp ' + Number(n).toLocaleString('id-ID');
+  }
 
-    // ── Format helpers ────────────────────────────────────
-    function formatIDR(n) {
-      return 'Rp ' + Number(n).toLocaleString('id-ID');
-    }
+  function formatDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('id-ID', {
+      day: '2-digit', month: 'long', year: 'numeric'
+    });
+  }
 
-    function formatDate(d) {
-      if (!d) return '—';
-      return new Date(d).toLocaleDateString('id-ID', {
-        day: '2-digit', month: 'long', year: 'numeric'
-      });
-    }
+  function statusClass(status) {
+    const map = {
+      'Draft'            : 'status-draft',
+      'Pending Approval' : 'status-pending',
+      'Confirmed'        : 'status-confirmed',
+      'Shipped'          : 'status-shipped',
+      'Invoiced'         : 'status-invoiced',
+      'Cancelled'        : 'status-cancelled',
+    };
+    return map[status] || 'status-draft';
+  }
 
-    function statusClass(status) {
-      const map = {
-        'Draft'            : 'status-draft',
-        'Pending Approval' : 'status-pending',
-        'Confirmed'        : 'status-confirmed',
-        'Shipped'          : 'status-shipped',
-        'Invoiced'         : 'status-invoiced',
-        'Cancelled'        : 'status-cancelled',
-      };
-      return map[status] || 'status-draft';
-    }
+  // ── Load and render ───────────────────────────────────
+  async function loadSO(soNumber) {
+    try {
+      const raw   = await apiGet('getSODetail', { soNumber });
+      const h     = raw.header;
+      const items = raw.lineItems || [];
 
-    // ── Load and render ───────────────────────────────────
-    async function loadSO(soNumber) {
-      try {
-        const raw   = await apiGet('getSODetail', { soNumber });
-        // Handle both direct and wrapped responses
-        const data  = raw.header ? raw : (raw.data || raw);
-        const h     = data.header || raw;
-        const items = data.lineItems || raw.lineItems || [];
-
-        if (!h || !h.soNumber) {
-            throw new Error('SO data not found — ' + JSON.stringify(raw));
-    }
-
-        document.title = `${soNumber} — OLS`;
-        document.getElementById('controlTitle').textContent = soNumber;
-
-        const now = new Date().toLocaleDateString('id-ID', {
-          day: '2-digit', month: 'long', year: 'numeric',
-          hour: '2-digit', minute: '2-digit'
-        });
-
-        document.getElementById('document').innerHTML = `
-
-          <!-- Header -->
-          <div class="doc-header">
-            <div>
-              <div class="brand-name">OLS</div>
-              <div class="brand-sub">One Logistics Solutions</div>
-            </div>
-            <div class="doc-title">
-              <div class="doc-type">Sales Order</div>
-              <div class="doc-number">${h.soNumber}</div>
-              <div class="doc-date">${formatDate(h.orderDate)}</div>
-            </div>
-          </div>
-
-          <!-- Info grid -->
-          <div class="info-grid">
-            <div class="info-block">
-              <h3>Order Details</h3>
-              <div class="info-row">
-                <span class="info-label">Brand</span>
-                <span class="info-value">${h.brand}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Order Type</span>
-                <span class="info-value">${h.orderType}</span>
-              </div>
-              ${h.poRef ? `
-              <div class="info-row">
-                <span class="info-label">PO Reference</span>
-                <span class="info-value" style="font-family:monospace">${h.poRef}</span>
-              </div>` : ''}
-              <div class="info-row">
-                <span class="info-label">Status</span>
-                <span class="info-value">
-                  <span class="status-badge ${statusClass(h.status)}">${h.status}</span>
-                </span>
-              </div>
-            </div>
-            <div class="info-block">
-              <h3>Retailer</h3>
-              <div class="info-row">
-                <span class="info-label">Retailer ID</span>
-                <span class="info-value" style="font-family:monospace">${h.retailerId}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Tier</span>
-                <span class="info-value">${h.tier}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Order Date</span>
-                <span class="info-value">${formatDate(h.orderDate)}</span>
-              </div>
-              ${h.notes ? `
-              <div class="info-row">
-                <span class="info-label">Notes</span>
-                <span class="info-value">${h.notes}</span>
-              </div>` : ''}
-            </div>
-          </div>
-
-          <!-- Line items -->
-          <div class="section-title">Line Items</div>
-          <table class="items-table">
-            <thead>
-              <tr>
-                <th>SKU</th>
-                <th>Description</th>
-                <th>QTY</th>
-                <th>Unit Price (inc. PPN)</th>
-                <th>Discount</th>
-                <th>Final Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${items.map(i => `
-                <tr>
-                  <td class="sku-cell">${i.sku}</td>
-                  <td>${i.description}</td>
-                  <td>${i.qty}</td>
-                  <td>${formatIDR(i.unitPrice)}</td>
-                  <td class="discount-cell">
-                    ${i.discountPct > 0 ? i.discountPct + '%' : '—'}
-                  </td>
-                  <td>${formatIDR(i.finalTotal || i.lineTotal)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-
-          <!-- Totals -->
-          <div class="totals-section">
-            <div class="totals-box">
-              <div class="totals-row">
-                <span class="label">Subtotal (inc. PPN)</span>
-                <span class="value">${formatIDR(h.subtotal)}</span>
-              </div>
-              ${h.discountAmt > 0 ? `
-              <div class="totals-row discount">
-                <span class="label">Discount (${h.discountPct}%)</span>
-                <span class="value">-${formatIDR(h.discountAmt)}</span>
-              </div>` : ''}
-              <div class="totals-row grand">
-                <span class="label">Total IDR</span>
-                <span class="value">${formatIDR(h.totalIDR)}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Footer -->
-          <div class="doc-footer">
-            <div class="footer-note">
-              This document is generated by OLS Inventory Management System.
-              For questions, contact prambani@onelogisticssolutions.com
-            </div>
-            <div class="footer-stamp">
-              <div class="generated">Generated: ${now}</div>
-            </div>
-          </div>
-        `;
-
-      } catch (err) {
-        document.getElementById('document').innerHTML =
-          `<div class="loading">Error loading SO: ${err.message}</div>`;
+      if (!h || !h.soNumber) {
+        throw new Error('SO not found');
       }
-    }
-  </script>
 
-</body>
-</html>
+      document.title = `${soNumber} — OLS`;
+      document.getElementById('controlTitle').textContent = soNumber;
+
+      const now = new Date().toLocaleDateString('id-ID', {
+        day: '2-digit', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+
+      document.getElementById('document').innerHTML = `
+        <div class="doc-header">
+          <div>
+            <div class="brand-name">OLS</div>
+            <div class="brand-sub">One Logistics Solutions</div>
+          </div>
+          <div class="doc-title">
+            <div class="doc-type">Sales Order</div>
+            <div class="doc-number">${h.soNumber}</div>
+            <div class="doc-date">${formatDate(h.orderDate)}</div>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-block">
+            <h3>Order Details</h3>
+            <div class="info-row">
+              <span class="info-label">Brand</span>
+              <span class="info-value">${h.brand}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Order Type</span>
+              <span class="info-value">${h.orderType}</span>
+            </div>
+            ${h.poRef ? `
+            <div class="info-row">
+              <span class="info-label">PO Reference</span>
+              <span class="info-value" style="font-family:monospace">${h.poRef}</span>
+            </div>` : ''}
+            <div class="info-row">
+              <span class="info-label">Status</span>
+              <span class="info-value">
+                <span class="status-badge ${statusClass(h.status)}">${h.status}</span>
+              </span>
+            </div>
+          </div>
+          <div class="info-block">
+            <h3>Retailer</h3>
+            <div class="info-row">
+              <span class="info-label">Retailer ID</span>
+              <span class="info-value" style="font-family:monospace">${h.retailerId}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Tier</span>
+              <span class="info-value">${h.tier}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Order Date</span>
+              <span class="info-value">${formatDate(h.orderDate)}</span>
+            </div>
+            ${h.notes ? `
+            <div class="info-row">
+              <span class="info-label">Notes</span>
+              <span class="info-value">${h.notes}</span>
+            </div>` : ''}
+          </div>
+        </div>
+
+        <div class="section-title">Line Items</div>
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Description</th>
+              <th>QTY</th>
+              <th>Unit Price (inc. PPN)</th>
+              <th>Discount</th>
+              <th>Final Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map(i => `
+              <tr>
+                <td class="sku-cell">${i.sku}</td>
+                <td>${i.description}</td>
+                <td>${i.qty}</td>
+                <td>${formatIDR(i.unitPrice)}</td>
+                <td class="discount-cell">
+                  ${i.discountPct > 0 ? i.discountPct + '%' : '—'}
+                </td>
+                <td>${formatIDR(i.finalTotal || i.lineTotal)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="totals-section">
+          <div class="totals-box">
+            <div class="totals-row">
+              <span class="label">Subtotal (inc. PPN)</span>
+              <span class="value">${formatIDR(h.subtotal)}</span>
+            </div>
+            ${h.discountAmt > 0 ? `
+            <div class="totals-row discount">
+              <span class="label">Discount (${h.discountPct}%)</span>
+              <span class="value">-${formatIDR(h.discountAmt)}</span>
+            </div>` : ''}
+            <div class="totals-row grand">
+              <span class="label">Total IDR</span>
+              <span class="value">${formatIDR(h.totalIDR)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="doc-footer">
+          <div class="footer-note">
+            This document is generated by OLS Inventory Management System.
+            For questions, contact prambani@onelogisticssolutions.com
+          </div>
+          <div class="footer-stamp">
+            <div class="generated">Generated: ${now}</div>
+          </div>
+        </div>
+      `;
+
+    } catch (err) {
+      document.getElementById('document').innerHTML =
+        `<div class="loading">Error loading SO: ${err.message}</div>`;
+    }
+  }
+</script>
