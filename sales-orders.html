@@ -783,8 +783,9 @@
 
 function buildStatusActions(soNumber, status) {
   let btns = `<button class="btn-secondary" onclick="closeDetailModal()">Close</button>`;
-
-  btns += `<a href="so-pdf.html?so=${soNumber}" target="_blank"
+  const code = sessionStorage.getItem('ols_code') || '';
+  
+  btns += `<a href="so-pdf.html?so=${soNumber}&code=${code}" target="_blank"
     class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px">
     ↓ PDF
   </a>`;
