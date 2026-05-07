@@ -338,24 +338,36 @@
         <div class="section-divider">Line Items</div>
         <div class="li-header">
           <span>SKU</span><span>QTY</span>
-          <span>Unit Price</span><span>Line Total</span><span></span>
+          <span>Unit Price (SRP)</span><span>Line Total</span><span></span>
         </div>
         <div id="lineItems"></div>
         <button class="btn-add-line" onclick="addLineItem()">+ Add SKU</button>
         <div class="so-totals">
-        <div class="so-totals-row">
-          <span>Subtotal (excl. PPN)</span>
-          <span id="totSubtotal">Rp 0</span>
+          <div class="so-totals-row">
+            <span>Subtotal (Gross, excl. PPN)</span>
+            <span id="totSubtotal">Rp 0</span>
+          </div>
+          <div class="so-totals-row" id="discountRow" style="display:none; color:#E63946">
+            <span>Discount (<span id="discountPctDisplay">0</span>%)</span>
+            <span id="totDiscount">-Rp 0</span>
+          </div>
+          <div class="so-totals-row" id="afterDiscountRow" style="display:none">
+            <span>Price after discount</span>
+            <span id="totAfterDiscount">Rp 0</span>
+          </div>
+          <div class="so-totals-row">
+            <span id="ppnLabel">PPN (12%)</span>
+            <span id="totPPN">Rp 0</span>
+          </div>
+          <div class="so-totals-row total">
+            <span>Total Invoice</span>
+            <span id="totTotal">Rp 0</span>
+          </div>
+          <div class="so-totals-row" style="font-size:11px; color:#00B4D8; margin-top:8px; padding-top:8px; border-top:1px solid #333">
+            <span>Est. Margin <span id="marginTier">T3</span> (<span id="marginPct">37.5</span>%)</span>
+            <span id="estMargin">+Rp 0</span>
+          </div>
         </div>
-        <div class="so-totals-row">
-          <span>PPN 12%</span>
-          <span id="totPPN">Rp 0</span>
-        </div>
-        <div class="so-totals-row total">
-          <span>Total IDR</span>
-          <span id="totTotal">Rp 0</span>
-        </div>
-      </div>
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeCreateModal()">Cancel</button>
@@ -467,9 +479,9 @@
       }
 
       const rtlOptions = retailers.length > 0 ? retailers : [
-        { retailerId: 'RTL-000', name: 'Direct Sale' },
-        { retailerId: 'RTL-001', name: 'Test Retailer One' },
-        { retailerId: 'RTL-002', name: 'Test Retailer Two' },
+        { retailerId: 'RTL-000', name: 'Direct Sale', tier: 'T1' },
+        { retailerId: 'RTL-001', name: 'Test Retailer One', tier: 'T2' },
+        { retailerId: 'RTL-002', name: 'Test Retailer Two', tier: 'T3' },
       ];
 
       document.getElementById('newRetailer').innerHTML = rtlOptions.map(r =>
@@ -555,7 +567,7 @@
       const brand = document.getElementById('newBrand').value;
       const skus  = catalogue.filter(p => p.brand === brand);
       const opts  = skus.map(p =>
-        `<option value="${p.sku}">${p.sku} — ${p.productName}</option>`
+        `<option value="${p.sku}" data-srp="${p.srp || p.retailPriceIDR}" data-cost="${p.costSGD}">${p.sku} — ${p.productName}</option>`
       ).join('');
       document.querySelectorAll('.li-sku-select').forEach(sel => {
         sel.innerHTML = opts;
@@ -567,7 +579,7 @@
       const brand = document.getElementById('newBrand').value;
       const skus  = catalogue.filter(p => p.brand === brand);
       const opts  = skus.map(p =>
-        `<option value="${p.sku}" data-cost="${p.costSGD}">${p.sku} — ${p.productName}</option>`
+        `<option value="${p.sku}" data-srp="${p.srp || p.retailPriceIDR}" data-cost="${p.costSGD}">${p.sku} — ${p.productName}</option>`
       ).join('') || '<option value="">No SKUs for this brand</option>';
 
       const row = document.createElement('div');
@@ -590,145 +602,132 @@
     }
 
     // ─ Helper: Get Tier (Strict: No defaults, must exist) ──
-function getRetailerTier(retailerId) {
-  if (!retailerId) throw new Error('Please select a retailer first');
-  
-  const retailer = retailers.find(r => r.retailerId === retailerId);
-  if (!retailer) throw new Error(`Retailer ${retailerId} not found`);
-  if (!retailer.tier) throw new Error(`Retailer ${retailerId} has no Tier assigned`);
-  
-  return retailer.tier;
-}
-
-// ── Helper: Get Margin % for a Tier ──
-function getTierMargin(tier) {
-  const margins = {
-    'T1': settings?.tierMargins?.T1 || 30,
-    'T2': settings?.tierMargins?.T2 || 35,
-    'T3': settings?.tierMargins?.T3 || 37.5,
-    'T4': settings?.tierMargins?.T4 || 45,
-    'WHOLESALE': 5
-  };
-  return margins[tier] || 35;
-}
-
-// ── Helper: Calculate Est. Margin Amount ──
-function calcMarginAmount(totalCostSGD, tier, orderType) {
-  const rate = settings?.sgdIdrRate || 13500;
-  const margin = getTierMargin(tier);
-  
-  if (orderType === 'Wholesale') {
-    // Wholesale margin is just the 5% handling fee
-    return Math.round((totalCostSGD * rate * 0.05) / 1000) * 1000;
-  }
-  
-  // Retailer PO Margin
-  const baseWithHandling = totalCostSGD * rate * 1.05;
-  const marginAmount = baseWithHandling * (margin / 100);
-  return Math.round(marginAmount / 1000) * 1000;
-}
-
-// Helper: Calc Margin from Total (for Detail View)
-function calcMarginFromTotal(totalIDR, tier, ppnPct = 12) {
-  const marginPct = getTierMargin(tier);
-  // Reverse calculate: total includes PPN and Margin
-  const totalExclPPN = totalIDR / (1 + ppnPct / 100);
-  const baseWithHandling = totalExclPPN / (1 + marginPct / 100);
-  const marginAmount = baseWithHandling * (marginPct / 100);
-  
-  // Use Math.ceil to match backend rounding behavior
-  return Math.ceil(marginAmount / 1000) * 1000;
-}
-
-// ── Helper: Update Margin Display in UI ──
-function updateMarginDisplay(orderType, tier, marginPct, marginAmt) {
-  const existing = document.getElementById('marginDisplay');
-  if (existing) existing.remove();
-
-  // Only show for Retailer PO
-  if (orderType !== 'Retailer PO') return;
-
-  const totalsDiv = document.querySelector('.so-totals');
-  const marginRow = document.createElement('div');
-  marginRow.id = 'marginDisplay';
-  marginRow.className = 'so-totals-row';
-  marginRow.style.color = '#00B4D8'; // Blue for Est Margin
-  marginRow.innerHTML = `
-    <span>Est. Margin ${tier} (${marginPct}%)</span>
-    <span>+${formatIDR(marginAmt)}</span>
-  `;
-
-  const totalRow = totalsDiv.querySelector('.so-totals-row.total');
-  totalsDiv.insertBefore(marginRow, totalRow);
-}
-
-// ── Core: Calculate Price ──
-function calcPriceIDR(costSGD, tier) {
-  const margin = getTierMargin(tier);
-  const rate   = settings?.sgdIdrRate || 13500;
-  const ppnPct = settings?.ppnPercent || 12;
-  const orderType = document.getElementById('newOrderType').value;
-
-  let base;
-  if (orderType === 'Wholesale') {
-    base = costSGD * rate * 1.05; // Cost + 5% handling
-  } else {
-    base = costSGD * rate * 1.05 * (1 + margin / 100);
-  }
-
-  const incPPN = base * (1 + ppnPct / 100);
-  return Math.ceil(incPPN / 1000) * 1000;
-}
-
-// ── Core: Update Totals ──
-function updateTotals() {
-  try {
-    const retailerId = document.getElementById('newRetailer').value;
-    const orderType  = document.getElementById('newOrderType').value;
-    const tier       = getRetailerTier(retailerId); // ← Dynamic Tier
-    const ppnPct     = settings?.ppnPercent || 12;
-    let total        = 0;
-    let totalCostSGD = 0;
-
-    document.querySelectorAll('.li-row').forEach(row => {
-      const sel    = row.querySelector('.li-sku-select');
-      const qty    = parseInt(row.querySelector('.li-qty')?.value) || 0;
-      const opt    = sel?.options[sel.selectedIndex];
-      const cost   = parseFloat(opt?.dataset.cost) || 0;
-      const unit   = calcPriceIDR(cost, tier);
-      const line   = unit * qty;
+    function getRetailerTier(retailerId) {
+      if (!retailerId) throw new Error('Please select a retailer first');
       
-      row.querySelector('[data-unit]').textContent = formatIDR(unit);
-      row.querySelector('[data-line]').textContent = formatIDR(line);
+      const retailer = retailers.find(r => r.retailerId === retailerId);
+      if (!retailer) throw new Error(`Retailer ${retailerId} not found`);
+      if (!retailer.tier) throw new Error(`Retailer ${retailerId} has no Tier assigned`);
       
-      total += line;
-      totalCostSGD += (cost * qty);
-    });
-
-    // 1. Standard Totals
-    const subtotalExcl = Math.round(total / (1 + ppnPct / 100) / 1000) * 1000;
-    const ppnAmt       = total - subtotalExcl;
-
-    document.getElementById('totSubtotal').textContent = formatIDR(subtotalExcl);
-    document.getElementById('totPPN').textContent      = formatIDR(ppnAmt);
-    document.getElementById('totTotal').textContent    = formatIDR(total);
-
-    // 2. Margin Display (Only for Retailer PO)
-    if (orderType === 'Retailer PO') {
-      const marginPct = getTierMargin(tier);
-      const marginAmt = calcMarginAmount(totalCostSGD, tier, orderType);
-      updateMarginDisplay(orderType, tier, marginPct, marginAmt);
-    } else {
-      // Remove margin display if switching to Wholesale/Direct Buy
-      const existing = document.getElementById('marginDisplay');
-      if (existing) existing.remove();
+      return retailer.tier;
     }
 
-  } catch (err) {
-    console.error('Update Totals Error:', err);
-    // Don't block UI, just log or show toast if critical
-  }
-}
+    // ── Helper: Get Margin % for a Tier (STRICT) ──
+    function getTierMargin(tier) {
+      if (!settings || !settings.tierMargins) {
+        console.error('❌ Settings not loaded! Cannot calculate margin.');
+        return null;
+      }
+      const margin = settings.tierMargins[tier];
+      if (margin === undefined || margin === null) {
+        console.error(`❌ Margin for tier "${tier}" not configured in Settings!`);
+        return null;
+      }
+      if (typeof margin !== 'number' || margin < 0) {
+        console.error(`❌ Invalid margin for tier "${tier}": ${margin}`);
+        return null;
+      }
+      return margin;
+    }
+
+    // ── Helper: Calc Margin from Gross Total (SRP-based) ──
+    function calcMarginFromGross(grossTotal, tier) {
+      const marginPct = getTierMargin(tier);
+      if (marginPct === null) return 0;
+      // Margin is embedded in SRP: Gross = Wholesale × (1 + Margin%)
+      // So: Margin Amount = Gross × (Margin% / (100 + Margin%))
+      const marginAmount = grossTotal * (marginPct / (100 + marginPct));
+      return Math.round(marginAmount / 1000) * 1000;
+    }
+
+    // ── Helper: Update Margin Display in UI ──
+    function updateMarginDisplay(orderType, tier, marginPct, marginAmt) {
+      document.getElementById('marginTier').textContent = tier;
+      document.getElementById('marginPct').textContent = marginPct;
+      document.getElementById('estMargin').textContent = '+' + formatIDR(marginAmt);
+    }
+
+    // ── Core: Calculate SRP Price (Gross, excl. PPN) ──
+    function calcSRP(costSGD, tier) {
+      const margin = getTierMargin(tier);
+      const rate   = settings?.sgdIdrRate || 13500;
+      // SRP = Wholesale × (1 + Margin%)
+      const wholesale = costSGD * rate * 1.05;
+      const srp = wholesale * (1 + margin / 100);
+      return Math.ceil(srp / 1000) * 1000;  // CEILING to nearest 1000
+    }
+
+    // ── Core: Update Totals (SRP-based) ──
+    function updateTotals() {
+      try {
+        const retailerId = document.getElementById('newRetailer').value;
+        const orderType  = document.getElementById('newOrderType').value;
+        const tier       = getRetailerTier(retailerId);
+        const ppnPct     = settings?.ppnPercent || 12;
+        
+        let grossSubtotal = 0;  // SRP × Qty (before discount)
+        let totalCostSGD  = 0;
+        let totalDiscount = 0;
+
+        document.querySelectorAll('.li-row').forEach(row => {
+          const sel    = row.querySelector('.li-sku-select');
+          const qty    = parseInt(row.querySelector('.li-qty')?.value) || 0;
+          const opt    = sel?.options[sel.selectedIndex];
+          const srp    = parseFloat(opt?.dataset.srp) || 0;  // SRP (Gross, excl. PPN)
+          const cost   = parseFloat(opt?.dataset.cost) || 0;
+          
+          // Calculate line totals
+          const lineGross = srp * qty;                    // SRP × Qty
+          const discountPct = 0; // Add discount field later if needed
+          const discountAmt = Math.round(lineGross * discountPct / 100 / 1000) * 1000;
+          const afterDiscount = lineGross - discountAmt;
+          const ppnAmt = Math.ceil(afterDiscount * ppnPct / 100 / 1000) * 1000;  // CEILING
+          const lineFinal = afterDiscount + ppnAmt;
+          
+          // Update UI
+          row.querySelector('[data-unit]').textContent = formatIDR(srp);
+          row.querySelector('[data-line]').textContent = formatIDR(lineFinal);
+          
+          grossSubtotal += lineGross;
+          totalDiscount += discountAmt;
+          totalCostSGD += (cost * qty);
+        });
+
+        // Calculate totals
+        const afterDiscountTotal = grossSubtotal - totalDiscount;
+        const ppnTotal = Math.ceil(afterDiscountTotal * ppnPct / 100 / 1000) * 1000;
+        const finalTotal = afterDiscountTotal + ppnTotal;
+        
+        // Calculate margin (on gross, before discount)
+        const marginPct = getTierMargin(tier);
+        const marginAmt = calcMarginFromGross(grossSubtotal, tier);
+
+        // Update display
+        document.getElementById('totSubtotal').textContent = formatIDR(grossSubtotal);
+        
+        if (totalDiscount > 0) {
+          document.getElementById('discountRow').style.display = 'flex';
+          document.getElementById('discountPctDisplay').textContent = 0; // Update if adding discount field
+          document.getElementById('totDiscount').textContent = '-' + formatIDR(totalDiscount);
+          document.getElementById('afterDiscountRow').style.display = 'flex';
+          document.getElementById('totAfterDiscount').textContent = formatIDR(afterDiscountTotal);
+        } else {
+          document.getElementById('discountRow').style.display = 'none';
+          document.getElementById('afterDiscountRow').style.display = 'none';
+        }
+        
+        document.getElementById('ppnLabel').textContent = `PPN (${ppnPct}%)`;
+        document.getElementById('totPPN').textContent = formatIDR(ppnTotal);
+        document.getElementById('totTotal').textContent = formatIDR(finalTotal);
+        
+        if (orderType === 'Retailer PO' && marginPct !== null) {
+          updateMarginDisplay(orderType, tier, marginPct, marginAmt);
+        }
+
+      } catch (err) {
+        console.error('Update Totals Error:', err);
+      }
+    }
     
     async function submitCreate() {
       const brand      = document.getElementById('newBrand').value;
@@ -795,13 +794,19 @@ function updateTotals() {
         const h     = data.header;
         const items = data.lineItems || [];
 
-        // Calculate PPN from total — works for both old and new SOs
-        const ppnPct      = settings?.ppnPercent || 12;
-        const totalIDR    = Number(h.totalIDR)    || 0;
-        const discountAmt = Number(h.discountAmt) || 0;
-        const totalBeforeDiscount = totalIDR + discountAmt;
-        const subtotalExcl = Math.round(totalBeforeDiscount / (1 + ppnPct / 100) / 1000) * 1000;
-        const ppnAmt       = totalBeforeDiscount - subtotalExcl;
+        // SRP-based calculation for display
+        const ppnPct = settings?.ppnPercent || 12;
+        
+        // Calculate gross subtotal from line items (SRP × Qty)
+        let grossSubtotal = 0;
+        items.forEach(i => {
+          grossSubtotal += (i.unitPrice * i.qty);  // unitPrice = SRP
+        });
+        
+        const discountAmt = h.discountAmt || 0;
+        const afterDiscount = grossSubtotal - discountAmt;
+        const ppnAmt = Math.ceil(afterDiscount * ppnPct / 100 / 1000) * 1000;
+        const finalTotal = afterDiscount + ppnAmt;
 
         document.getElementById('detailBody').innerHTML = `
           <div class="detail-grid">
@@ -846,7 +851,7 @@ function updateTotals() {
                 <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">SKU</th>
                 <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Description</th>
                 <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">QTY</th>
-                <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Unit Price (inc. PPN)</th>
+                <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Unit Price (SRP)</th>
                 <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Discount %</th>
                 <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Final Total</th>
               </tr>
@@ -861,7 +866,7 @@ function updateTotals() {
                   <td style="padding:8px;font-size:13px;border-bottom:1px solid #1A1A1A;color:${i.discountPct > 0 ? '#52B788' : '#555'}">
                     ${i.discountPct > 0 ? i.discountPct + '%' : '0%'}
                   </td>
-                  <td style="padding:8px;font-size:13px;font-weight:600;border-bottom:1px solid #1A1A1A">${formatIDR(i.finalTotal || i.lineTotal)}</td>
+                  <td style="padding:8px;font-size:13px;font-weight:600;border-bottom:1px solid #1A1A1A">${formatIDR(i.finalTotal || (i.unitPrice * i.qty))}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -869,26 +874,32 @@ function updateTotals() {
 
           <div class="so-totals">
             <div class="so-totals-row">
-              <span>Subtotal (excl. PPN)</span>
-              <span>${formatIDR(subtotalExcl)}</span>
+              <span>Subtotal (Gross, excl. PPN)</span>
+              <span>${formatIDR(grossSubtotal)}</span>
             </div>
+            ${discountAmt > 0 ? `
+            <div class="so-totals-row" style="color:#E63946">
+              <span>Discount (${h.discountPct}%)</span>
+              <span>-${formatIDR(discountAmt)}</span>
+            </div>` : ''}
+            ${h.orderType === 'Retailer PO' && h.tier ? `
+            ${(() => {
+              const margin = getTierMargin(h.tier);
+              if (margin === null) return '';
+              const marginAmt = calcMarginFromGross(grossSubtotal, h.tier);
+              return `<div class="so-totals-row" style="color:#00B4D8">
+                <span>Est. Margin ${h.tier} (${margin}%)</span>
+                <span>+${formatIDR(marginAmt)}</span>
+              </div>`;
+            })()}
+            ` : ''}
             <div class="so-totals-row">
               <span>PPN ${ppnPct}%</span>
               <span>${formatIDR(ppnAmt)}</span>
             </div>
-            ${h.orderType === 'Retailer PO' ? `
-            <div class="so-totals-row" style="color:#00B4D8">
-              <span>Est. Margin ${h.tier} (${getTierMargin(h.tier)}%)</span>
-              <span>+${formatIDR(calcMarginFromTotal(totalIDR, h.tier, ppnPct))}</span>
-            </div>` : ''}
-            ${discountAmt > 0 ? `
-            <div class="so-totals-row" style="color:#52B788">
-              <span>Discount (${h.discountPct}%)</span>
-              <span>-${formatIDR(discountAmt)}</span>
-            </div>` : ''}
             <div class="so-totals-row total">
-              <span>Total IDR</span>
-              <span>${formatIDR(totalIDR)}</span>
+              <span>Total Invoice</span>
+              <span>${formatIDR(h.totalIDR)}</span>
             </div>
           </div>
         `;
