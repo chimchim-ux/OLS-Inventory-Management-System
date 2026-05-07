@@ -683,7 +683,7 @@ function calcPriceIDR(costSGD, tier) {
   }
 
   const incPPN = base * (1 + ppnPct / 100);
-  return Math.round(incPPN / 1000) * 1000;
+  return Math.ceil(incPPN / 1000) * 1000;
 }
 
 // ── Core: Update Totals ──
