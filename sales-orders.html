@@ -589,24 +589,6 @@
       updateTotals();
     }
 
-    function getRetailerTier(retailerId) {
-  if (!retailerId) {
-    throw new Error('No retailer selected');
-  }
-  
-  const retailer = retailers.find(r => r.retailerId === retailerId);
-  
-  if (!retailer) {
-    throw new Error(`Retailer ${retailerId} not found in directory`);
-  }
-  
-  if (!retailer.tier) {
-    throw new Error(`Retailer ${retailerId} (${retailer.name}) has no tier assigned`);
-  }
-  
-  return retailer.tier;
-}
-
     // ─ Helper: Get Tier (Strict: No defaults, must exist) ──
 function getRetailerTier(retailerId) {
   if (!retailerId) throw new Error('Please select a retailer first');
@@ -644,6 +626,18 @@ function calcMarginAmount(totalCostSGD, tier, orderType) {
   const baseWithHandling = totalCostSGD * rate * 1.05;
   const marginAmount = baseWithHandling * (margin / 100);
   return Math.round(marginAmount / 1000) * 1000;
+}
+
+// Helper: Calc Margin from Total (for Detail View)
+function calcMarginFromTotal(totalIDR, tier, ppnPct = 12) {
+  const marginPct = getTierMargin(tier);
+  // Reverse calculate: total includes PPN and Margin
+  const totalExclPPN = totalIDR / (1 + ppnPct / 100);
+  const baseWithHandling = totalExclPPN / (1 + marginPct / 100);
+  const marginAmount = baseWithHandling * (marginPct / 100);
+  
+  // Use Math.ceil to match backend rounding behavior
+  return Math.ceil(marginAmount / 1000) * 1000;
 }
 
 // ── Helper: Update Margin Display in UI ──
@@ -882,6 +876,11 @@ function updateTotals() {
               <span>PPN ${ppnPct}%</span>
               <span>${formatIDR(ppnAmt)}</span>
             </div>
+            ${h.orderType === 'Retailer PO' ? `
+            <div class="so-totals-row" style="color:#00B4D8">
+              <span>Est. Margin ${h.tier} (${getTierMargin(h.tier)}%)</span>
+              <span>+${formatIDR(calcMarginFromTotal(totalIDR, h.tier, ppnPct))}</span>
+            </div>` : ''}
             ${discountAmt > 0 ? `
             <div class="so-totals-row" style="color:#52B788">
               <span>Discount (${h.discountPct}%)</span>
