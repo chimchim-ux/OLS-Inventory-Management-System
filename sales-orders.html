@@ -781,38 +781,42 @@
       }
     }
 
-    function buildStatusActions(soNumber, status) {
-      const transitions = {
-        'Draft'            : ['Pending Approval', 'Cancelled'],
-        'Pending Approval' : ['Confirmed', 'Cancelled'],
-        'Confirmed'        : ['Shipped', 'Cancelled'],
-        'Shipped'          : ['Invoiced'],
-        'Invoiced'         : [],
-        'Cancelled'        : [],
-      };
+function buildStatusActions(soNumber, status) {
+  let btns = `<button class="btn-secondary" onclick="closeDetailModal()">Close</button>`;
 
-      let btns = `<button class="btn-secondary" onclick="closeDetailModal()">Close</button>`;
+  btns += `<a href="so-pdf.html?so=${soNumber}" target="_blank"
+    class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px">
+    ↓ PDF
+  </a>`;
 
-      // Viewer sees Close only
-      if (isViewer()) return btns;
+  if (isViewer()) return btns;
 
-      const next = transitions[status] || [];
-      next.forEach(newStatus => {
-        if (newStatus === 'Cancelled') {
-          btns += `<button class="btn-danger"
-            onclick="updateStatus('${soNumber}', '${newStatus}')">
-            Cancel Order
-          </button>`;
-        } else {
-          btns += `<button class="btn-primary"
-            onclick="updateStatus('${soNumber}', '${newStatus}')">
-            → ${newStatus}
-          </button>`;
-        }
-      });
+  const transitions = {
+    'Draft'            : ['Pending Approval', 'Cancelled'],
+    'Pending Approval' : ['Confirmed', 'Cancelled'],
+    'Confirmed'        : ['Shipped', 'Cancelled'],
+    'Shipped'          : ['Invoiced'],
+    'Invoiced'         : [],
+    'Cancelled'        : [],
+  };
 
-      return btns;
+  const next = transitions[status] || [];
+  next.forEach(newStatus => {
+    if (newStatus === 'Cancelled') {
+      btns += `<button class="btn-danger"
+        onclick="updateStatus('${soNumber}', '${newStatus}')">
+        Cancel Order
+      </button>`;
+    } else {
+      btns += `<button class="btn-primary"
+        onclick="updateStatus('${soNumber}', '${newStatus}')">
+        → ${newStatus}
+      </button>`;
     }
+  });
+
+  return btns;
+}
 
     function closeDetailModal() {
       document.getElementById('detailModal').style.display = 'none';
