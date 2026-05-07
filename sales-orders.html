@@ -768,20 +768,24 @@
           </table>
 
           <div class="so-totals">
-            ${h.discountAmt > 0 ? `
-            <div class="so-totals-row">
-              <span>Subtotal (inc. PPN)</span>
-              <span>${formatIDR(h.subtotal)}</span>
-            </div>
-            <div class="so-totals-row" style="color:#52B788">
-              <span>Discount (${h.discountPct}%)</span>
-              <span>-${formatIDR(h.discountAmt)}</span>
-            </div>` : ''}
-            <div class="so-totals-row total">
-              <span>Total IDR</span>
-              <span>${formatIDR(h.totalIDR)}</span>
-            </div>
-          </div>
+  <div class="so-totals-row">
+    <span>Subtotal (excl. PPN)</span>
+    <span>${formatIDR(h.subtotal - h.ppn)}</span>
+  </div>
+  <div class="so-totals-row">
+    <span>PPN 12%</span>
+    <span>${formatIDR(h.ppn)}</span>
+  </div>
+  ${h.discountAmt > 0 ? `
+  <div class="so-totals-row" style="color:#52B788">
+    <span>Discount (${h.discountPct}%)</span>
+    <span>-${formatIDR(h.discountAmt)}</span>
+  </div>` : ''}
+  <div class="so-totals-row total">
+    <span>Total IDR</span>
+    <span>${formatIDR(h.totalIDR)}</span>
+  </div>
+</div>
         `;
 
         document.getElementById('detailFooter').innerHTML =
