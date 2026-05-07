@@ -288,6 +288,14 @@
     document.getElementById('pageSubtitle').textContent =
       `${session.retailerId} — Tier ${session.tier}`;
 
+      // ── Session Validation ───────────────────────────────
+if (!session.tier) {
+  console.error('Retailer session missing tier:', session);
+  showToast('Account configuration error. Please contact admin.', 'error');
+  // Fallback: try to reload session
+  setTimeout(() => window.location.reload(), 2000);
+}
+
     function logout() { clearSession(); window.location.href = 'index.html'; }
 
     // ── State ─────────────────────────────────────────────
@@ -307,20 +315,27 @@
 
     // ── Init ──────────────────────────────────────────────
     async function init() {
-      document.getElementById('orderDate').value =
-        new Date().toISOString().split('T')[0];
+  document.getElementById('orderDate').value =
+    new Date().toISOString().split('T')[0];
 
-      try {
-        const [catData, setData] = await Promise.all([
-          apiGet('getCatalogue', { tier: session.tier }),
-          apiGet('getSettings'),
-        ]);
-        catalogue = Array.isArray(catData) ? catData : [];
-        settings  = setData;
+  try {
+    console.log('Loading catalogue with tier:', session.tier);
+    
+    const [catData, setData] = await Promise.all([
+      apiGet('getCatalogue', { tier: session.tier }),
+      apiGet('getSettings'),
+    ]);
+    
+    console.log('Catalogue loaded:', catData?.length, 'products');
+    console.log('Sample product:', catData?.[0]);
+    
+    catalogue = Array.isArray(catData) ? catData : [];
+    settings  = setData;
 
-        // Update PPN label
-        document.getElementById('ppnLabel').textContent =
-          `PPN (${settings?.ppnPercent || 12}%)`;
+    // Update PPN label
+    document.getElementById('ppnLabel').textContent =
+      `PPN (${settings?.ppnPercent || 12}%)`;
+
 
         // Check if coming from quick order
         const quickSKU = sessionStorage.getItem('quick_sku');
@@ -348,29 +363,41 @@
     }
 
     function onBrandChange() {
-      // Refresh SKU dropdowns when brand changes
-      const brand = document.getElementById('orderBrand').value;
-      document.querySelectorAll('.li-sku-select').forEach(sel => {
-        const skus = catalogue.filter(p => p.brand === brand);
-        sel.innerHTML = skus.map(p =>
-          `<option value="${p.sku}" data-price="${p.retailPriceIDR}"
-            data-avail="${p.availableStock}">${p.sku} — ${p.productName}</option>`
-        ).join('') || '<option value="">No SKUs for this brand</option>';
-      });
-      updateTotals();
-    }
+  const brand = document.getElementById('orderBrand').value;
+  document.querySelectorAll('.li-sku-select').forEach(sel => {
+    const skus = catalogue.filter(p => p.brand === brand);
+    
+    sel.innerHTML = skus.map(p => {
+      // Fallback: calculate price if retailPriceIDR missing
+      const price = p.retailPriceIDR || p.wholesaleIDR || 0;
+      const avail = p.availableStock || 0;
+      
+      return `<option value="${p.sku}" 
+        data-price="${price}"
+        data-avail="${avail}">
+        ${p.sku} — ${p.productName}
+      </option>`;
+    }).join('') || '<option value="">No SKUs for this brand</option>';
+  });
+  updateTotals();
+}
 
     function addLineItem(preselectedSKU = '', preselectedQTY = 1) {
-      const brand = document.getElementById('orderBrand').value;
-      const skus  = catalogue.filter(p => p.brand === brand);
-      const opts  = skus.map(p =>
-        `<option value="${p.sku}"
-          data-price="${p.retailPriceIDR}"
-          data-avail="${p.availableStock}"
-          ${p.sku === preselectedSKU ? 'selected' : ''}>
-          ${p.sku} — ${p.productName}
-        </option>`
-      ).join('') || '<option value="">No SKUs</option>';
+  const brand = document.getElementById('orderBrand').value;
+  const skus  = catalogue.filter(p => p.brand === brand);
+  
+  const opts = skus.map(p => {
+    // Same fallback logic
+    const price = p.retailPriceIDR || p.wholesaleIDR || 0;
+    const avail = p.availableStock || 0;
+    
+    return `<option value="${p.sku}"
+      data-price="${price}"
+      data-avail="${avail}"
+      ${p.sku === preselectedSKU ? 'selected' : ''}>
+      ${p.sku} — ${p.productName}
+    </option>`;
+  }).join('') || '<option value="">No SKUs</option>';
 
       const row = document.createElement('div');
       row.innerHTML = `
