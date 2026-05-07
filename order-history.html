@@ -172,6 +172,24 @@
       margin-right: 8px; vertical-align: middle;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .toast.success { background: #002A10; color: #52B788; border: 1px solid #003A18; }
+    .toast.error   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
+    .toast.visible { opacity: 1; }
   </style>
 </head>
 <body>
@@ -222,6 +240,9 @@
     </div>
   </div>
 
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
   <script>
     // ── Auth guard ────────────────────────────────────────
     if (!isLoggedIn() || isAdmin()) {
@@ -239,6 +260,7 @@
     let orderDetails  = {};
     let currentStatus = 'all';
     let openOrderNum  = null;
+    let settings      = null;
 
     // ── Format ────────────────────────────────────────────
     function formatIDR(n) {
@@ -264,13 +286,82 @@
       return `<span class="badge ${map[status] || 'badge-grey'}">${status}</span>`;
     }
 
+    // ── Toast ────────────────────────────────────────────
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type} visible`;
+      setTimeout(() => t.classList.remove('visible'), 4000);
+    }
+
+    // ── Helper: Get Margin % for Tier (STRICT) ───────────
+    function getTierMargin(tier) {
+      if (!settings || !settings.tierMargins) {
+        console.error('❌ Settings not loaded! Cannot calculate margin.');
+        return null;
+      }
+      const margin = settings.tierMargins[tier];
+      if (margin === undefined || margin === null) {
+        console.error(`❌ Margin for tier "${tier}" not configured in Settings!`);
+        return null;
+      }
+      if (typeof margin !== 'number' || margin < 0) {
+        console.error(`❌ Invalid margin for tier "${tier}": ${margin}`);
+        return null;
+      }
+      return margin;
+    }
+
+    // ── Helper: Calc Margin from Total ───────────────────
+    function calcMarginFromTotal(totalIDR, tier, ppnPct = 12) {
+      const marginPct = getTierMargin(tier);
+      if (marginPct === null) return 0;
+      const totalExclPPN = totalIDR / (1 + ppnPct / 100);
+      const baseWithHandling = totalExclPPN / (1 + marginPct / 100);
+      const marginAmount = baseWithHandling * (marginPct / 100);
+      return Math.round(marginAmount / 1000) * 1000;
+    }
+
+    // ── Validation: Check All Tier Margins ───────────────
+    function validateTierConfiguration() {
+      if (!settings || !settings.tierMargins) {
+        console.error('❌ CRITICAL: Tier margins not loaded from Settings!');
+        return false;
+      }
+      const requiredTiers = ['T1', 'T2', 'T3', 'T4'];
+      const missingTiers = [];
+      requiredTiers.forEach(tier => {
+        const margin = settings.tierMargins[tier];
+        if (margin === undefined || margin === null || margin < 0) {
+          missingTiers.push(tier);
+        }
+      });
+      if (missingTiers.length > 0) {
+        console.error(`❌ CRITICAL: Missing tier margins: ${missingTiers.join(', ')}`);
+        showToast(`Configuration Error: Missing margins for ${missingTiers.join(', ')}`, 'error');
+        return false;
+      }
+      console.log('✅ All tier margins configured:', settings.tierMargins);
+      return true;
+    }
+
     // ── Load orders ───────────────────────────────────────
     async function loadOrders() {
       try {
-        const data = await apiGet('getSalesOrders', {
-          retailerId: session.retailerId,
-        });
+        const [data, settingsData] = await Promise.all([
+          apiGet('getSalesOrders', { retailerId: session.retailerId }),
+          apiGet('getSettings'),
+        ]);
+        
         allOrders = Array.isArray(data) ? data : [];
+        settings = settingsData;
+        
+        if (!validateTierConfiguration()) {
+          document.getElementById('loadingState').textContent = 
+            'System configuration error. Please contact admin.';
+          return;
+        }
+        
         document.getElementById('loadingState').style.display = 'none';
         renderOrders();
       } catch (err) {
@@ -342,14 +433,12 @@
       const chevronEl = document.getElementById(`chevron-${soNumber}`);
 
       if (openOrderNum === soNumber) {
-        // Close
         detailEl.classList.remove('open');
         chevronEl.textContent = '▼';
         openOrderNum = null;
         return;
       }
 
-      // Close previously open
       if (openOrderNum) {
         const prev = document.getElementById(`detail-${openOrderNum}`);
         const prevChev = document.getElementById(`chevron-${openOrderNum}`);
@@ -361,7 +450,6 @@
       detailEl.classList.add('open');
       chevronEl.textContent = '▲';
 
-      // Load detail if not cached
       if (!orderDetails[soNumber]) {
         try {
           const data = await apiGet('getSODetail', { soNumber });
@@ -379,6 +467,15 @@
 
       document.getElementById(`loading-${soNumber}`).style.display  = 'none';
       document.getElementById(`content-${soNumber}`).style.display  = 'block';
+      
+      // Calculate PPN from total (works for old SOs)
+      const ppnPct = settings?.ppnPercent || 12;
+      const totalIDR = Number(h.totalIDR) || 0;
+      const discountAmt = Number(h.discountAmt) || 0;
+      const totalBeforeDiscount = totalIDR + discountAmt;
+      const subtotalExcl = Math.round(totalBeforeDiscount / (1 + ppnPct / 100) / 1000) * 1000;
+      const ppnAmt = totalBeforeDiscount - subtotalExcl;
+
       document.getElementById(`content-${soNumber}`).innerHTML = `
         <div class="detail-grid">
           <div class="detail-item">
@@ -408,7 +505,8 @@
               <th>Description</th>
               <th>QTY</th>
               <th>Unit Price</th>
-              <th>Line Total</th>
+              <th>Discount</th>
+              <th>Final Total</th>
             </tr>
           </thead>
           <tbody>
@@ -418,7 +516,10 @@
                 <td>${i.description}</td>
                 <td>${i.qty}</td>
                 <td>${formatIDR(i.unitPrice)}</td>
-                <td style="font-weight:600">${formatIDR(i.lineTotal)}</td>
+                <td style="color:${i.discountPct > 0 ? '#52B788' : '#555'}">
+                  ${i.discountPct > 0 ? i.discountPct + '%' : '0%'}
+                </td>
+                <td style="font-weight:600">${formatIDR(i.finalTotal || i.lineTotal)}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -426,24 +527,41 @@
 
         <div class="detail-totals">
           <div class="totals-row">
-            <span>Subtotal</span>
-            <span>${formatIDR(h.subtotal)}</span>
+            <span>Subtotal (excl. PPN)</span>
+            <span>${formatIDR(subtotalExcl)}</span>
           </div>
           <div class="totals-row">
-            <span>PPN</span>
-            <span>${formatIDR(h.ppn)}</span>
+            <span>PPN ${ppnPct}%</span>
+            <span>${formatIDR(ppnAmt)}</span>
           </div>
+          ${h.discountAmt > 0 ? `
+          <div class="totals-row" style="color:#52B788">
+            <span>Discount (${h.discountPct}%)</span>
+            <span>-${formatIDR(h.discountAmt)}</span>
+          </div>` : `
+          <div class="totals-row">
+            <span>Discount (0%)</span>
+            <span>-Rp 0</span>
+          </div>`}
+          ${h.orderType === 'Retailer PO' && h.tier ? `
+          ${(() => {
+            const margin = getTierMargin(h.tier);
+            if (margin === null) {
+              return `<div class="totals-row" style="color:#E63946">
+                <span>Margin Configuration Error</span>
+                <span>Contact admin</span>
+              </div>`;
+            }
+            return `<div class="totals-row" style="color:#00B4D8">
+              <span>Est. Margin ${h.tier} (${margin}%)</span>
+              <span>+${formatIDR(calcMarginFromTotal(totalIDR, h.tier))}</span>
+            </div>`;
+          })()}
+          ` : ''}
           <div class="totals-row grand">
             <span>Total IDR</span>
-            <span>${formatIDR(h.totalIDR)}</span>
+            <span>${formatIDR(totalIDR)}</span>
           </div>
-        </div>
-                <div style="margin-top:16px;text-align:right">
-          <a href="so-pdf.html?so=${soNumber}&code=${sessionStorage.getItem('ols_code') || ''}" target="_blank"
-            style="font-size:12px;color:#00B4D8;text-decoration:none;
-            border:1px solid #00B4D8;padding:6px 14px;border-radius:6px;display:inline-block">
-            Download PDF
-          </a>
         </div>
       `;
     }
