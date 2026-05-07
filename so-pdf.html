@@ -330,12 +330,27 @@
   <script>
     // ── Auth guard ────────────────────────────────────────
     if (!isLoggedIn()) {
-      window.location.href = 'index.html';
+        document.getElementById('document').innerHTML =
+            '<div class="loading">Session expired. Please <a href="index.html">log in</a> and try again.</div>';
+        document.getElementById('controlTitle').textContent = 'Not logged in';
+        // Don't redirect — let user see the message
     }
 
-    // ── Get SO number from URL ────────────────────────────
-    const params   = new URLSearchParams(window.location.search);
-    const soNumber = params.get('so');
+    // ── Auth from URL params ──────────────────────────────
+const params   = new URLSearchParams(window.location.search);
+const soNumber = params.get('so');
+const urlCode  = params.get('code');
+
+    // Store code in sessionStorage so apiGet() can use it
+    if (urlCode) {
+    sessionStorage.setItem('ols_code', urlCode);
+    sessionStorage.setItem('ols_role', 'admin'); // PDF only accessible to admin/viewer
+    }
+
+    if (!urlCode && !isLoggedIn()) {
+    document.getElementById('document').innerHTML =
+        '<div class="loading">Session expired. Please <a href="index.html">log in</a> and try again.</div>';
+    }
 
     if (!soNumber) {
       document.getElementById('loadingState').textContent =
