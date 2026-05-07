@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OLS — Marketing Orders</title>
+  <script src="config.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0A0A0A; color: #FFF; min-height: 100vh;
+    }
+    nav {
+      background: #141414; border-bottom: 1px solid #222;
+      padding: 0 32px; display: flex; align-items: center;
+      justify-content: space-between; height: 56px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-brand { font-size: 16px; font-weight: 700; color: #FFF; letter-spacing: 1px; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      color: #666; text-decoration: none; font-size: 13px;
+      padding: 6px 12px; border-radius: 6px; transition: all 0.2s;
+    }
+    .nav-links a:hover { color: #FFF; background: #1E1E1E; }
+    .nav-links a.active { color: #FFF; background: #1E1E1E; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-user { font-size: 12px; color: #555; }
+    .btn-logout {
+      font-size: 12px; color: #555; background: none;
+      border: 1px solid #2A2A2A; border-radius: 6px;
+      padding: 6px 12px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-logout:hover { color: #FFF; border-color: #555; }
+
+    .page { max-width: 1200px; margin: 0 auto; padding: 32px; }
+    .page-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 24px;
+    }
+    .page-header h1 { font-size: 24px; font-weight: 700; }
+    .page-header p { font-size: 13px; color: #555; margin-top: 4px; }
+
+    .btn-primary {
+      padding: 10px 20px; background: #00B4D8; border: none;
+      border-radius: 8px; color: #000; font-size: 13px;
+      font-weight: 700; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-primary:hover { background: #0096B4; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      padding: 8px 16px; background: none;
+      border: 1px solid #2A2A2A; border-radius: 8px;
+      color: #888; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-secondary:hover { border-color: #555; color: #FFF; }
+    .btn-success {
+      padding: 8px 16px; background: #002A10;
+      border: 1px solid #003A18; border-radius: 8px;
+      color: #52B788; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-success:hover { background: #003A18; }
+    .btn-warning {
+      padding: 8px 16px; background: #2A1F00;
+      border: 1px solid #3A2A00; border-radius: 8px;
+      color: #F4A261; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-warning:hover { background: #3A2A00; }
+    .btn-danger {
+      padding: 8px 16px; background: #2A0000;
+      border: 1px solid #3A0000; border-radius: 8px;
+      color: #E63946; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-danger:hover { background: #3A0000; }
+
+    .filters {
+      display: flex; gap: 8px; margin-bottom: 20px;
+      align-items: center; flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 6px 14px; background: none;
+      border: 1px solid #2A2A2A; border-radius: 20px;
+      color: #666; font-size: 12px; cursor: pointer; transition: all 0.2s;
+    }
+    .filter-btn:hover { border-color: #555; color: #FFF; }
+    .filter-btn.active { background: #FFF; border-color: #FFF; color: #000; font-weight: 600; }
+
+    .table-wrap {
+      background: #141414; border: 1px solid #222;
+      border-radius: 10px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: #1A1A1A; padding: 12px 16px; text-align: left;
+      font-size: 11px; font-weight: 600; color: #555;
+      text-transform: uppercase; letter-spacing: 1px;
+      border-bottom: 1px solid #222;
+    }
+    tbody td {
+      padding: 12px 16px; font-size: 13px; color: #CCC;
+      border-bottom: 1px solid #1A1A1A;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #181818; }
+    .mono { font-family: 'Courier New', monospace; font-size: 12px; }
+
+    .badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+    .badge-grey   { background: #1A1A1A; color: #666;    border: 1px solid #2A2A2A; }
+    .badge-blue   { background: #001A2A; color: #00B4D8; border: 1px solid #00253A; }
+    .badge-amber  { background: #2A1F00; color: #F4A261; border: 1px solid #3A2A00; }
+    .badge-green  { background: #002A10; color: #52B788; border: 1px solid #003A18; }
+    .badge-red    { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
+    .badge-purple { background: #1A0A2A; color: #C084FC; border: 1px solid #2A1A3A; }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; padding: 24px;
+    }
+    .modal {
+      background: #141414; border: 1px solid #222; border-radius: 12px;
+      width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto;
+    }
+    .modal-header {
+      padding: 20px 24px; border-bottom: 1px solid #222;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: #141414; z-index: 10;
+    }
+    .modal-header h2 { font-size: 16px; font-weight: 700; }
+    .modal-close {
+      background: none; border: none; color: #555;
+      font-size: 20px; cursor: pointer; line-height: 1;
+    }
+    .modal-close:hover { color: #FFF; }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      padding: 16px 24px; border-top: 1px solid #222;
+      display: flex; gap: 12px; justify-content: flex-end;
+      position: sticky; bottom: 0; background: #141414;
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-group { margin-bottom: 16px; }
+    label {
+      display: block; font-size: 11px; font-weight: 600; color: #555;
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+    }
+    input, select {
+      width: 100%; padding: 10px 14px; background: #1E1E1E;
+      border: 1px solid #2A2A2A; border-radius: 8px; color: #FFF;
+      font-size: 14px; outline: none; transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    input:focus, select:focus { border-color: #00B4D8; }
+    select option { background: #1E1E1E; }
+
+    .section-divider {
+      font-size: 12px; font-weight: 600; color: #555;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin: 20px 0 12px; padding-bottom: 8px; border-bottom: 1px solid #222;
+    }
+    .li-header {
+      display: grid; grid-template-columns: 2.5fr 1fr 1.5fr auto;
+      gap: 8px; margin-bottom: 6px;
+    }
+    .li-header span { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; }
+    .li-row {
+      display: grid; grid-template-columns: 2.5fr 1fr 1.5fr auto;
+      gap: 8px; align-items: start; margin-bottom: 8px;
+    }
+    .li-cost {
+      padding: 10px 14px; background: #1A1A1A; border: 1px solid #222;
+      border-radius: 8px; font-size: 13px; color: #888;
+    }
+    .btn-remove {
+      background: none; border: none; color: #555;
+      font-size: 18px; cursor: pointer; padding: 8px; line-height: 1;
+    }
+    .btn-remove:hover { color: #E63946; }
+    .btn-add-line {
+      width: 100%; padding: 10px; background: none;
+      border: 1px dashed #2A2A2A; border-radius: 8px;
+      color: #555; font-size: 13px; cursor: pointer;
+      transition: all 0.2s; margin-top: 4px;
+    }
+    .btn-add-line:hover { border-color: #555; color: #FFF; }
+
+    .cost-summary {
+      background: #1A1A1A; border: 1px solid #222;
+      border-radius: 8px; padding: 16px; margin-top: 16px;
+    }
+    .cost-row {
+      display: flex; justify-content: space-between;
+      font-size: 13px; color: #888; margin-bottom: 8px;
+    }
+    .cost-row.total {
+      font-size: 16px; font-weight: 700; color: #FFF;
+      margin-bottom: 0; padding-top: 8px; border-top: 1px solid #333;
+    }
+    .cost-row span:last-child { color: #FFF; }
+
+    .detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-bottom: 20px;
+    }
+    .detail-item label { margin-bottom: 4px; }
+    .detail-item .val { font-size: 14px; color: #FFF; }
+
+    .info-box {
+      background: #1A1A1A; border: 1px solid #2A2A2A;
+      border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 12px; color: #555;
+    }
+    .info-box strong { color: #F4A261; }
+
+    .loading { padding: 48px; text-align: center; color: #444; font-size: 13px; }
+    .empty   { padding: 48px; text-align: center; color: #444; font-size: 13px; }
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid #333; border-top-color: #00B4D8;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+      margin-right: 8px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast {
+      position: fixed; bottom: 32px; right: 32px;
+      padding: 12px 20px; border-radius: 8px; font-size: 13px;
+      font-weight: 600; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none; z-index: 999;
+    }
+    .toast.success { background: #002A10; color: #52B788; border: 1px solid #003A18; }
+    .toast.error   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
+    .toast.visible { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-brand">OLS</div>
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="catalogue.html">Catalogue</a>
+      <a href="inventory.html">Inventory</a>
+      <a href="packing-lists.html">Packing Lists</a>
+      <a href="sales-orders.html">Sales Orders</a>
+      <a href="marketing-orders.html" class="active">Marketing</a>
+      <a href="settings.html">Settings</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user" id="navUser">—</span>
+      <button class="btn-logout" onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <div>
+        <h1>Marketing Orders</h1>
+        <p>Sample & gifting outbound — influencers, press, partners</p>
+      </div>
+      <button class="btn-primary" id="btnNewMO"
+        onclick="openCreateModal()" style="display:none">
+        + New MO
+      </button>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterStatus('all', this)">All</button>
+      <button class="filter-btn" onclick="filterStatus('Draft', this)">Draft</button>
+      <button class="filter-btn" onclick="filterStatus('Confirmed', this)">Confirmed</button>
+      <button class="filter-btn" onclick="filterStatus('Dispatched', this)">Dispatched</button>
+      <button class="filter-btn" onclick="filterStatus('Returned', this)">Returned</button>
+      <button class="filter-btn" onclick="filterStatus('Closed', this)">Closed</button>
+    </div>
+
+    <div class="table-wrap">
+      <div class="loading" id="loadingState">
+        <span class="spinner"></span>Loading marketing orders...
+      </div>
+      <table id="mainTable" style="display:none">
+        <thead>
+          <tr>
+            <th>MO Number</th>
+            <th>Brand</th>
+            <th>Recipient</th>
+            <th>Type</th>
+            <th>Dispatch Date</th>
+            <th>Units</th>
+            <th>Cost IDR</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="empty" id="emptyState" style="display:none">
+        No marketing orders found
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Modal -->
+  <div class="modal-overlay" id="createModal" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>New Marketing Order</h2>
+        <button class="modal-close" onclick="closeCreateModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-box">
+          <strong>Note:</strong> Marketing Orders are zero-revenue outbound.
+          Stock is deducted on Dispatch. Returns restore stock automatically.
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Brand</label>
+            <select id="newBrand" onchange="refreshSKUs()">
+              <option value="Mofmofriends">Mofmofriends</option>
+              <option value="Stojo">Stojo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Recipient Type</label>
+            <select id="newRecipientType">
+              <option value="Influencer">Influencer</option>
+              <option value="Press">Press</option>
+              <option value="Partner">Partner</option>
+              <option value="Event">Event</option>
+              <option value="Internal">Internal</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Recipient Name</label>
+          <input type="text" id="newRecipientName"
+            placeholder="e.g. Siti Badriah, Kompas, Brand X Event" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Dispatch Date</label>
+            <input type="date" id="newDispatchDate" />
+          </div>
+          <div class="form-group">
+            <label>Expected Return (optional)</label>
+            <input type="date" id="newExpectedReturn" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Notes (optional)</label>
+          <input type="text" id="newNotes"
+            placeholder="Campaign name, event details..." />
+        </div>
+
+        <div class="section-divider">Line Items</div>
+        <div class="li-header">
+          <span>SKU</span>
+          <span>QTY</span>
+          <span>Cost IDR/unit</span>
+          <span></span>
+        </div>
+        <div id="lineItems"></div>
+        <button class="btn-add-line" onclick="addLineItem()">+ Add SKU</button>
+
+        <div class="cost-summary">
+          <div class="cost-row">
+            <span>Total Units</span>
+            <span id="totUnits">0</span>
+          </div>
+          <div class="cost-row total">
+            <span>Total Cost IDR</span>
+            <span id="totCost">Rp 0</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeCreateModal()">Cancel</button>
+        <button class="btn-primary" id="createBtn" onclick="submitCreate()">
+          Create MO
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" id="detailModal" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="detailTitle">Marketing Order</h2>
+        <button class="modal-close" onclick="closeDetailModal()">×</button>
+      </div>
+      <div class="modal-body" id="detailBody">
+        <div class="loading"><span class="spinner"></span>Loading...</div>
+      </div>
+      <div class="modal-footer" id="detailFooter"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── Auth guard ────────────────────────────────────────
+    if (!isLoggedIn() || (!isAdmin() && !isViewer())) {
+      window.location.href = 'index.html';
+    }
+
+    if (isAdmin()) {
+      document.getElementById('btnNewMO').style.display = 'inline-block';
+    }
+
+    document.getElementById('navUser').textContent = isViewer() ? 'Viewer' : 'Admin';
+
+    function logout() { clearSession(); window.location.href = 'index.html'; }
+
+    // ── State ─────────────────────────────────────────────
+    let allMOs        = [];
+    let catalogue     = [];
+    let settings      = null;
+    let currentStatus = 'all';
+
+    // ── Toast ─────────────────────────────────────────────
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type} visible`;
+      setTimeout(() => t.classList.remove('visible'), 3000);
+    }
+
+    // ── Format ────────────────────────────────────────────
+    function formatIDR(n) {
+      return 'Rp ' + Number(n).toLocaleString('id-ID');
+    }
+
+    function formatDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('id-ID', {
+        day: '2-digit', month: 'short', year: 'numeric'
+      });
+    }
+
+    function statusBadge(status) {
+      const map = {
+        'Draft'      : 'badge-grey',
+        'Confirmed'  : 'badge-blue',
+        'Dispatched' : 'badge-amber',
+        'Returned'   : 'badge-green',
+        'Closed'     : 'badge-red',
+      };
+      return `<span class="badge ${map[status] || 'badge-grey'}">${status}</span>`;
+    }
+
+    function typeBadge(type) {
+      const map = {
+        'Influencer' : 'badge-purple',
+        'Press'      : 'badge-blue',
+        'Partner'    : 'badge-amber',
+        'Event'      : 'badge-green',
+        'Internal'   : 'badge-grey',
+      };
+      return `<span class="badge ${map[type] || 'badge-grey'}">${type}</span>`;
+    }
+
+    // ── Load ──────────────────────────────────────────────
+    async function init() {
+      try {
+        const [moData, catData, setData] = await Promise.all([
+          apiGet('getMarketingOrders'),
+          apiGet('getCatalogue'),
+          apiGet('getSettings'),
+        ]);
+        allMOs    = Array.isArray(moData)  ? moData  : [];
+        catalogue = Array.isArray(catData) ? catData : [];
+        settings  = setData;
+        document.getElementById('loadingState').style.display = 'none';
+        renderMOs();
+      } catch (err) {
+        document.getElementById('loadingState').textContent =
+          'Error: ' + err.message;
+      }
+    }
+
+    // ── Filter & render ───────────────────────────────────
+    function filterStatus(status, btn) {
+      currentStatus = status;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderMOs();
+    }
+
+    function renderMOs() {
+      const filtered = allMOs.filter(mo =>
+        currentStatus === 'all' || mo.status === currentStatus
+      );
+
+      if (filtered.length === 0) {
+        document.getElementById('mainTable').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('mainTable').style.display  = 'table';
+      document.getElementById('tableBody').innerHTML = filtered.map(mo => `
+        <tr>
+          <td class="mono">${mo.moNumber}</td>
+          <td style="color:#555">${mo.brand}</td>
+          <td>${mo.recipientName}</td>
+          <td>${typeBadge(mo.recipientType)}</td>
+          <td style="color:#555">${formatDate(mo.dispatchDate)}</td>
+          <td>${mo.totalUnits}</td>
+          <td style="color:#555">${formatIDR(mo.totalCostIDR)}</td>
+          <td>${statusBadge(mo.status)}</td>
+          <td>
+            <button class="btn-secondary"
+              style="font-size:12px;padding:5px 10px"
+              onclick="openDetail('${mo.moNumber}')">
+              View
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // ── Create modal ──────────────────────────────────────
+    function openCreateModal() {
+      document.getElementById('lineItems').innerHTML = '';
+      document.getElementById('newDispatchDate').value =
+        new Date().toISOString().split('T')[0];
+      document.getElementById('newExpectedReturn').value = '';
+      document.getElementById('newRecipientName').value = '';
+      document.getElementById('newNotes').value = '';
+      addLineItem();
+      updateCostSummary();
+      document.getElementById('createModal').style.display = 'flex';
+    }
+
+    function closeCreateModal() {
+      document.getElementById('createModal').style.display = 'none';
+    }
+
+    function refreshSKUs() {
+      document.querySelectorAll('.li-sku-select').forEach(sel => {
+        const brand = document.getElementById('newBrand').value;
+        const skus  = catalogue.filter(p => p.brand === brand);
+        sel.innerHTML = skus.map(p =>
+          `<option value="${p.sku}" data-cost="${p.costSGD}">${p.sku} — ${p.productName}</option>`
+        ).join('');
+      });
+      updateCostSummary();
+    }
+
+    function addLineItem() {
+      const brand = document.getElementById('newBrand').value;
+      const skus  = catalogue.filter(p => p.brand === brand);
+      const opts  = skus.map(p =>
+        `<option value="${p.sku}" data-cost="${p.costSGD}">${p.sku} — ${p.productName}</option>`
+      ).join('') || '<option value="">No SKUs</option>';
+
+      const row = document.createElement('div');
+      row.className = 'li-row';
+      row.innerHTML = `
+        <select class="li-sku-select" onchange="updateCostSummary()">${opts}</select>
+        <input type="number" class="li-qty" value="1" min="1"
+          oninput="updateCostSummary()" />
+        <div class="li-cost" data-cost-cell>—</div>
+        <button class="btn-remove" onclick="removeRow(this)">×</button>
+      `;
+      document.getElementById('lineItems').appendChild(row);
+      updateCostSummary();
+    }
+
+    function removeRow(btn) {
+      btn.closest('.li-row').remove();
+      updateCostSummary();
+    }
+
+    function updateCostSummary() {
+      const rate = settings?.sgdIdrRate || 14000;
+      let totalUnits = 0;
+      let totalCost  = 0;
+
+      document.querySelectorAll('.li-row').forEach(row => {
+        const sel    = row.querySelector('.li-sku-select');
+        const qty    = parseInt(row.querySelector('.li-qty')?.value) || 0;
+        const opt    = sel?.options[sel.selectedIndex];
+        const costSGD = parseFloat(opt?.dataset.cost) || 0;
+        const costIDR = Math.round(costSGD * rate / 1000) * 1000;
+        const cell    = row.querySelector('[data-cost-cell]');
+        if (cell) cell.textContent = formatIDR(costIDR);
+        totalUnits += qty;
+        totalCost  += costIDR * qty;
+      });
+
+      document.getElementById('totUnits').textContent = totalUnits;
+      document.getElementById('totCost').textContent  = formatIDR(totalCost);
+    }
+
+    async function submitCreate() {
+      const brand         = document.getElementById('newBrand').value;
+      const recipientName = document.getElementById('newRecipientName').value.trim();
+      const recipientType = document.getElementById('newRecipientType').value;
+      const dispatchDate  = document.getElementById('newDispatchDate').value;
+      const expectedReturn = document.getElementById('newExpectedReturn').value;
+      const notes         = document.getElementById('newNotes').value.trim();
+
+      if (!recipientName) { showToast('Recipient name is required', 'error'); return; }
+      if (!dispatchDate)  { showToast('Dispatch date is required', 'error'); return; }
+
+      const rows = document.querySelectorAll('#lineItems .li-row');
+      if (rows.length === 0) { showToast('Add at least one line item', 'error'); return; }
+
+      const lineItems = Array.from(rows).map(row => ({
+        sku : row.querySelector('.li-sku-select').value,
+        qty : Number(row.querySelector('.li-qty').value),
+      })).filter(i => i.sku && i.qty > 0);
+
+      if (lineItems.length === 0) { showToast('No valid line items', 'error'); return; }
+
+      const btn = document.getElementById('createBtn');
+      btn.disabled = true;
+      btn.textContent = 'Creating...';
+
+      try {
+        const res = await apiPost('createMarketingOrder', {
+          brand, recipientName, recipientType,
+          dispatchDate, expectedReturn, notes,
+          lineItems, createdBy: 'admin',
+        });
+
+        if (res.success) {
+          showToast(`Created ${res.moNumber}`);
+          closeCreateModal();
+          allMOs = await apiGet('getMarketingOrders') || [];
+          renderMOs();
+        } else {
+          showToast(res.error || 'Create failed', 'error');
+        }
+      } catch (err) {
+        showToast('Connection error', 'error');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Create MO';
+    }
+
+    // ── Detail modal ──────────────────────────────────────
+    async function openDetail(moNumber) {
+      document.getElementById('detailTitle').textContent = moNumber;
+      document.getElementById('detailBody').innerHTML =
+        '<div class="loading"><span class="spinner"></span>Loading...</div>';
+      document.getElementById('detailFooter').innerHTML = '';
+      document.getElementById('detailModal').style.display = 'flex';
+
+      try {
+        const data  = await apiGet('getMODetail', { moNumber });
+        const h     = data.header;
+        const items = data.lineItems || [];
+
+        document.getElementById('detailBody').innerHTML = `
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Brand</label>
+              <div class="val">${h.brand}</div>
+            </div>
+            <div class="detail-item">
+              <label>Recipient</label>
+              <div class="val">${h.recipientName}</div>
+            </div>
+            <div class="detail-item">
+              <label>Type</label>
+              <div class="val">${typeBadge(h.recipientType)}</div>
+            </div>
+            <div class="detail-item">
+              <label>Status</label>
+              <div class="val">${statusBadge(h.status)}</div>
+            </div>
+            <div class="detail-item">
+              <label>Dispatch Date</label>
+              <div class="val">${formatDate(h.dispatchDate)}</div>
+            </div>
+            <div class="detail-item">
+              <label>Expected Return</label>
+              <div class="val">${formatDate(h.expectedReturn)}</div>
+            </div>
+            ${h.notes ? `
+            <div class="detail-item" style="grid-column:1/-1">
+              <label>Notes</label>
+              <div class="val">${h.notes}</div>
+            </div>` : ''}
+          </div>
+
+          <div class="section-divider">Line Items</div>
+          <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">SKU</th>
+                <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Description</th>
+                <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">QTY</th>
+                <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Cost SGD</th>
+                <th style="text-align:left;padding:8px;font-size:11px;color:#555;border-bottom:1px solid #222">Cost IDR</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map(i => `
+                <tr>
+                  <td style="padding:8px;font-family:monospace;font-size:12px;border-bottom:1px solid #1A1A1A">${i.sku}</td>
+                  <td style="padding:8px;font-size:13px;border-bottom:1px solid #1A1A1A">${i.description}</td>
+                  <td style="padding:8px;font-size:13px;border-bottom:1px solid #1A1A1A">${i.qty}</td>
+                  <td style="padding:8px;font-size:13px;border-bottom:1px solid #1A1A1A">S$ ${Number(i.costSGD).toFixed(2)}</td>
+                  <td style="padding:8px;font-size:13px;font-weight:600;border-bottom:1px solid #1A1A1A">${formatIDR(i.costIDR)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="cost-summary">
+            <div class="cost-row">
+              <span>Total Units</span>
+              <span>${h.totalUnits}</span>
+            </div>
+            <div class="cost-row total">
+              <span>Total Cost IDR</span>
+              <span>${formatIDR(h.totalCostIDR)}</span>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('detailFooter').innerHTML =
+          buildMOActions(h.moNumber, h.status);
+
+      } catch (err) {
+        document.getElementById('detailBody').innerHTML =
+          '<div class="empty">Error: ' + err.message + '</div>';
+      }
+    }
+
+    function buildMOActions(moNumber, status) {
+      let btns = `<button class="btn-secondary" onclick="closeDetailModal()">Close</button>`;
+      if (isViewer()) return btns;
+
+      const transitions = {
+        'Draft'      : ['Confirmed', 'Closed'],
+        'Confirmed'  : ['Dispatched', 'Closed'],
+        'Dispatched' : ['Returned', 'Closed'],
+        'Returned'   : [],
+        'Closed'     : [],
+      };
+
+      const next = transitions[status] || [];
+      next.forEach(newStatus => {
+        if (newStatus === 'Closed') {
+          btns += `<button class="btn-danger"
+            onclick="updateMO('${moNumber}', '${newStatus}')">
+            Close (Write Off)
+          </button>`;
+        } else if (newStatus === 'Returned') {
+          btns += `<button class="btn-success"
+            onclick="updateMO('${moNumber}', '${newStatus}')">
+            Mark Returned
+          </button>`;
+        } else if (newStatus === 'Dispatched') {
+          btns += `<button class="btn-warning"
+            onclick="updateMO('${moNumber}', '${newStatus}')">
+            → Dispatched
+          </button>`;
+        } else {
+          btns += `<button class="btn-primary"
+            onclick="updateMO('${moNumber}', '${newStatus}')">
+            → ${newStatus}
+          </button>`;
+        }
+      });
+
+      return btns;
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detailModal').style.display = 'none';
+    }
+
+    async function updateMO(moNumber, newStatus) {
+      const msgs = {
+        'Confirmed'  : `Confirm ${moNumber}? Stock will be committed.`,
+        'Dispatched' : `Mark ${moNumber} as Dispatched? Stock will be deducted from Inventory.`,
+        'Returned'   : `Mark ${moNumber} as Returned? Stock will be restored to Inventory.`,
+        'Closed'     : `Close ${moNumber}? Stock is written off permanently. Cannot be undone.`,
+      };
+
+      if (!confirm(msgs[newStatus] || `Move ${moNumber} to ${newStatus}?`)) return;
+
+      try {
+        const res = await apiPost('updateMOStatus', {
+          moNumber, newStatus, updatedBy: 'admin',
+        });
+
+        if (res.success) {
+          showToast(`${moNumber} → ${newStatus}`);
+          closeDetailModal();
+          allMOs = await apiGet('getMarketingOrders') || [];
+          renderMOs();
+        } else {
+          showToast(res.error || 'Update failed', 'error');
+        }
+      } catch (err) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
