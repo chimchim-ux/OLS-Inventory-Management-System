@@ -447,7 +447,7 @@
       try {
         const [soData, catData, setData] = await Promise.all([
           apiGet('getSalesOrders'),
-          apiGet('getCatalogue'),
+          apiGet('getProducts'),
           apiGet('getSettings'),
         ]);
 
@@ -565,7 +565,7 @@
 
     function refreshLineItemSKUs() {
       const brand = document.getElementById('newBrand').value;
-      const skus  = catalogue.filter(p => p.brand === brand);
+      const skus = catalogue.filter(p => p.brand === brand && p.availableStock > 0);
       const opts  = skus.map(p =>
         `<option value="${p.sku}" data-srp="${p.srp || p.retailPriceIDR}" data-cost="${p.costSGD}">${p.sku} — ${p.productName}</option>`
       ).join('');
@@ -577,7 +577,7 @@
 
     function addLineItem() {
       const brand = document.getElementById('newBrand').value;
-      const skus  = catalogue.filter(p => p.brand === brand);
+      const skus = catalogue.filter(p => p.brand === brand && p.availableStock > 0);
       const opts  = skus.map(p =>
         `<option value="${p.sku}" data-srp="${p.srp || p.retailPriceIDR}" data-cost="${p.costSGD}">${p.sku} — ${p.productName}</option>`
       ).join('') || '<option value="">No SKUs for this brand</option>';

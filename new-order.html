@@ -368,7 +368,7 @@
     function onBrandChange() {
       const brand = document.getElementById('orderBrand').value;
       document.querySelectorAll('.li-sku-select').forEach(sel => {
-        const skus = catalogue.filter(p => p.brand === brand);
+        const skus = catalogue.filter(p => p.brand === brand && p.availableStock > 0);
         
         sel.innerHTML = skus.map(p => {
           // Use SRP (Gross Price) from backend
