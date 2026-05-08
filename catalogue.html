@@ -401,7 +401,7 @@
         const searchMatch = !search ||
           p.sku.toLowerCase().includes(search) ||
           p.productName.toLowerCase().includes(search) ||
-          (p.classification || '').toLowerCase().includes(search);
+          (p.classification || '').toLowerCase().includes(search) ||
           String(p.barcode || '').toLowerCase().includes(search);
         return brandMatch && searchMatch;
       });

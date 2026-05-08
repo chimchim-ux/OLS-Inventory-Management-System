@@ -335,11 +335,12 @@
       const search = document.getElementById('searchInput').value.toLowerCase();
       const filtered = allProducts.filter(p => {
         const brandMatch  = currentBrand === 'all' || p.brand === currentBrand;
+        const stockMatch  = isAdmin() || isViewer() || p.availableStock > 0;
         const searchMatch = !search ||
           p.sku.toLowerCase().includes(search) ||
           p.productName.toLowerCase().includes(search) ||
           (p.classification || '').toLowerCase().includes(search);
-        return brandMatch && searchMatch;
+        return brandMatch && stockMatch && searchMatch;
       });
 
       document.getElementById('productCount').textContent =
@@ -372,7 +373,7 @@
           <div class="product-card" onclick="openModal('${p.sku}')">
             <div class="product-img">
               ${p.imageUrl
-                ? `<img src="${p.imageUrl}" alt="${p.productName}"
+                ? `<img src="${p.imageUrl}" alt="${p.productName}" loading="lazy"
                        onerror="this.parentElement.innerHTML='No image'">`
                 : 'No image'}
             </div>
@@ -464,6 +465,21 @@
       `;
 
       document.getElementById('quickModal').style.display = 'flex';
+
+      const placeBtn = document.querySelector('#quickModal .modal-footer .btn-primary');
+if (placeBtn) {
+  if (avail <= 0) {
+    placeBtn.disabled = true;
+    placeBtn.textContent = 'Out of Stock';
+    placeBtn.style.opacity = '0.4';
+    placeBtn.style.cursor = 'not-allowed';
+  } else {
+    placeBtn.disabled = false;
+    placeBtn.textContent = 'Place Order';
+    placeBtn.style.opacity = '1';
+    placeBtn.style.cursor = 'pointer';
+  }
+}
     }
 
     function closeModal() {
