@@ -12,7 +12,7 @@
       background: #0A0A0A; color: #FFF; min-height: 100vh;
     }
     nav {
-      background: #0A2A35; border-bottom: 1px solid 0F3D4D;
+      background: #0A2A35; border-bottom: 1px solid #0F3D4D;
       padding: 0 32px; display: flex; align-items: center;
       justify-content: space-between; height: 56px;
       position: sticky; top: 0; z-index: 100;
@@ -88,7 +88,7 @@
       display: flex; align-items: center; justify-content: center;
       color: #333; font-size: 12px; overflow: hidden;
     }
-    .product-img img { width: 100%; height: 100%; object-fit: cover; }
+    .product-img img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
 
     .product-body { padding: 16px; }
 
@@ -168,7 +168,7 @@
       display: flex; align-items: center; justify-content: center;
       color: #333; font-size: 13px; overflow: hidden;
     }
-    .modal-img img { width: 100%; height: 100%; object-fit: cover; }
+    .modal-img img { width: 100%; height: 100%; object-fit: contain; padding: 12px; }
 
     .modal-section-title {
       font-size: 11px; font-weight: 700; color: #555;
@@ -311,7 +311,6 @@
       return 'Rp ' + Number(n).toLocaleString('id-ID');
     }
     
-    console.log('Session:', getSession());
     async function loadCatalogue() {
       try {
         const tier = session.tier || 'T2';
