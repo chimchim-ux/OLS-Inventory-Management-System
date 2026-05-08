@@ -475,7 +475,7 @@ async function updateTotals() {
     if (qty > avail) hasError = true;
   });
 
-  const ppnAmt = Math.round(grossSubtotal * ppnPct / 100 / 1000) * 1000;
+  const ppnAmt = Math.ceil(grossSubtotal * ppnPct / 100 / 1000) * 1000;
   const total  = grossSubtotal + ppnAmt;
 
   document.getElementById('totSubtotal').textContent = formatIDR(grossSubtotal);
