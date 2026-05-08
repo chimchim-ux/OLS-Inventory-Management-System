@@ -334,7 +334,7 @@
       const search = document.getElementById('searchInput').value.toLowerCase();
       const filtered = allProducts.filter(p => {
         const brandMatch  = currentBrand === 'all' || p.brand === currentBrand;
-        const stockMatch  = isAdmin() || isViewer() || p.availableStock > 0;
+        const stockMatch = true;
         const searchMatch = !search ||
           p.sku.toLowerCase().includes(search) ||
           p.productName.toLowerCase().includes(search) ||
@@ -369,14 +369,15 @@
           .join('');
 
         return `
-          <div class="product-card" onclick="openModal('${p.sku}')">
+          <div class="product-card" onclick="openModal('${p.sku}')"
+            style="${avail <= 0 ? 'opacity:0.45;filter:grayscale(0.6)' : ''}">
             <div class="product-img">
               ${p.imageUrl
                 ? `<img src="${p.imageUrl}" alt="${p.productName}" loading="lazy"
                        onerror="this.parentElement.innerHTML='No image'">`
                 : 'No image'}
             </div>
-            <div class="product-body">
+            <div class="product-body" style="${avail <= 0 ? 'opacity:0.5' : ''}">
               <div class="product-classification">${p.classification || ''}</div>
               <div class="product-sku">${p.sku}</div>
               <div class="product-name">${p.productName}</div>
