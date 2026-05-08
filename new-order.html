@@ -449,14 +449,32 @@
       }
     }
 
-    // ── Core: Update Totals (SRP-based with Discount) ──
+   // ── Core: Update Totals (SRP-based with Discount) ──
 async function updateTotals() {
   const ppnPct = settings?.ppnPercent || 12;
   let grossSubtotal = 0;
   let totalDiscount = 0;
   let hasError = false;
 
+  // Fetch discount rates for all SKUs in the order
+  const discountPromises = [];
   document.querySelectorAll('.li-row').forEach(row => {
+    const sel = row.querySelector('.li-sku-select');
+    const sku = sel?.value || '';
+    if (sku && session.retailerId) {
+      discountPromises.push(
+        apiGet('getDiscountRate', { retailerId: session.retailerId, sku })
+          .then(res => res.discount || 0)
+          .catch(() => 0)
+      );
+    } else {
+      discountPromises.push(Promise.resolve(0));
+    }
+  });
+
+  const discountRates = await Promise.all(discountPromises);
+
+  document.querySelectorAll('.li-row').forEach((row, index) => {
     const sel     = row.querySelector('.li-sku-select');
     const qty     = parseInt(row.querySelector('.li-qty')?.value) || 0;
     const opt     = sel?.options[sel.selectedIndex];
@@ -464,10 +482,10 @@ async function updateTotals() {
     const avail   = parseInt(opt?.dataset.avail) || 0;
     const unitEl  = row.querySelector('[data-unit]');
     const lineEl  = row.querySelector('[data-line]');
+    const discountPct = discountRates[index] || 0;
     
-    // Calculate line totals (discount will be applied by backend)
+    // Calculate with discount
     const lineGross = srp * qty;
-    const discountPct = 0; // Backend will apply discount from rules
     const discountAmt = Math.round(lineGross * discountPct / 100 / 1000) * 1000;
     const afterDiscount = lineGross - discountAmt;
     const ppnAmt = Math.ceil(afterDiscount * ppnPct / 100 / 1000) * 1000;
@@ -485,7 +503,36 @@ async function updateTotals() {
   const ppnTotal = Math.ceil(afterDiscountTotal * ppnPct / 100 / 1000) * 1000;
   const finalTotal = afterDiscountTotal + ppnTotal;
 
+  // Update display
   document.getElementById('totSubtotal').textContent = formatIDR(grossSubtotal);
+  
+  // Show/hide discount row
+  let discountRow = document.getElementById('discountRow');
+  if (!discountRow) {
+    discountRow = document.createElement('div');
+    discountRow.id = 'discountRow';
+    discountRow.className = 'totals-row';
+    discountRow.style.cssText = 'color:#E63946; display:none;';
+    discountRow.innerHTML = `
+      <span>Discount (<span id="discountPctDisplay">0</span>%)</span>
+      <span id="totDiscount">-Rp 0</span>
+    `;
+    const ppnRow = document.getElementById('totPPN').closest('.totals-row');
+    ppnRow.parentNode.insertBefore(discountRow, ppnRow);
+  }
+  
+  if (totalDiscount > 0) {
+    const avgDiscountPct = grossSubtotal > 0 
+      ? ((totalDiscount / grossSubtotal) * 100).toFixed(1) 
+      : 0;
+    discountRow.querySelector('#discountPctDisplay').textContent = avgDiscountPct;
+    discountRow.querySelector('#totDiscount').textContent = '-' + formatIDR(totalDiscount);
+    discountRow.style.display = 'flex';
+  } else {
+    discountRow.style.display = 'none';
+  }
+  
+  document.getElementById('ppnLabel').textContent = `PPN (${ppnPct}%)`;
   document.getElementById('totPPN').textContent = formatIDR(ppnTotal);
   document.getElementById('totTotal').textContent = formatIDR(finalTotal);
   document.getElementById('submitBtn').disabled = hasError;
