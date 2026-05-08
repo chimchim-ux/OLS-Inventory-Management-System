@@ -435,7 +435,7 @@
           <div class="product-card" onclick="openModal('${p.sku}')">
             <div class="product-img">
               ${p.imageUrl
-                ? `<img src="${p.imageUrl}" alt="${p.productName}"
+                ? `<img src="${p.imageUrl}" alt="${p.productName}" loading="lazy"
                        onerror="this.parentElement.innerHTML='No image'">`
                 : 'No image'}
             </div>
