@@ -449,46 +449,47 @@
       }
     }
 
-    // ── Core: Update Totals (SRP-based, CEILING 1000) ──
-    function updateTotals() {
-      const ppnPct = settings?.ppnPercent || 12;
-      let grossSubtotal = 0;  // SRP × Qty (before discount/PPN)
-      let hasError = false;
+    // ── Core: Update Totals (SRP-based with Discount) ──
+async function updateTotals() {
+  const ppnPct = settings?.ppnPercent || 12;
+  let grossSubtotal = 0;
+  let totalDiscount = 0;
+  let hasError = false;
 
-      document.querySelectorAll('.li-row').forEach(row => {
-        const sel     = row.querySelector('.li-sku-select');
-        const qty     = parseInt(row.querySelector('.li-qty')?.value) || 0;
-        const opt     = sel?.options[sel.selectedIndex];
-        const srp     = parseFloat(opt?.dataset.srp) || 0;  // SRP (Gross, excl. PPN)
-        const avail   = parseInt(opt?.dataset.avail) || 0;
-        const unitEl  = row.querySelector('[data-unit]');
-        const lineEl  = row.querySelector('[data-line]');
-        
-        // SRP-based calculation with CEILING 1000 for PPN
-        const lineGross = srp * qty;
-        const discountPct = 0; // Add discount field later if needed
-        const discountAmt = Math.round(lineGross * discountPct / 100 / 1000) * 1000;
-        const afterDiscount = lineGross - discountAmt;
-        const ppnAmt = Math.ceil(afterDiscount * ppnPct / 100 / 1000) * 1000;  // ← CEILING
-        const lineFinal = afterDiscount + ppnAmt;
-        
-        if (unitEl) unitEl.textContent = formatIDR(srp);  // Show SRP
-        if (lineEl) lineEl.textContent = formatIDR(lineFinal);  // Show final with PPN
-        
-        grossSubtotal += lineGross;
-        if (qty > avail) hasError = true;
-      });
+  document.querySelectorAll('.li-row').forEach(row => {
+    const sel     = row.querySelector('.li-sku-select');
+    const qty     = parseInt(row.querySelector('.li-qty')?.value) || 0;
+    const opt     = sel?.options[sel.selectedIndex];
+    const srp     = parseFloat(opt?.dataset.srp) || 0;
+    const avail   = parseInt(opt?.dataset.avail) || 0;
+    const unitEl  = row.querySelector('[data-unit]');
+    const lineEl  = row.querySelector('[data-line]');
+    
+    // Calculate line totals (discount will be applied by backend)
+    const lineGross = srp * qty;
+    const discountPct = 0; // Backend will apply discount from rules
+    const discountAmt = Math.round(lineGross * discountPct / 100 / 1000) * 1000;
+    const afterDiscount = lineGross - discountAmt;
+    const ppnAmt = Math.ceil(afterDiscount * ppnPct / 100 / 1000) * 1000;
+    const lineFinal = afterDiscount + ppnAmt;
+    
+    if (unitEl) unitEl.textContent = formatIDR(srp);
+    if (lineEl) lineEl.textContent = formatIDR(lineFinal);
+    
+    grossSubtotal += lineGross;
+    totalDiscount += discountAmt;
+    if (qty > avail) hasError = true;
+  });
 
-      // Calculate final totals
-      const afterDiscountTotal = grossSubtotal;  // No discount for now
-      const ppnTotal = Math.ceil(afterDiscountTotal * ppnPct / 100 / 1000) * 1000;
-      const finalTotal = afterDiscountTotal + ppnTotal;
+  const afterDiscountTotal = grossSubtotal - totalDiscount;
+  const ppnTotal = Math.ceil(afterDiscountTotal * ppnPct / 100 / 1000) * 1000;
+  const finalTotal = afterDiscountTotal + ppnTotal;
 
-      document.getElementById('totSubtotal').textContent = formatIDR(grossSubtotal);
-      document.getElementById('totPPN').textContent = formatIDR(ppnTotal);
-      document.getElementById('totTotal').textContent = formatIDR(finalTotal);
-      document.getElementById('submitBtn').disabled = hasError;
-    }
+  document.getElementById('totSubtotal').textContent = formatIDR(grossSubtotal);
+  document.getElementById('totPPN').textContent = formatIDR(ppnTotal);
+  document.getElementById('totTotal').textContent = formatIDR(finalTotal);
+  document.getElementById('submitBtn').disabled = hasError;
+}
 
     // ── Submit ────────────────────────────────────────────
     async function submitOrder() {
