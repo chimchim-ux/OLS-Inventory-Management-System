@@ -16,8 +16,8 @@
     }
 
     nav {
-      background: #141414;
-      border-bottom: 1px solid #222;
+      background: #0A2A35;
+      border-bottom: 1px solid #0F3D4D;
       padding: 0 32px;
       display: flex;
       align-items: center;
@@ -28,21 +28,21 @@
       z-index: 100;
     }
 
-    .nav-brand { font-size: 16px; font-weight: 700; color: #FFF; letter-spacing: 1px; }
+    .nav-brand { font-size: 16px; font-weight: 700; color: #00B4D8; letter-spacing: 1px; }
 
     .nav-links { display: flex; gap: 4px; }
     .nav-links a {
-      color: #666; text-decoration: none; font-size: 13px;
+      color: #7ECFDF; text-decoration: none; font-size: 13px;
       padding: 6px 12px; border-radius: 6px; transition: all 0.2s;
     }
-    .nav-links a:hover { color: #FFF; background: #1E1E1E; }
-    .nav-links a.active { color: #FFF; background: #1E1E1E; }
+    .nav-links a:hover { color: #FFF; background: #0F3D4D; }
+    .nav-links a.active { color: #FFF; background: #0F3D4D; }
 
     .nav-right { display: flex; align-items: center; gap: 16px; }
-    .nav-user { font-size: 12px; color: #555; }
+    .nav-user { font-size: 12px; color:  #7ECFDF; }
     .btn-logout {
-      font-size: 12px; color: #555; background: none;
-      border: 1px solid #2A2A2A; border-radius: 6px;
+      font-size: 12px; color: #7ECFDF; background: none;
+      border: 1px solid #1A4D5D; border-radius: 6px;
       padding: 6px 12px; cursor: pointer; transition: all 0.2s;
     }
     .btn-logout:hover { color: #FFF; border-color: #555; }
@@ -276,6 +276,24 @@
       </div>
     </div>
 
+    <!-- Handling -->
+<div class="card">
+  <div class="card-title">Handling & Pricing Buffer</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Handling PCT (%)</label>
+      <input type="number" id="handlingPct" placeholder="5" />
+      <div class="input-hint">
+        Applied as buffer on top of Cost SGD × Rate. 
+        Set to 0 for pure cost conversion. Used in Catalogue display and all SO types.
+      </div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-primary" onclick="saveHandling()">Save Handling</button>
+  </div>
+</div>
+
     <!-- Drive & Images -->
     <div class="card">
       <div class="card-title">Product Images</div>
@@ -348,6 +366,7 @@
         document.getElementById('t4Margin').value     = data.tierMargins?.T4 || '';
         document.getElementById('driveFolderId').value = data.driveFolderId || '';
         document.getElementById('adminEmail').value   = data.adminEmail   || '';
+        document.getElementById('handlingPct').value = data.handlingPct || '';
       } catch (err) {
         showToast('Failed to load settings', 'error');
       }
@@ -384,6 +403,12 @@
         TIER_T3_MARGIN : Number(document.getElementById('t3Margin').value),
         TIER_T4_MARGIN : Number(document.getElementById('t4Margin').value),
       }, 'Margins');
+    }
+
+    function saveHandling() {
+      saveUpdates({
+        HANDLING_PCT: Number(document.getElementById('handlingPct').value),
+      }, 'Handling');
     }
 
     function saveDriveFolder() {
