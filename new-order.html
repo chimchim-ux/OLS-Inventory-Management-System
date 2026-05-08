@@ -247,9 +247,12 @@
             <span id="totPPN">Rp 0</span>
           </div>
           <div class="totals-row grand">
-            <span>Total Invoice</span>
-            <span id="totTotal">Rp 0</span>
-          </div>
+  <span>Total Invoice</span>
+  <span id="totTotal">Rp 0</span>
+</div>
+<div style="font-size:11px;color:#555;margin-top:10px;text-align:right">
+  * Applicable discounts will be applied on order confirmation
+</div>
         </div>
       </div>
 
@@ -453,89 +456,33 @@
 async function updateTotals() {
   const ppnPct = settings?.ppnPercent || 12;
   let grossSubtotal = 0;
-  let totalDiscount = 0;
   let hasError = false;
 
-  // Fetch discount rates for all SKUs in the order
-  const discountPromises = [];
   document.querySelectorAll('.li-row').forEach(row => {
-    const sel = row.querySelector('.li-sku-select');
-    const sku = sel?.value || '';
-    if (sku && session.retailerId) {
-      discountPromises.push(
-        apiGet('getDiscountRate', { retailerId: session.retailerId, sku })
-          .then(res => res.discount || 0)
-          .catch(() => 0)
-      );
-    } else {
-      discountPromises.push(Promise.resolve(0));
-    }
-  });
+    const sel    = row.querySelector('.li-sku-select');
+    const qty    = parseInt(row.querySelector('.li-qty')?.value) || 0;
+    const opt    = sel?.options[sel.selectedIndex];
+    const srp    = parseFloat(opt?.dataset.srp) || 0;
+    const avail  = parseInt(opt?.dataset.avail) || 0;
+    const unitEl = row.querySelector('[data-unit]');
+    const lineEl = row.querySelector('[data-line]');
 
-  const discountRates = await Promise.all(discountPromises);
-
-  document.querySelectorAll('.li-row').forEach((row, index) => {
-    const sel     = row.querySelector('.li-sku-select');
-    const qty     = parseInt(row.querySelector('.li-qty')?.value) || 0;
-    const opt     = sel?.options[sel.selectedIndex];
-    const srp     = parseFloat(opt?.dataset.srp) || 0;
-    const avail   = parseInt(opt?.dataset.avail) || 0;
-    const unitEl  = row.querySelector('[data-unit]');
-    const lineEl  = row.querySelector('[data-line]');
-    const discountPct = discountRates[index] || 0;
-    
-    // Calculate with discount
-    const lineGross = srp * qty;
-    const discountAmt = Math.round(lineGross * discountPct / 100 / 1000) * 1000;
-    const afterDiscount = lineGross - discountAmt;
-    const ppnAmt = Math.ceil(afterDiscount * ppnPct / 100 / 1000) * 1000;
-    const lineFinal = afterDiscount + ppnAmt;
-    
+    const lineTotal = srp * qty;
     if (unitEl) unitEl.textContent = formatIDR(srp);
-    if (lineEl) lineEl.textContent = formatIDR(lineFinal);
-    
-    grossSubtotal += lineGross;
-    totalDiscount += discountAmt;
+    if (lineEl) lineEl.textContent = formatIDR(lineTotal);
+
+    grossSubtotal += lineTotal;
     if (qty > avail) hasError = true;
   });
 
-  const afterDiscountTotal = grossSubtotal - totalDiscount;
-  const ppnTotal = Math.ceil(afterDiscountTotal * ppnPct / 100 / 1000) * 1000;
-  const finalTotal = afterDiscountTotal + ppnTotal;
+  const ppnAmt = Math.round(grossSubtotal * ppnPct / 100 / 1000) * 1000;
+  const total  = grossSubtotal + ppnAmt;
 
-  // Update display
   document.getElementById('totSubtotal').textContent = formatIDR(grossSubtotal);
-  
-  // Show/hide discount row
-  let discountRow = document.getElementById('discountRow');
-  if (!discountRow) {
-    discountRow = document.createElement('div');
-    discountRow.id = 'discountRow';
-    discountRow.className = 'totals-row';
-    discountRow.style.cssText = 'color:#E63946; display:none;';
-    discountRow.innerHTML = `
-      <span>Discount (<span id="discountPctDisplay">0</span>%)</span>
-      <span id="totDiscount">-Rp 0</span>
-    `;
-    const ppnRow = document.getElementById('totPPN').closest('.totals-row');
-    ppnRow.parentNode.insertBefore(discountRow, ppnRow);
-  }
-  
-  if (totalDiscount > 0) {
-    const avgDiscountPct = grossSubtotal > 0 
-      ? ((totalDiscount / grossSubtotal) * 100).toFixed(1) 
-      : 0;
-    discountRow.querySelector('#discountPctDisplay').textContent = avgDiscountPct;
-    discountRow.querySelector('#totDiscount').textContent = '-' + formatIDR(totalDiscount);
-    discountRow.style.display = 'flex';
-  } else {
-    discountRow.style.display = 'none';
-  }
-  
-  document.getElementById('ppnLabel').textContent = `PPN (${ppnPct}%)`;
-  document.getElementById('totPPN').textContent = formatIDR(ppnTotal);
-  document.getElementById('totTotal').textContent = formatIDR(finalTotal);
-  document.getElementById('submitBtn').disabled = hasError;
+  document.getElementById('ppnLabel').textContent    = `PPN (${ppnPct}%)`;
+  document.getElementById('totPPN').textContent      = formatIDR(ppnAmt);
+  document.getElementById('totTotal').textContent    = formatIDR(total);
+  document.getElementById('submitBtn').disabled      = hasError;
 }
 
     // ── Submit ────────────────────────────────────────────
