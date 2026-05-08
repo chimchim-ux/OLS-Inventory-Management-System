@@ -4,7 +4,7 @@
 // ============================================================
 
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbxYrDcJXoR55Q-RthOjsRb3vG4iaXig3kIgOs3PL4Ph8KJdwEKeHJ2riYe5WwXSTtD6/exec,
+  API_URL: 'https://script.google.com/macros/s/AKfycbxYrDcJXoR55Q-RthOjsRb3vG4iaXig3kIgOs3PL4Ph8KJdwEKeHJ2riYe5WwXSTtD6/exec',
 };
 
 // ── Session helpers ───────────────────────────────────────
