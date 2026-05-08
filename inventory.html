@@ -94,6 +94,17 @@
     }
     .filter-btn:hover { border-color: #555; color: #FFF; }
     .filter-btn.active { background: #FFF; border-color: #FFF; color: #000; font-weight: 600; }
+    .filter-btn.active-amber { background: #F4A261; border-color: #F4A261; color: #000; font-weight: 600; }
+
+    .filter-select {
+      padding: 7px 14px; background: #1A1A1A;
+      border: 1px solid #2A2A2A; border-radius: 20px;
+      color: #666; font-size: 13px; outline: none;
+      cursor: pointer; transition: border-color 0.2s;
+    }
+    .filter-select:focus { border-color: #00B4D8; }
+    .filter-select option { background: #1A1A1A; color: #FFF; }
+
     .search-input {
       padding: 7px 14px; background: #1A1A1A;
       border: 1px solid #2A2A2A; border-radius: 20px;
@@ -102,6 +113,15 @@
     }
     .search-input:focus { border-color: #00B4D8; }
     .search-input::placeholder { color: #444; }
+
+    .filters-row2 {
+      display: flex; gap: 12px; margin-bottom: 16px;
+      align-items: center; flex-wrap: wrap;
+    }
+
+    .stock-count {
+      font-size: 12px; color: #555; margin-bottom: 12px;
+    }
 
     .loading { padding: 48px; text-align: center; color: #444; font-size: 13px; }
     .empty   { padding: 48px; text-align: center; color: #444; font-size: 13px; }
@@ -113,7 +133,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Product Detail Modal ── */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.85);
       display: flex; align-items: center; justify-content: center;
@@ -146,16 +165,12 @@
     }
     .modal-section-title:first-of-type { margin-top: 0; }
 
-    .detail-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-    }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .detail-label { font-size: 11px; color: #555; margin-bottom: 3px; }
     .detail-value { font-size: 13px; color: #CCC; }
     .detail-value.mono { font-family: 'Courier New', monospace; font-size: 12px; }
 
-    .stock-summary-grid {
-      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
-    }
+    .stock-summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
     .stock-box {
       background: #1A1A1A; border: 1px solid #222;
       border-radius: 8px; padding: 12px; text-align: center;
@@ -198,13 +213,25 @@
 
     <!-- Stock Levels Tab -->
     <div id="tabStock">
+      <!-- Row 1: Brand + Stock Status filters -->
       <div class="filters">
-        <button class="filter-btn active" onclick="filterStockBrand('all', this)">All</button>
+        <button class="filter-btn active" onclick="filterStockBrand('all', this)">All Brands</button>
         <button class="filter-btn" onclick="filterStockBrand('Mofmofriends', this)">Mofmofriends</button>
         <button class="filter-btn" onclick="filterStockBrand('Stojo', this)">Stojo</button>
+        <button class="filter-btn" id="btnAvailable" onclick="toggleAvailableFilter(this)">In Stock</button>
+        <button class="filter-btn" id="btnRestock" onclick="toggleRestockFilter(this)">⚠ Restock Alert</button>
         <input class="search-input" type="text" id="stockSearch"
-          placeholder="Search SKU or product..." oninput="renderStock()">
+          placeholder="Search SKU or product name..." oninput="renderStock()">
       </div>
+      <!-- Row 2: Classification filter -->
+      <div class="filters-row2">
+        <span style="font-size:12px;color:#555">Classification:</span>
+        <select class="filter-select" id="classFilter" onchange="renderStock()">
+          <option value="all">All</option>
+        </select>
+        <span id="stockCount" class="stock-count"></span>
+      </div>
+
       <div class="table-wrap">
         <div class="loading" id="loadingStock">
           <span class="spinner"></span>Loading stock...
@@ -289,6 +316,8 @@
     let stockBrand   = 'all';
     let logType      = 'all';
     let logLoaded    = false;
+    let filterAvailable = false;
+    let filterRestock   = false;
 
     function switchTab(tab, btn) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -313,7 +342,7 @@
       return 'Rp ' + Number(n).toLocaleString('id-ID');
     }
 
-    // ── Init — load stock + catalogue in parallel ─────────
+    // ── Init ──────────────────────────────────────────────
     async function init() {
       try {
         const [stockRes, catRes] = await Promise.all([
@@ -326,6 +355,18 @@
         const products = Array.isArray(catRes) ? catRes : [];
         products.forEach(p => { catalogueMap[p.sku] = p; });
 
+        // Build classification dropdown from catalogue
+        const classifications = [...new Set(
+          products.map(p => p.classification).filter(Boolean)
+        )].sort();
+        const sel = document.getElementById('classFilter');
+        classifications.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          sel.appendChild(opt);
+        });
+
         document.getElementById('loadingStock').style.display = 'none';
         renderStock();
       } catch (err) {
@@ -334,24 +375,64 @@
       }
     }
 
-    // ── Stock tab ─────────────────────────────────────────
+    // ── Stock filters ─────────────────────────────────────
     function filterStockBrand(brand, btn) {
       stockBrand = brand;
-      document.querySelectorAll('#tabStock .filter-btn')
+      document.querySelectorAll('#tabStock .filter-btn:not(#btnAvailable):not(#btnRestock)')
         .forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       renderStock();
     }
 
+    function toggleAvailableFilter(btn) {
+      filterAvailable = !filterAvailable;
+      if (filterAvailable) {
+        filterRestock = false;
+        document.getElementById('btnRestock').classList.remove('active-amber');
+      }
+      btn.classList.toggle('active', filterAvailable);
+      renderStock();
+    }
+
+    function toggleRestockFilter(btn) {
+      filterRestock = !filterRestock;
+      if (filterRestock) {
+        filterAvailable = false;
+        document.getElementById('btnAvailable').classList.remove('active');
+      }
+      btn.classList.toggle('active-amber', filterRestock);
+      renderStock();
+    }
+
     function renderStock() {
-      const search   = document.getElementById('stockSearch').value.toLowerCase();
+      const search     = document.getElementById('stockSearch').value.toLowerCase();
+      const classFilter = document.getElementById('classFilter').value;
+
       const filtered = stockData.filter(s => {
-        const brandMatch  = stockBrand === 'all' || s.brand === stockBrand;
+        const p = catalogueMap[s.sku];
+
+        // Brand filter
+        const brandMatch = stockBrand === 'all' || s.brand === stockBrand;
+
+        // Search filter — SKU, product name, or classification
         const searchMatch = !search ||
           s.sku.toLowerCase().includes(search) ||
-          s.productName.toLowerCase().includes(search);
-        return brandMatch && searchMatch;
+          s.productName.toLowerCase().includes(search) ||
+          (p && (p.classification || '').toLowerCase().includes(search));
+
+        // Classification filter
+        const classMatch = classFilter === 'all' ||
+          (p && p.classification === classFilter);
+
+        // Stock status filter
+        const availableMatch = !filterAvailable || s.availableStock > 0;
+        const restockMatch   = !filterRestock   || s.reorderFlag === 'REORDER';
+
+        return brandMatch && searchMatch && classMatch && availableMatch && restockMatch;
       });
+
+      document.getElementById('stockCount').textContent =
+        `${filtered.length} product${filtered.length !== 1 ? 's' : ''}`;
 
       if (filtered.length === 0) {
         document.getElementById('tableStock').style.display = 'none';
