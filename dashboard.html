@@ -11,16 +11,16 @@
     body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0A0A0A; color: #FFF; font-size: 14px; min-height: 100vh; }
 
     /* ── Nav ── */
-    nav { background: #0D1F2D; height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; border-bottom: 0.5px solid rgba(255,255,255,0.08); position: sticky; top: 0; z-index: 100; }
-    .nav-brand { font-size: 12px; font-weight: 600; color: #00B4D8; letter-spacing: 4px; text-transform: uppercase; }
-    .nav-links { display: flex; gap: 2px; }
-    .nav-links a { font-size: 12px; color: rgba(255,255,255,0.5); text-decoration: none; padding: 5px 10px; border-radius: 5px; transition: all 0.15s; }
-    .nav-links a.active { color: #FFF; background:#0F3D4D; }
-    .nav-links a:hover { color: #FFF; }
-    .nav-right { display: flex; align-items: center; gap: 12px; }
-    .nav-user { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 1.5px; text-transform: uppercase; }
-    .btn-logout { font-size: 10px; color: rgba(255,255,255,0.4); background: none; border: 0.5px solid rgba(255,255,255,0.15); border-radius: 5px; padding: 4px 10px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; }
-    .btn-logout:hover { color: #FFF; border-color: rgba(255,255,255,0.35); }
+    nav { background: #0A2A35; border-bottom: 1px solid #222; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+.nav-brand { font-size: 16px; font-weight: 700; color: #00B4D8; letter-spacing: 1px; }
+.nav-links { display: flex; gap: 4px; }
+.nav-links a { color: #7ECFDF; text-decoration: none; font-size: 13px; padding: 6px 12px; border-radius: 6px; transition: all 0.2s; }
+.nav-links a:hover { color: #FFF; background: #0F3D4D; }
+.nav-links a.active { color: #FFF; background: #0F3D4D; }
+.nav-right { display: flex; align-items: center; gap: 16px; }
+.nav-user { font-size: 12px; color: #7ECFDF; }
+.btn-logout { font-size: 12px; color: #7ECFDF; background: none; border: 1px solid #1A4D5D; border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all 0.2s; }
+.btn-logout:hover { color: #FFF; border-color: #555; }
 
     /* ── Page ── */
     .page { max-width: 1100px; margin: 0 auto; padding: 28px; }
