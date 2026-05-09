@@ -420,21 +420,16 @@
         buildDynamicPills(data);
 
         document.getElementById('lastUpdated').textContent =
-      'Last updated ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) + ' WIB';
+          'Last updated ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) + ' WIB';
 
-    // Hide skeleton after data loads
-    document.getElementById('skeletonUI').style.display = 'none';
-    
-    refresh();
+        refresh();
 
-  } catch (err) {
-    showError('Failed to load dashboard — ' + err.message);
-    document.getElementById('skeletonUI').style.display = 'none';
-  } finally {
-    // Keep this line to hide overlay if error occurs
-    document.getElementById('loadingOverlay').style.display = 'none';
-  }
-}
+      } catch (err) {
+        showError('Failed to load dashboard — ' + err.message);
+      } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+      }
+    }
   
 
     // ── Build dynamic pills from API data ───────────────────
