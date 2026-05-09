@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OLS — Dashboard</title>
+  <script src="config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0A0A0A; color: #FFF; font-size: 14px; min-height: 100vh; }
+
+    /* ── Nav ── */
+    nav { background: #0D1F2D; height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; border-bottom: 0.5px solid rgba(255,255,255,0.08); position: sticky; top: 0; z-index: 100; }
+    .nav-brand { font-size: 12px; font-weight: 600; color: #FFF; letter-spacing: 4px; text-transform: uppercase; }
+    .nav-links { display: flex; gap: 2px; }
+    .nav-links a { font-size: 12px; color: rgba(255,255,255,0.5); text-decoration: none; padding: 5px 10px; border-radius: 5px; transition: all 0.15s; }
+    .nav-links a.active { color: #FFF; background: rgba(255,255,255,0.1); }
+    .nav-links a:hover { color: #FFF; }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-user { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 1.5px; text-transform: uppercase; }
+    .btn-logout { font-size: 10px; color: rgba(255,255,255,0.4); background: none; border: 0.5px solid rgba(255,255,255,0.15); border-radius: 5px; padding: 4px 10px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; }
+    .btn-logout:hover { color: #FFF; border-color: rgba(255,255,255,0.35); }
+
+    /* ── Page ── */
+    .page { max-width: 1100px; margin: 0 auto; padding: 28px; }
+    .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+    .page-header h1 { font-size: 18px; font-weight: 500; color: #FFF; }
+    .page-header p { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 3px; }
+    .last-updated { font-size: 11px; color: rgba(255,255,255,0.3); padding-top: 4px; }
+
+    /* ── Filters ── */
+    .filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .filter-dropdown { position: relative; }
+    .filter-trigger { display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,0.7); background: #161616; border: 0.5px solid rgba(255,255,255,0.14); border-radius: 20px; padding: 6px 14px; cursor: pointer; transition: all 0.15s; user-select: none; white-space: nowrap; }
+    .filter-trigger:hover { color: #FFF; border-color: rgba(255,255,255,0.28); }
+    .filter-trigger.has-value { color: #FFF; border-color: #00B4D8; background: rgba(0,180,216,0.1); }
+    .filter-trigger.open { border-color: rgba(255,255,255,0.3); color: #FFF; }
+    .trigger-arrow { font-size: 9px; color: rgba(255,255,255,0.35); transition: transform 0.15s; }
+    .filter-trigger.open .trigger-arrow { transform: rotate(180deg); }
+    .filter-trigger.has-value .trigger-arrow { color: #00B4D8; }
+    .active-dot { width: 6px; height: 6px; border-radius: 50%; background: #00B4D8; flex-shrink: 0; }
+    .filter-panel { display: none; position: absolute; top: calc(100% + 8px); left: 0; background: #1A1A1A; border: 0.5px solid rgba(255,255,255,0.14); border-radius: 12px; padding: 16px; min-width: 260px; z-index: 200; }
+    .filter-panel.open { display: block; }
+    .panel-section-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .panel-section-label + .panel-section-label, .pills-row + .panel-section-label { margin-top: 14px; }
+    .pills-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pill { font-size: 12px; color: rgba(255,255,255,0.55); background: #242424; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 5px 12px; cursor: pointer; transition: all 0.15s; white-space: nowrap; user-select: none; }
+    .pill:hover { color: #FFF; border-color: rgba(255,255,255,0.28); }
+    .pill.active { color: #FFF; background: #00B4D8; border-color: #00B4D8; }
+    .panel-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 12px; border-top: 0.5px solid rgba(255,255,255,0.08); }
+    .btn-clear { font-size: 12px; color: rgba(255,255,255,0.35); background: none; border: none; cursor: pointer; padding: 4px 0; transition: color 0.15s; }
+    .btn-clear:hover { color: rgba(255,255,255,0.7); }
+    .btn-apply { font-size: 12px; color: #FFF; background: #00B4D8; border: none; border-radius: 8px; padding: 7px 20px; cursor: pointer; font-weight: 500; transition: opacity 0.15s; }
+    .btn-apply:hover { opacity: 0.85; }
+    .filter-reset-all { font-size: 11px; color: rgba(255,255,255,0.28); background: none; border: none; cursor: pointer; padding: 6px 4px; margin-left: 4px; transition: color 0.15s; }
+    .filter-reset-all:hover { color: rgba(255,255,255,0.6); }
+
+    /* ── Metric cards ── */
+    .metric-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 12px; }
+    .metric-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .metric-card { background: #141414; border: 0.5px solid rgba(255,255,255,0.09); border-radius: 10px; padding: 16px 20px; }
+    .metric-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; }
+    .metric-value { font-size: 22px; font-weight: 500; color: #FFF; letter-spacing: -0.5px; line-height: 1; }
+    .metric-sub   { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 4px; }
+    .metric-card.alert-card { border-color: rgba(224,82,82,0.22); }
+    .metric-card.alert-card .metric-value { color: #E05252; }
+    .metric-card.rate-card .metric-value { color: #00B4D8; }
+
+    /* ── Chart ── */
+    .chart-card { background: #141414; border: 0.5px solid rgba(255,255,255,0.09); border-radius: 10px; overflow: hidden; }
+    .chart-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.06); flex-wrap: wrap; gap: 10px; }
+    .chart-title  { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
+    .chart-legend { display: flex; align-items: center; gap: 14px; font-size: 11px; color: rgba(255,255,255,0.4); flex-wrap: wrap; }
+    .chart-legend span { display: flex; align-items: center; gap: 5px; }
+    .chart-body { padding: 20px 20px 16px; }
+    .period-toggle { display: flex; gap: 2px; }
+    .period-btn { font-size: 10px; color: rgba(255,255,255,0.4); background: none; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 5px; padding: 4px 10px; cursor: pointer; letter-spacing: 0.5px; text-transform: uppercase; transition: all 0.15s; }
+    .period-btn.active { color: #00B4D8; border-color: rgba(0,180,216,0.5); background: rgba(0,180,216,0.08); }
+    .period-btn:hover:not(.active) { color: rgba(255,255,255,0.7); }
+
+    /* ── Utility ── */
+    .loading-overlay { position: fixed; inset: 0; background: #0A0A0A; display: flex; align-items: center; justify-content: center; z-index: 999; font-size: 13px; color: rgba(255,255,255,0.35); gap: 10px; }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #00B4D8; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-bar { background: rgba(224,82,82,0.12); border: 0.5px solid rgba(224,82,82,0.3); border-radius: 8px; padding: 10px 16px; font-size: 12px; color: #E05252; margin-bottom: 20px; display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>Loading dashboard...
+  </div>
+
+  <nav>
+    <div class="nav-brand">OLS</div>
+    <div class="nav-links">
+      <a href="dashboard.html" class="active">Dashboard</a>
+      <a href="catalogue.html">Catalogue</a>
+      <a href="inventory.html">Inventory</a>
+      <a href="packing-lists.html">Packing Lists</a>
+      <a href="sales-orders.html">Sales Orders</a>
+      <a href="marketing-orders.html">Marketing</a>
+      <a href="settings.html">Settings</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user" id="navUser">Admin</span>
+      <button class="btn-logout" onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <div class="page-header">
+      <div><h1>Dashboard</h1><p>One Logistics Solutions</p></div>
+      <span class="last-updated" id="lastUpdated">—</span>
+    </div>
+
+    <div class="error-bar" id="errorBar"></div>
+
+    <!-- ── Filter bar ── -->
+    <div class="filter-bar">
+
+      <div class="filter-dropdown" id="ddPeriod">
+        <div class="filter-trigger" id="trigPeriod" onclick="toggleDD('ddPeriod')">
+          <span id="labelPeriod">By Period</span><span class="trigger-arrow">▼</span>
+        </div>
+        <div class="filter-panel" id="panelPeriod">
+          <div class="panel-section-label">Year</div>
+          <div class="pills-row" id="yearPills"></div>
+          <div class="panel-section-label">Month</div>
+          <div class="pills-row">
+            <div class="pill active" data-group="month" data-val="all" onclick="selectPill(this)">All</div>
+            <div class="pill" data-group="month" data-val="1"  onclick="selectPill(this)">Jan</div>
+            <div class="pill" data-group="month" data-val="2"  onclick="selectPill(this)">Feb</div>
+            <div class="pill" data-group="month" data-val="3"  onclick="selectPill(this)">Mar</div>
+            <div class="pill" data-group="month" data-val="4"  onclick="selectPill(this)">Apr</div>
+            <div class="pill" data-group="month" data-val="5"  onclick="selectPill(this)">May</div>
+            <div class="pill" data-group="month" data-val="6"  onclick="selectPill(this)">Jun</div>
+            <div class="pill" data-group="month" data-val="7"  onclick="selectPill(this)">Jul</div>
+            <div class="pill" data-group="month" data-val="8"  onclick="selectPill(this)">Aug</div>
+            <div class="pill" data-group="month" data-val="9"  onclick="selectPill(this)">Sep</div>
+            <div class="pill" data-group="month" data-val="10" onclick="selectPill(this)">Oct</div>
+            <div class="pill" data-group="month" data-val="11" onclick="selectPill(this)">Nov</div>
+            <div class="pill" data-group="month" data-val="12" onclick="selectPill(this)">Dec</div>
+          </div>
+          <div class="panel-footer">
+            <button class="btn-clear" onclick="clearDD('ddPeriod')">Clear</button>
+            <button class="btn-apply" onclick="applyDD('ddPeriod')">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-dropdown" id="ddCustomer">
+        <div class="filter-trigger" id="trigCustomer" onclick="toggleDD('ddCustomer')">
+          <span id="labelCustomer">By Customer</span><span class="trigger-arrow">▼</span>
+        </div>
+        <div class="filter-panel" id="panelCustomer">
+          <div class="panel-section-label">Customer</div>
+          <div class="pills-row" id="customerPills"></div>
+          <div class="panel-footer">
+            <button class="btn-clear" onclick="clearDD('ddCustomer')">Clear</button>
+            <button class="btn-apply" onclick="applyDD('ddCustomer')">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-dropdown" id="ddTier">
+        <div class="filter-trigger" id="trigTier" onclick="toggleDD('ddTier')">
+          <span id="labelTier">By Tier</span><span class="trigger-arrow">▼</span>
+        </div>
+        <div class="filter-panel" id="panelTier">
+          <div class="panel-section-label">Tier</div>
+          <div class="pills-row" id="tierPills"></div>
+          <div class="panel-footer">
+            <button class="btn-clear" onclick="clearDD('ddTier')">Clear</button>
+            <button class="btn-apply" onclick="applyDD('ddTier')">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-dropdown" id="ddProduct">
+        <div class="filter-trigger" id="trigProduct" onclick="toggleDD('ddProduct')">
+          <span id="labelProduct">By Product</span><span class="trigger-arrow">▼</span>
+        </div>
+        <div class="filter-panel" id="panelProduct">
+          <div class="panel-section-label">Brand</div>
+          <div class="pills-row" id="brandPills"></div>
+          <div class="panel-footer">
+            <button class="btn-clear" onclick="clearDD('ddProduct')">Clear</button>
+            <button class="btn-apply" onclick="applyDD('ddProduct')">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-dropdown" id="ddStatus">
+        <div class="filter-trigger" id="trigStatus" onclick="toggleDD('ddStatus')">
+          <span id="labelStatus">By SO Status</span><span class="trigger-arrow">▼</span>
+        </div>
+        <div class="filter-panel" id="panelStatus">
+          <div class="panel-section-label">Status</div>
+          <div class="pills-row">
+            <div class="pill active" data-group="status" data-val="all"              onclick="selectPill(this)">All</div>
+            <div class="pill" data-group="status" data-val="Draft"             onclick="selectPill(this)">Draft</div>
+            <div class="pill" data-group="status" data-val="Pending Approval"  onclick="selectPill(this)">Pending Approval</div>
+            <div class="pill" data-group="status" data-val="Confirmed"         onclick="selectPill(this)">Confirmed</div>
+            <div class="pill" data-group="status" data-val="Shipped"           onclick="selectPill(this)">Shipped</div>
+            <div class="pill" data-group="status" data-val="Invoiced"          onclick="selectPill(this)">Invoiced</div>
+            <div class="pill" data-group="status" data-val="Cancelled"         onclick="selectPill(this)">Cancelled</div>
+          </div>
+          <div class="panel-footer">
+            <button class="btn-clear" onclick="clearDD('ddStatus')">Clear</button>
+            <button class="btn-apply" onclick="applyDD('ddStatus')">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-dropdown" id="ddSKU">
+        <div class="filter-trigger" id="trigSKU" onclick="toggleDD('ddSKU')">
+          <span id="labelSKU">By SKU</span><span class="trigger-arrow">▼</span>
+        </div>
+        <div class="filter-panel" id="panelSKU" style="min-width:300px;max-height:320px;overflow-y:auto;">
+          <div class="panel-section-label">SKU</div>
+          <div class="pills-row" id="skuPills"></div>
+          <div class="panel-footer">
+            <button class="btn-clear" onclick="clearDD('ddSKU')">Clear</button>
+            <button class="btn-apply" onclick="applyDD('ddSKU')">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="filter-reset-all" id="btnResetAll" onclick="resetAll()" style="display:none;">↺ Reset all</button>
+    </div>
+
+    <!-- ── Metric cards (filter-reactive) ── -->
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-label">Total SO Value</div>
+        <div class="metric-value" id="mSOValue">—</div>
+        <div class="metric-sub" id="mSOSub">— orders</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Total Invoiced</div>
+        <div class="metric-value" id="mInvoiced">—</div>
+        <div class="metric-sub">Invoiced SOs only</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Total QTY</div>
+        <div class="metric-value" id="mQTY">—</div>
+        <div class="metric-sub">Units in filtered SOs</div>
+      </div>
+      <div class="metric-card rate-card">
+        <div class="metric-label">Invoice Rate</div>
+        <div class="metric-value" id="mRate">—</div>
+        <div class="metric-sub">Invoiced ÷ SO value</div>
+      </div>
+    </div>
+
+    <!-- ── Static stock cards ── -->
+    <div class="metric-row">
+      <div class="metric-card">
+        <div class="metric-label">Total SKUs</div>
+        <div class="metric-value" id="mSKUs">—</div>
+        <div class="metric-sub" id="mSKUsSub">— pending receipt</div>
+      </div>
+      <div class="metric-card alert-card" id="cardAlerts">
+        <div class="metric-label">Reorder Alerts</div>
+        <div class="metric-value" id="mAlerts">—</div>
+        <div class="metric-sub">SKUs below threshold</div>
+      </div>
+    </div>
+
+    <!-- ── Chart ── -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <span class="chart-title">Revenue &amp; Volume Overview</span>
+          <div class="period-toggle">
+            <button class="period-btn active" id="btnMonthly" onclick="setPeriod('monthly')">Monthly</button>
+            <button class="period-btn"        id="btnYearly"  onclick="setPeriod('yearly')">Yearly</button>
+          </div>
+        </div>
+        <div class="chart-legend">
+          <span><span style="width:10px;height:10px;border-radius:2px;background:#00B4D8;display:inline-block;"></span>SO Value</span>
+          <span><span style="width:10px;height:10px;border-radius:2px;background:#1D9E75;display:inline-block;"></span>Invoiced Value</span>
+          <span><span style="width:18px;height:0;border-bottom:2px dashed #E8A838;display:inline-block;"></span>Total QTY</span>
+        </div>
+      </div>
+      <div class="chart-body">
+        <div style="position:relative;width:100%;height:300px;">
+          <canvas id="revenueChart" role="img" aria-label="Grouped bar chart of SO value and invoiced value per month with dashed QTY line on secondary axis">Revenue and volume overview for OLS.</canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── Auth guard ──────────────────────────────────────────
+    if (!isLoggedIn() || (!isAdmin() && !isViewer())) {
+      window.location.href = 'index.html';
+    }
+    document.getElementById('navUser').textContent = isAdmin() ? 'Admin' : 'Viewer';
+    function logout() { clearSession(); window.location.href = 'index.html'; }
+
+    // ── State ───────────────────────────────────────────────
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    let RAW = {
+      soRows    : [],   // { soNumber, brand, retailerId, orderType, orderDate, tier, totalIDR, status, invoicedIDR, qty }
+      retailers : {},   // { retailerId: { name, tier } }
+      tierMargins: {},
+      totalSKUs : 0,
+      pendingPLs: 0,
+      reorderAlerts: 0,
+    };
+
+    let filters = { year:'all', month:'all', customer:'all', tier:'all', brand:'all', status:'all', sku:'all' };
+    let staged  = {};
+    let currentPeriod = 'monthly';
+    let chartInstance = null;
+
+    // ── Dropdown group map ──────────────────────────────────
+    const DD_GROUPS = {
+      ddPeriod  : ['year','month'],
+      ddCustomer: ['customer'],
+      ddTier    : ['tier'],
+      ddProduct : ['brand'],
+      ddStatus  : ['status'],
+      ddSKU     : ['sku'],
+    };
+
+    const DD_LABEL_FMT = {
+      ddPeriod  : f => { const y=f.year!=='all'?f.year:''; const m=f.month!=='all'?MONTHS[parseInt(f.month)-1]:''; return [m,y].filter(Boolean).join(' ')||'By Period'; },
+      ddCustomer: f => f.customer!=='all'?(RAW.retailers[f.customer]?.name||f.customer):'By Customer',
+      ddTier    : f => f.tier!=='all'?f.tier:'By Tier',
+      ddProduct : f => f.brand!=='all'?f.brand:'By Product',
+      ddStatus  : f => f.status!=='all'?f.status:'By SO Status',
+      ddSKU     : f => f.sku!=='all'?f.sku:'By SKU',
+    };
+
+    // ── Helpers ─────────────────────────────────────────────
+    function fmtIDRShort(n) { return 'Rp ' + (n/1000000).toFixed(1) + 'M'; }
+    function fmtIDRFull(n)  { return Math.round(n).toLocaleString('id-ID'); }
+    function showError(msg) { const b=document.getElementById('errorBar'); b.textContent=msg; b.style.display='block'; }
+
+    // ── Load from API ────────────────────────────────────────
+    async function loadDashboard() {
+      try {
+        const data = await apiGet('getDashboardStats');
+
+        // Retailers
+        if (Array.isArray(data.retailers)) {
+          data.retailers.forEach(r => {
+            RAW.retailers[r.retailerId] = { name: r.name, tier: r.tier };
+          });
+        }
+
+        // Tier margins
+        RAW.tierMargins = data.tierMargins || {};
+
+        // SO rows — includes qty from line items
+        if (Array.isArray(data.soRows)) {
+          RAW.soRows = data.soRows.map(row => ({
+            soNumber   : row.soNumber,
+            brand      : row.brand      || '',
+            retailerId : row.retailerId || '',
+            orderType  : row.orderType  || '',
+            orderDate  : row.orderDate  ? new Date(row.orderDate) : null,
+            tier       : row.tier       || '',
+            totalIDR   : Number(row.totalIDR)  || 0,
+            status     : row.status     || '',
+            invoicedIDR: row.status === 'Invoiced' ? (Number(row.totalIDR) || 0) : 0,
+            qty        : Number(row.qty) || 0,
+            skus       : Array.isArray(row.skus) ? row.skus : [],
+          }));
+        }
+
+        // Static stock stats
+        RAW.totalSKUs     = data.stockSummary?.length  || 0;
+        RAW.pendingPLs    = data.pendingPLs?.length    || 0;
+        RAW.reorderAlerts = data.reorderAlerts?.length || 0;
+
+        document.getElementById('mSKUs').textContent    = RAW.totalSKUs;
+        document.getElementById('mSKUsSub').textContent = RAW.pendingPLs + ' pending receipt';
+        document.getElementById('mAlerts').textContent  = RAW.reorderAlerts;
+
+        buildDynamicPills(data);
+
+        document.getElementById('lastUpdated').textContent =
+          'Last updated ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) + ' WIB';
+
+        refresh();
+
+      } catch (err) {
+        showError('Failed to load dashboard — ' + err.message);
+      } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+      }
+    }
+
+    // ── Build dynamic pills from API data ───────────────────
+    function buildDynamicPills(data) {
+      // Years
+      const years = [...new Set(RAW.soRows.map(s => s.orderDate?.getFullYear()).filter(Boolean))].sort();
+      if (!years.includes(new Date().getFullYear())) years.push(new Date().getFullYear());
+      years.sort();
+      const yearEl = document.getElementById('yearPills');
+      yearEl.innerHTML = '<div class="pill active" data-group="year" data-val="all" onclick="selectPill(this)">All</div>';
+      years.forEach(y => {
+        const d = document.createElement('div');
+        d.className='pill'; d.dataset.group='year'; d.dataset.val=String(y); d.textContent=String(y);
+        d.onclick=()=>selectPill(d); yearEl.appendChild(d);
+      });
+
+      // Customers
+      const custEl = document.getElementById('customerPills');
+      custEl.innerHTML = '<div class="pill active" data-group="customer" data-val="all" onclick="selectPill(this)">All</div>';
+      Object.entries(RAW.retailers).forEach(([id, r]) => {
+        const d = document.createElement('div');
+        d.className='pill'; d.dataset.group='customer'; d.dataset.val=id; d.textContent=r.name;
+        d.onclick=()=>selectPill(d); custEl.appendChild(d);
+      });
+
+      // Tiers
+      const tiers = [...new Set(Object.values(RAW.retailers).map(r=>r.tier))].sort();
+      const tierEl = document.getElementById('tierPills');
+      tierEl.innerHTML = '<div class="pill active" data-group="tier" data-val="all" onclick="selectPill(this)">All</div>';
+      tiers.forEach(t => {
+        const d = document.createElement('div');
+        d.className='pill'; d.dataset.group='tier'; d.dataset.val=t;
+        d.textContent=`${t}${RAW.tierMargins[t] ? ' — '+RAW.tierMargins[t] : ''}`;
+        d.onclick=()=>selectPill(d); tierEl.appendChild(d);
+      });
+
+      // Brands
+      const brands = [...new Set(RAW.soRows.map(s=>s.brand).filter(Boolean))].sort();
+      if (!brands.length && data.stockSummary) {
+        [...new Set(data.stockSummary.map(s=>s.brand).filter(Boolean))].sort().forEach(b=>brands.push(b));
+      }
+      const brandEl = document.getElementById('brandPills');
+      brandEl.innerHTML = '<div class="pill active" data-group="brand" data-val="all" onclick="selectPill(this)">All brands</div>';
+      brands.forEach(b => {
+        const d = document.createElement('div');
+        d.className='pill'; d.dataset.group='brand'; d.dataset.val=b; d.textContent=b;
+        d.onclick=()=>selectPill(d); brandEl.appendChild(d);
+      });
+
+      // SKUs — from soRows.skus arrays
+      const allSKUs = [...new Set(RAW.soRows.flatMap(s=>s.skus))].sort();
+      const skuEl = document.getElementById('skuPills');
+      skuEl.innerHTML = '<div class="pill active" data-group="sku" data-val="all" onclick="selectPill(this)">All SKUs</div>';
+      allSKUs.forEach(sku => {
+        const d = document.createElement('div');
+        d.className='pill'; d.dataset.group='sku'; d.dataset.val=sku; d.textContent=sku;
+        d.onclick=()=>selectPill(d); skuEl.appendChild(d);
+      });
+    }
+
+    // ── Filter ──────────────────────────────────────────────
+    function getFiltered() {
+      return RAW.soRows.filter(so => {
+        if (filters.year   !=='all' && so.orderDate?.getFullYear()  !== parseInt(filters.year))  return false;
+        if (filters.month  !=='all' && (so.orderDate?.getMonth()+1) !== parseInt(filters.month)) return false;
+        if (filters.customer!=='all'&& so.retailerId !== filters.customer)                        return false;
+        if (filters.tier   !=='all' && so.tier       !== filters.tier)                            return false;
+        if (filters.brand  !=='all' && so.brand      !== filters.brand)                           return false;
+        if (filters.status !=='all' && so.status     !== filters.status)                          return false;
+        if (filters.sku    !=='all' && !so.skus.includes(filters.sku))                            return false;
+        return true;
+      });
+    }
+
+    // ── Metrics ─────────────────────────────────────────────
+    function updateMetrics(filtered) {
+      const soVal  = filtered.reduce((a,s)=>a+s.totalIDR,0);
+      const invVal = filtered.reduce((a,s)=>a+s.invoicedIDR,0);
+      const qty    = filtered.reduce((a,s)=>a+s.qty,0);
+      const rate   = soVal>0 ? ((invVal/soVal)*100).toFixed(1)+'%' : '—';
+
+      document.getElementById('mSOValue').textContent  = soVal  ? fmtIDRShort(soVal)  : '—';
+      document.getElementById('mSOSub').textContent    = filtered.length+' order'+(filtered.length!==1?'s':'');
+      document.getElementById('mInvoiced').textContent = invVal ? fmtIDRShort(invVal) : '—';
+      document.getElementById('mQTY').textContent      = qty    ? qty.toLocaleString('id-ID')+' units' : '—';
+      document.getElementById('mRate').textContent     = rate;
+    }
+
+    // ── Chart ───────────────────────────────────────────────
+    function buildChartData(filtered) {
+      if (currentPeriod === 'monthly') {
+        const so  = Array(12).fill(0);
+        const inv = Array(12).fill(0);
+        const qty = Array(12).fill(0);
+        filtered.forEach(s => {
+          if (!s.orderDate) return;
+          const m = s.orderDate.getMonth();
+          so[m]  += s.totalIDR;
+          inv[m] += s.invoicedIDR;
+          qty[m] += s.qty;
+        });
+        return { labels: MONTHS, soData:so, invData:inv, qtyData:qty };
+      } else {
+        const years = [...new Set(RAW.soRows.map(s=>s.orderDate?.getFullYear()).filter(Boolean))].sort();
+        if (!years.length) years.push(new Date().getFullYear());
+        return {
+          labels:  years.map(String),
+          soData:  years.map(y=>filtered.filter(s=>s.orderDate?.getFullYear()===y).reduce((a,s)=>a+s.totalIDR,0)),
+          invData: years.map(y=>filtered.filter(s=>s.orderDate?.getFullYear()===y).reduce((a,s)=>a+s.invoicedIDR,0)),
+          qtyData: years.map(y=>filtered.filter(s=>s.orderDate?.getFullYear()===y).reduce((a,s)=>a+s.qty,0)),
+        };
+      }
+    }
+
+    function renderChart(filtered) {
+      const { labels, soData, invData, qtyData } = buildChartData(filtered);
+      const ctx = document.getElementById('revenueChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
+        data: {
+          labels,
+          datasets: [
+            {
+              type:'bar', label:'SO Value', data:soData,
+              backgroundColor:'rgba(0,180,216,0.25)', borderColor:'#00B4D8',
+              borderWidth:1, borderRadius:3, yAxisID:'yVal',
+              barPercentage:0.7, categoryPercentage:0.8,
+            },
+            {
+              type:'bar', label:'Invoiced Value', data:invData,
+              backgroundColor:'rgba(29,158,117,0.35)', borderColor:'#1D9E75',
+              borderWidth:1, borderRadius:3, yAxisID:'yVal',
+              barPercentage:0.7, categoryPercentage:0.8,
+            },
+            {
+              type:'line', label:'Total QTY', data:qtyData,
+              borderColor:'#E8A838', borderWidth:1.5, borderDash:[5,4],
+              pointBackgroundColor:'#E8A838', pointBorderColor:'#141414',
+              pointBorderWidth:1.5, pointRadius:4, pointHoverRadius:6,
+              fill:false, tension:0.35, yAxisID:'yQTY',
+            },
+          ],
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          interaction:{ mode:'index', intersect:false },
+          plugins: {
+            legend:{ display:false },
+            tooltip:{
+              backgroundColor:'#1C1C1C', borderColor:'rgba(255,255,255,0.1)',
+              borderWidth:1, titleColor:'rgba(255,255,255,0.5)', bodyColor:'#FFF', padding:10,
+              callbacks:{
+                label: c => {
+                  if (c.dataset.label==='Total QTY') return '  QTY  '+Math.round(c.parsed.y).toLocaleString('id-ID')+' units';
+                  return '  '+c.dataset.label+'  IDR '+fmtIDRFull(c.parsed.y);
+                }
+              }
+            },
+          },
+          scales:{
+            x:{
+              ticks:{ color:'rgba(255,255,255,0.4)', font:{size:11}, autoSkip:false, maxRotation:0 },
+              grid:{ color:'rgba(255,255,255,0.05)' },
+              border:{ color:'rgba(255,255,255,0.08)' },
+            },
+            yVal:{
+              position:'left',
+              ticks:{ color:'rgba(255,255,255,0.35)', font:{size:10}, callback:v=>v>=1000000?(v/1000000).toFixed(0)+'M':v },
+              grid:{ color:'rgba(255,255,255,0.05)' },
+              border:{ color:'transparent' },
+            },
+            yQTY:{
+              position:'right',
+              ticks:{ color:'rgba(232,168,56,0.7)', font:{size:10}, callback:v=>v+'u' },
+              grid:{ display:false },
+              border:{ color:'transparent' },
+            },
+          },
+        },
+      });
+    }
+
+    function refresh() {
+      const f = getFiltered();
+      updateMetrics(f);
+      renderChart(f);
+    }
+
+    function setPeriod(p) {
+      currentPeriod = p;
+      document.getElementById('btnMonthly').classList.toggle('active', p==='monthly');
+      document.getElementById('btnYearly').classList.toggle('active',  p==='yearly');
+      refresh();
+    }
+
+    // ── Dropdown mechanics ──────────────────────────────────
+    function toggleDD(id) {
+      const key   = id.replace('dd','');
+      const panel = document.getElementById('panel'+key);
+      const trig  = document.getElementById('trig'+key);
+      const isOpen = panel.classList.contains('open');
+      closeAll();
+      if (!isOpen) {
+        panel.classList.add('open'); trig.classList.add('open');
+        staged = Object.assign({}, filters);
+        syncPills(id);
+      }
+    }
+
+    function closeAll() {
+      document.querySelectorAll('.filter-panel').forEach(p=>p.classList.remove('open'));
+      document.querySelectorAll('.filter-trigger').forEach(t=>t.classList.remove('open'));
+    }
+
+    function syncPills(ddId) {
+      DD_GROUPS[ddId].forEach(group => {
+        document.querySelectorAll(`.pill[data-group="${group}"]`).forEach(p => {
+          p.classList.toggle('active', p.dataset.val === staged[group]);
+        });
+      });
+    }
+
+    function selectPill(el) {
+      const group = el.dataset.group;
+      document.querySelectorAll(`.pill[data-group="${group}"]`).forEach(p=>p.classList.remove('active'));
+      el.classList.add('active');
+      staged[group] = el.dataset.val;
+    }
+
+    function applyDD(ddId) {
+      DD_GROUPS[ddId].forEach(g => { filters[g] = staged[g]; });
+      closeAll(); updateLabel(ddId); checkReset(); refresh();
+    }
+
+    function clearDD(ddId) {
+      DD_GROUPS[ddId].forEach(g => { staged[g]='all'; filters[g]='all'; });
+      syncPills(ddId); updateLabel(ddId); checkReset(); refresh();
+    }
+
+    function updateLabel(ddId) {
+      const key   = ddId.replace('dd','');
+      const label = DD_LABEL_FMT[ddId](filters);
+      document.getElementById('label'+key).textContent = label;
+      const trig   = document.getElementById('trig'+key);
+      const hasVal = DD_GROUPS[ddId].some(k=>filters[k]!=='all');
+      trig.classList.toggle('has-value', hasVal);
+      const dot = trig.querySelector('.active-dot');
+      if (hasVal && !dot) { const d=document.createElement('span'); d.className='active-dot'; trig.insertBefore(d,trig.firstChild); }
+      else if (!hasVal && dot) dot.remove();
+    }
+
+    function checkReset() {
+      const any = Object.values(filters).some(v=>v!=='all');
+      document.getElementById('btnResetAll').style.display = any ? 'inline-block' : 'none';
+    }
+
+    function resetAll() {
+      filters = { year:'all', month:'all', customer:'all', tier:'all', brand:'all', status:'all', sku:'all' };
+      Object.keys(DD_LABEL_FMT).forEach(id => {
+        updateLabel(id);
+        DD_GROUPS[id].forEach(g => {
+          document.querySelectorAll(`.pill[data-group="${g}"]`).forEach(p =>
+            p.classList.toggle('active', p.dataset.val==='all')
+          );
+        });
+      });
+      checkReset(); refresh();
+    }
+
+    document.addEventListener('click', e => { if (!e.target.closest('.filter-dropdown')) closeAll(); });
+
+    loadDashboard();
+  </script>
+
+</body>
+</html>
