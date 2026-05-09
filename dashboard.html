@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +10,6 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0A0A0A; color: #FFF; font-size: 14px; min-height: 100vh; }
-
     /* ── Nav ── */
     nav { background: #0A2A35; border-bottom: 1px solid #222; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
 .nav-brand { font-size: 16px; font-weight: 700; color: #00B4D8; letter-spacing: 1px; }
@@ -21,14 +21,12 @@
 .nav-user { font-size: 12px; color: #7ECFDF; }
 .btn-logout { font-size: 12px; color: #7ECFDF; background: none; border: 1px solid #1A4D5D; border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all 0.2s; }
 .btn-logout:hover { color: #FFF; border-color: #555; }
-
     /* ── Page ── */
     .page { max-width: 1200px; margin: 0 auto; padding: 32px; }
     .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
     .page-header h1 { font-size: 18px; font-weight: 500; color: #FFF; }
     .page-header p { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 3px; }
     .last-updated { font-size: 11px; color: rgba(255,255,255,0.3); padding-top: 4px; }
-
     /* ── Filters ── */
     .filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
     .filter-dropdown { position: relative; }
@@ -55,7 +53,6 @@
     .btn-apply:hover { opacity: 0.85; }
     .filter-reset-all { font-size: 11px; color: rgba(255,255,255,0.28); background: none; border: none; cursor: pointer; padding: 6px 4px; margin-left: 4px; transition: color 0.15s; }
     .filter-reset-all:hover { color: rgba(255,255,255,0.6); }
-
     /* ── Metric cards ── */
     .metric-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 12px; }
     .metric-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
@@ -66,7 +63,6 @@
     .metric-card.alert-card { border-color: rgba(224,82,82,0.22); }
     .metric-card.alert-card .metric-value { color: #E05252; }
     .metric-card.rate-card .metric-value { color: #00B4D8; }
-
     /* ── Chart ── */
     .chart-card { background: #141414; border: 0.5px solid rgba(255,255,255,0.09); border-radius: 10px; overflow: hidden; }
     .chart-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.06); flex-wrap: wrap; gap: 10px; }
@@ -78,7 +74,6 @@
     .period-btn { font-size: 10px; color: rgba(255,255,255,0.4); background: none; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 5px; padding: 4px 10px; cursor: pointer; letter-spacing: 0.5px; text-transform: uppercase; transition: all 0.15s; }
     .period-btn.active { color: #00B4D8; border-color: rgba(0,180,216,0.5); background: rgba(0,180,216,0.08); }
     .period-btn:hover:not(.active) { color: rgba(255,255,255,0.7); }
-
     /* ── Utility ── */
     .loading-overlay { position: fixed; inset: 0; background: #0A0A0A; display: flex; align-items: center; justify-content: center; z-index: 999; font-size: 13px; color: rgba(255,255,255,0.35); gap: 10px; }
     .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #00B4D8; border-radius: 50%; animation: spin 0.6s linear infinite; }
@@ -100,11 +95,9 @@
   </style>
 </head>
 <body>
-
   <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>Loading dashboard...
   </div>
-
   <nav>
     <div class="nav-brand">OLS</div>
     <div class="nav-links">
@@ -121,19 +114,14 @@
       <button class="btn-logout" onclick="logout()">Log out</button>
     </div>
   </nav>
-
   <div class="page">
-
     <div class="page-header">
       <div><h1>Dashboard</h1><p>One Logistics Solutions</p></div>
       <span class="last-updated" id="lastUpdated">—</span>
     </div>
-
     <div class="error-bar" id="errorBar"></div>
-
     <!-- ── Filter bar ── -->
     <div class="filter-bar">
-
       <div class="filter-dropdown" id="ddPeriod">
         <div class="filter-trigger" id="trigPeriod" onclick="toggleDD('ddPeriod')">
           <span id="labelPeriod">By Period</span><span class="trigger-arrow">▼</span>
@@ -163,7 +151,6 @@
           </div>
         </div>
       </div>
-
       <div class="filter-dropdown" id="ddCustomer">
         <div class="filter-trigger" id="trigCustomer" onclick="toggleDD('ddCustomer')">
           <span id="labelCustomer">By Customer</span><span class="trigger-arrow">▼</span>
@@ -177,7 +164,6 @@
           </div>
         </div>
       </div>
-
       <div class="filter-dropdown" id="ddTier">
         <div class="filter-trigger" id="trigTier" onclick="toggleDD('ddTier')">
           <span id="labelTier">By Tier</span><span class="trigger-arrow">▼</span>
@@ -191,7 +177,6 @@
           </div>
         </div>
       </div>
-
       <div class="filter-dropdown" id="ddProduct">
         <div class="filter-trigger" id="trigProduct" onclick="toggleDD('ddProduct')">
           <span id="labelProduct">By Product</span><span class="trigger-arrow">▼</span>
@@ -205,7 +190,6 @@
           </div>
         </div>
       </div>
-
       <div class="filter-dropdown" id="ddStatus">
         <div class="filter-trigger" id="trigStatus" onclick="toggleDD('ddStatus')">
           <span id="labelStatus">By SO Status</span><span class="trigger-arrow">▼</span>
@@ -226,10 +210,21 @@
           </div>
         </div>
       </div>
-
+      <div class="filter-dropdown" id="ddSKU">
+        <div class="filter-trigger" id="trigSKU" onclick="toggleDD('ddSKU')">
+          <span id="labelSKU">By SKU</span><span class="trigger-arrow">▼</span>
+        </div>
+        <div class="filter-panel" id="panelSKU" style="min-width:300px;max-height:320px;overflow-y:auto;">
+          <div class="panel-section-label">SKU</div>
+          <div class="pills-row" id="skuPills"></div>
+          <div class="panel-footer">
+            <button class="btn-clear" onclick="clearDD('ddSKU')">Clear</button>
+            <button class="btn-apply" onclick="applyDD('ddSKU')">Apply</button>
+          </div>
+        </div>
+      </div>
       <button class="filter-reset-all" id="btnResetAll" onclick="resetAll()" style="display:none;">↺ Reset all</button>
     </div>
-
     <!-- ── Metric cards (filter-reactive) ── -->
     <div class="metric-grid">
       <div class="metric-card">
@@ -253,7 +248,6 @@
         <div class="metric-sub">Invoiced ÷ SO value</div>
       </div>
     </div>
-
     <!-- Skeleton Loading UI -->
 <div id="skeletonUI" style="display:none">
   <div class="metric-grid">
@@ -268,7 +262,6 @@
   </div>
   <div class="chart-card skeleton skeleton-chart"></div>
 </div>
-
     <!-- ── Static stock cards ── -->
     <div class="metric-row">
       <div class="metric-card">
@@ -282,7 +275,6 @@
         <div class="metric-sub">SKUs below threshold</div>
       </div>
     </div>
-
     <!-- ── Chart ── -->
     <div class="chart-card">
       <div class="chart-header">
@@ -305,9 +297,7 @@
         </div>
       </div>
     </div>
-
   </div>
-
   <script>
     // ── Auth guard ──────────────────────────────────────────
     if (!isLoggedIn() || (!isAdmin() && !isViewer())) {
@@ -315,10 +305,8 @@
     }
     document.getElementById('navUser').textContent = isAdmin() ? 'Admin' : 'Viewer';
     function logout() { clearSession(); window.location.href = 'index.html'; }
-
     // ── State ───────────────────────────────────────────────
     const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
     let RAW = {
       soRows    : [],   // { soNumber, brand, retailerId, orderType, orderDate, tier, totalIDR, status, invoicedIDR, qty }
       retailers : {},   // { retailerId: { name, tier } }
@@ -327,12 +315,10 @@
       pendingPLs: 0,
       reorderAlerts: 0,
     };
-
     let filters = { year:'all', month:'all', customer:'all', tier:'all', brand:'all', status:'all', sku:'all' };
     let staged  = {};
     let currentPeriod = 'monthly';
     let chartInstance = null;
-
     // ── Dropdown group map ──────────────────────────────────
     const DD_GROUPS = {
       ddPeriod  : ['year','month'],
@@ -342,7 +328,6 @@
       ddStatus  : ['status'],
       ddSKU     : ['sku'],
     };
-
     const DD_LABEL_FMT = {
       ddPeriod  : f => { const y=f.year!=='all'?f.year:''; const m=f.month!=='all'?MONTHS[parseInt(f.month)-1]:''; return [m,y].filter(Boolean).join(' ')||'By Period'; },
       ddCustomer: f => f.customer!=='all'?(RAW.retailers[f.customer]?.name||f.customer):'By Customer',
@@ -351,31 +336,25 @@
       ddStatus  : f => f.status!=='all'?f.status:'By SO Status',
       ddSKU     : f => f.sku!=='all'?f.sku:'By SKU',
     };
-
     // ── Helpers ─────────────────────────────────────────────
     function fmtIDRShort(n) { return 'Rp ' + (n/1000000).toFixed(1) + 'M'; }
     function fmtIDRFull(n)  { return Math.round(n).toLocaleString('id-ID'); }
     function showError(msg) { const b=document.getElementById('errorBar'); b.textContent=msg; b.style.display='block'; }
-
     // ── Load from API ────────────────────────────────────────
     async function loadDashboard() {
       try {
     // Show skeleton instead of full overlay
     document.getElementById('skeletonUI').style.display = 'block';
     document.getElementById('loadingOverlay').style.display = 'none';
-
     const data = await apiGet('getDashboardStats');
-
         // Retailers
         if (Array.isArray(data.retailers)) {
           data.retailers.forEach(r => {
             RAW.retailers[r.retailerId] = { name: r.name, tier: r.tier };
           });
         }
-
         // Tier margins
         RAW.tierMargins = data.tierMargins || {};
-
         // SO rows — includes qty from line items
         if (Array.isArray(data.soRows)) {
           RAW.soRows = data.soRows.map(row => ({
@@ -392,26 +371,20 @@
             skus       : Array.isArray(row.skus) ? row.skus : [],
           }));
         }
-
         // Static stock stats
         RAW.totalSKUs     = data.stockSummary?.length  || 0;
         RAW.pendingPLs    = data.pendingPLs?.length    || 0;
         RAW.reorderAlerts = data.reorderAlerts?.length || 0;
-
         document.getElementById('mSKUs').textContent    = RAW.totalSKUs;
         document.getElementById('mSKUsSub').textContent = RAW.pendingPLs + ' pending receipt';
         document.getElementById('mAlerts').textContent  = RAW.reorderAlerts;
-
         buildDynamicPills(data);
-
         document.getElementById('lastUpdated').textContent =
       'Last updated ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) + ' WIB';
-
     // Hide skeleton after data loads
     document.getElementById('skeletonUI').style.display = 'none';
     
     refresh();
-
   } catch (err) {
     showError('Failed to load dashboard — ' + err.message);
     document.getElementById('skeletonUI').style.display = 'none';
@@ -420,7 +393,6 @@
     document.getElementById('loadingOverlay').style.display = 'none';
   }
 }
-
     // ── Build dynamic pills from API data ───────────────────
     function buildDynamicPills(data) {
       // Years
@@ -434,7 +406,6 @@
         d.className='pill'; d.dataset.group='year'; d.dataset.val=String(y); d.textContent=String(y);
         d.onclick=()=>selectPill(d); yearEl.appendChild(d);
       });
-
       // Customers
       const custEl = document.getElementById('customerPills');
       custEl.innerHTML = '<div class="pill active" data-group="customer" data-val="all" onclick="selectPill(this)">All</div>';
@@ -443,7 +414,6 @@
         d.className='pill'; d.dataset.group='customer'; d.dataset.val=id; d.textContent=r.name;
         d.onclick=()=>selectPill(d); custEl.appendChild(d);
       });
-
       // Tiers
       const tiers = [...new Set(Object.values(RAW.retailers).map(r=>r.tier))].sort();
       const tierEl = document.getElementById('tierPills');
@@ -454,7 +424,6 @@
         d.textContent=`${t}${RAW.tierMargins[t] ? ' — '+RAW.tierMargins[t] : ''}`;
         d.onclick=()=>selectPill(d); tierEl.appendChild(d);
       });
-
       // Brands
       const brands = [...new Set(RAW.soRows.map(s=>s.brand).filter(Boolean))].sort();
       if (!brands.length && data.stockSummary) {
@@ -467,7 +436,6 @@
         d.className='pill'; d.dataset.group='brand'; d.dataset.val=b; d.textContent=b;
         d.onclick=()=>selectPill(d); brandEl.appendChild(d);
       });
-
       // SKUs — from soRows.skus arrays
       const allSKUs = [...new Set(RAW.soRows.flatMap(s=>s.skus))].sort();
       const skuEl = document.getElementById('skuPills');
@@ -478,7 +446,6 @@
         d.onclick=()=>selectPill(d); skuEl.appendChild(d);
       });
     }
-
     // ── Filter ──────────────────────────────────────────────
     function getFiltered() {
       return RAW.soRows.filter(so => {
@@ -493,21 +460,18 @@
         return true;
       });
     }
-
     // ── Metrics ─────────────────────────────────────────────
     function updateMetrics(filtered) {
       const soVal  = filtered.reduce((a,s)=>a+s.totalIDR,0);
       const invVal = filtered.reduce((a,s)=>a+s.invoicedIDR,0);
       const qty    = filtered.reduce((a,s)=>a+s.qty,0);
       const rate   = soVal>0 ? ((invVal/soVal)*100).toFixed(1)+'%' : '—';
-
       document.getElementById('mSOValue').textContent  = soVal  ? fmtIDRShort(soVal)  : '—';
       document.getElementById('mSOSub').textContent    = filtered.length+' order'+(filtered.length!==1?'s':'');
       document.getElementById('mInvoiced').textContent = invVal ? fmtIDRShort(invVal) : '—';
       document.getElementById('mQTY').textContent      = qty    ? qty.toLocaleString('id-ID')+' units' : '—';
       document.getElementById('mRate').textContent     = rate;
     }
-
     // ── Chart ───────────────────────────────────────────────
     function buildChartData(filtered) {
       if (currentPeriod === 'monthly') {
@@ -533,7 +497,6 @@
         };
       }
     }
-
     function renderChart(filtered) {
       const { labels, soData, invData, qtyData } = buildChartData(filtered);
       const ctx = document.getElementById('revenueChart').getContext('2d');
@@ -601,20 +564,17 @@
         },
       });
     }
-
     function refresh() {
       const f = getFiltered();
       updateMetrics(f);
       renderChart(f);
     }
-
     function setPeriod(p) {
       currentPeriod = p;
       document.getElementById('btnMonthly').classList.toggle('active', p==='monthly');
       document.getElementById('btnYearly').classList.toggle('active',  p==='yearly');
       refresh();
     }
-
     // ── Dropdown mechanics ──────────────────────────────────
     function toggleDD(id) {
       const key   = id.replace('dd','');
@@ -628,12 +588,10 @@
         syncPills(id);
       }
     }
-
     function closeAll() {
       document.querySelectorAll('.filter-panel').forEach(p=>p.classList.remove('open'));
       document.querySelectorAll('.filter-trigger').forEach(t=>t.classList.remove('open'));
     }
-
     function syncPills(ddId) {
       DD_GROUPS[ddId].forEach(group => {
         document.querySelectorAll(`.pill[data-group="${group}"]`).forEach(p => {
@@ -641,24 +599,20 @@
         });
       });
     }
-
     function selectPill(el) {
       const group = el.dataset.group;
       document.querySelectorAll(`.pill[data-group="${group}"]`).forEach(p=>p.classList.remove('active'));
       el.classList.add('active');
       staged[group] = el.dataset.val;
     }
-
     function applyDD(ddId) {
       DD_GROUPS[ddId].forEach(g => { filters[g] = staged[g]; });
       closeAll(); updateLabel(ddId); checkReset(); refresh();
     }
-
     function clearDD(ddId) {
       DD_GROUPS[ddId].forEach(g => { staged[g]='all'; filters[g]='all'; });
       syncPills(ddId); updateLabel(ddId); checkReset(); refresh();
     }
-
     function updateLabel(ddId) {
       const key   = ddId.replace('dd','');
       const label = DD_LABEL_FMT[ddId](filters);
@@ -670,12 +624,10 @@
       if (hasVal && !dot) { const d=document.createElement('span'); d.className='active-dot'; trig.insertBefore(d,trig.firstChild); }
       else if (!hasVal && dot) dot.remove();
     }
-
     function checkReset() {
       const any = Object.values(filters).some(v=>v!=='all');
       document.getElementById('btnResetAll').style.display = any ? 'inline-block' : 'none';
     }
-
     function resetAll() {
       filters = { year:'all', month:'all', customer:'all', tier:'all', brand:'all', status:'all', sku:'all' };
       Object.keys(DD_LABEL_FMT).forEach(id => {
@@ -688,11 +640,8 @@
       });
       checkReset(); refresh();
     }
-
     document.addEventListener('click', e => { if (!e.target.closest('.filter-dropdown')) closeAll(); });
-
     loadDashboard();
   </script>
-
 </body>
 </html>
