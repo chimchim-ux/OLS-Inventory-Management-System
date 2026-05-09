@@ -273,6 +273,19 @@
     .toast.success { background: #002A10; color: #52B788; border: 1px solid #003A18; }
     .toast.error   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
     .toast.visible { opacity: 1; }
+  /* ── Skeleton Loading ── */
+.skeleton {
+  background: linear-gradient(90deg, #1A1A1A 25%, #242424 50%, #1A1A1A 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 10px;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-card { height: 280px; }
+.skeleton-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
   </style>
 </head>
 <body>
@@ -314,11 +327,23 @@
         placeholder="Search SKU or product name..." oninput="applyFilters()">
     </div>
 
-    <div class="loading" id="loadingState">
-      <span class="spinner"></span>Loading catalogue...
-    </div>
+    <!-- Skeleton Loading UI -->
+<div id="skeletonUI" style="display:none">
+  <div class="skeleton-grid">
+    <div class="skeleton skeleton-card"></div>
+    <div class="skeleton skeleton-card"></div>
+    <div class="skeleton skeleton-card"></div>
+    <div class="skeleton skeleton-card"></div>
+    <div class="skeleton skeleton-card"></div>
+    <div class="skeleton skeleton-card"></div>
+  </div>
+</div>
 
-    <div class="product-grid" id="gridView" style="display:none"></div>
+<div class="loading" id="loadingState" style="display:none">
+  <span class="spinner"></span>Loading catalogue...
+</div>
+
+<div class="product-grid" id="gridView" style="display:none"></div>
 
     <div class="table-wrap" id="tableView" style="display:none">
       <table>
@@ -391,15 +416,28 @@
 
     async function loadCatalogue() {
       try {
-        const data  = await apiGet('getProducts');
-        allProducts = Array.isArray(data) ? data : [];
-        renderProducts();
-      } catch (err) {
-        document.getElementById('loadingState').innerHTML =
-          'Error loading catalogue — ' + err.message;
-        showToast('Failed to load catalogue', 'error');
-      }
-    }
+    // Show skeleton immediately
+    document.getElementById('skeletonUI').style.display = 'block';
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('gridView').style.display = 'none';
+    document.getElementById('tableView').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'none';
+
+    const data = await apiGet('getProducts');
+    allProducts = Array.isArray(data) ? data : [];
+    
+    // Hide skeleton and show products
+    document.getElementById('skeletonUI').style.display = 'none';
+    renderProducts();
+    
+  } catch (err) {
+    document.getElementById('skeletonUI').style.display = 'none';
+    document.getElementById('loadingState').innerHTML =
+      'Error loading catalogue — ' + err.message;
+    document.getElementById('loadingState').style.display = 'block';
+    showToast('Failed to load catalogue', 'error');
+  }
+}
 
     function filterBrand(brand, btn) {
       currentBrand = brand;
