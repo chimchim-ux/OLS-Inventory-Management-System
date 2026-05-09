@@ -307,12 +307,23 @@
     }
 
     // ── Helper: Get Margin % for Tier (STRICT) ──
-    function getTierMargin(tier) {
-      if (!settings || !settings.tierMargins) return null;
-      const margin = settings.tierMargins[tier];
-      if (margin === undefined || margin === null || margin < 0) return null;
-      return margin;
-    }
+    // ── Helper: Get Margin % for Tier (STRICT) ──
+function getTierMargin(tier) {
+  if (!settings) return null;
+  
+  // Try flat key first: TIER_T3_MARGIN
+  const flatKey = `TIER_${tier}_MARGIN`;
+  if (settings[flatKey] !== undefined && settings[flatKey] !== null) {
+    return settings[flatKey];
+  }
+  
+  // Fallback to nested: tierMargins.T3
+  if (settings.tierMargins && settings.tierMargins[tier] !== undefined) {
+    return settings.tierMargins[tier];
+  }
+  
+  return null;
+}
 
     // ── Init ──────────────────────────────────────────────
     async function init() {
@@ -372,7 +383,7 @@
         
         sel.innerHTML = skus.map(p => {
           // Use SRP (Gross Price) from backend
-          const srp = p.srp || p.retailPriceIDR || 0;
+          const srp = p.priceIDR || p.srp || p.retailPriceIDR || 0;
           const avail = p.availableStock || 0;
           
           return `<option value="${p.sku}" 
@@ -390,7 +401,7 @@
       const skus = catalogue.filter(p => p.brand === brand && p.availableStock > 0);
       
       const opts = skus.map(p => {
-        const srp = p.srp || p.retailPriceIDR || 0;
+        const srp = p.priceIDR || p.srp || p.retailPriceIDR || 0;
         const avail = p.availableStock || 0;
         
         return `<option value="${p.sku}"
