@@ -206,7 +206,6 @@
             <div class="pill" data-group="status" data-val="Confirmed"         onclick="selectPill(this)">Confirmed</div>
             <div class="pill" data-group="status" data-val="Shipped"           onclick="selectPill(this)">Shipped</div>
             <div class="pill" data-group="status" data-val="Invoiced"          onclick="selectPill(this)">Invoiced</div>
-            <div class="pill" data-group="status" data-val="Cancelled"         onclick="selectPill(this)">Cancelled</div>
           </div>
           <div class="panel-footer">
             <button class="btn-clear" onclick="clearDD('ddStatus')">Clear</button>
@@ -460,6 +459,7 @@
     // ── Filter ──────────────────────────────────────────────
     function getFiltered() {
       return RAW.soRows.filter(so => {
+        if (so.status === 'Cancelled') return false;
         if (filters.year   !=='all' && so.orderDate?.getFullYear()  !== parseInt(filters.year))  return false;
         if (filters.month  !=='all' && (so.orderDate?.getMonth()+1) !== parseInt(filters.month)) return false;
         if (filters.customer!=='all'&& so.retailerId !== filters.customer)                        return false;
