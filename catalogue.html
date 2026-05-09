@@ -71,13 +71,29 @@
     .filter-btn:hover { border-color: #555; color: #FFF; }
     .filter-btn.active { background: #FFF; border-color: #FFF; color: #000; font-weight: 600; }
     .search-input {
-      padding: 7px 14px; background: #1A1A1A;
-      border: 1px solid #2A2A2A; border-radius: 20px;
-      color: #FFF; font-size: 13px; outline: none;
-      width: 220px; transition: border-color 0.2s; margin-left: auto;
-    }
-    .search-input:focus { border-color: #00B4D8; }
-    .search-input::placeholder { color: #444; }
+  padding: 7px 14px; 
+  background: #1E1E1E;
+  border: 1px solid #333; 
+  border-radius: 20px;
+  color: #FFF; 
+  font-size: 13px; 
+  outline: none;
+  width: 220px; 
+  transition: all 0.2s; 
+  margin-left: auto;
+}
+.search-input:hover {
+  border-color: #555;
+  background: #242424;
+}
+.search-input:focus {
+  border-color: #00B4D8;
+  background: #242424;
+  box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1);
+}
+.search-input::placeholder {
+  color: #888;  /* Much lighter - was #444 */
+}
 
     .product-grid {
       display: grid;
