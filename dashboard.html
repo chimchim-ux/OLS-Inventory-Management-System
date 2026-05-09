@@ -436,7 +436,7 @@
     // ── Load from API ────────────────────────────────────────
     async function loadDashboard() {
       try {
-        const data = await apiGet('getDashboardStats');
+        const data = await apiGet('getDashboard');
 
         // Retailers lookup
         if (data.retailers && Array.isArray(data.retailers)) {
