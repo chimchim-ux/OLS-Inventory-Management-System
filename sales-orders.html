@@ -520,35 +520,37 @@
         updateTotals();
     }
     function refreshLineItemSKUs() {
-      const brand = document.getElementById('newBrand').value;
-      const skus = catalogue.filter(p => p.brand === brand && p.availableStock > 0);
-      const opts  = skus.map(p =>
-        `<option value="${p.sku}" data-srp="${p.srp || p.retailPriceIDR}" data-cost="${p.costSGD}">${p.sku} — ${p.productName}</option>`
-      ).join('');
-      document.querySelectorAll('.li-sku-select').forEach(sel => {
-        sel.innerHTML = opts;
-      });
-      updateTotals();
-    }
+  const brand = document.getElementById('newBrand').value;
+  const skus = catalogue.filter(p => p.brand === brand && p.availableStock > 0);
+  const opts  = skus.map(p =>
+    // CHANGE: Added p.priceIDR as the first option
+    `<option value="${p.sku}" data-srp="${p.priceIDR || p.srp || p.retailPriceIDR}" data-cost="${p.costSGD}">${p.sku} — ${p.productName}</option>`
+  ).join('');
+  document.querySelectorAll('.li-sku-select').forEach(sel => {
+    sel.innerHTML = opts;
+  });
+  updateTotals();
+}
     function addLineItem() {
-      const brand = document.getElementById('newBrand').value;
-      const skus = catalogue.filter(p => p.brand === brand && p.availableStock > 0);
-      const opts  = skus.map(p =>
-        `<option value="${p.sku}" data-srp="${p.srp || p.retailPriceIDR}" data-cost="${p.costSGD}">${p.sku} — ${p.productName}</option>`
-      ).join('') || '<option value="">No SKUs for this brand</option>';
-      const row = document.createElement('div');
-      row.className = 'li-row';
-      row.innerHTML = `
-        <select class="li-sku-select" onchange="updateTotals()">${opts}</select>
-        <input type="number" class="li-qty" value="1" min="1"
-          oninput="updateTotals()" />
-        <div class="li-total" data-unit>—</div>
-        <div class="li-total" data-line>—</div>
-        <button class="btn-remove" onclick="removeLineItem(this)">×</button>
-      `;
-      document.getElementById('lineItems').appendChild(row);
-      updateTotals();
-    }
+  const brand = document.getElementById('newBrand').value;
+  const skus = catalogue.filter(p => p.brand === brand && p.availableStock > 0);
+  const opts  = skus.map(p =>
+    // CHANGE: Added p.priceIDR as the first option
+    `<option value="${p.sku}" data-srp="${p.priceIDR || p.srp || p.retailPriceIDR}" data-cost="${p.costSGD}">${p.sku} — ${p.productName}</option>`
+  ).join('') || '<option value="">No SKUs for this brand</option>';
+
+  const row = document.createElement('div');
+  row.className = 'li-row';
+  row.innerHTML = `
+    <select class="li-sku-select" onchange="updateTotals()">${opts}</select>
+    <input type="number" class="li-qty" value="1" min="1" oninput="updateTotals()" />
+    <div class="li-total" data-unit>—</div>
+    <div class="li-total" data-line>—</div>
+    <button class="btn-remove" onclick="removeLineItem(this)">×</button>
+  `;
+  document.getElementById('lineItems').appendChild(row);
+  updateTotals();
+}
     function removeLineItem(btn) {
       btn.closest('.li-row').remove();
       updateTotals();
@@ -628,12 +630,6 @@ function calcSRP(costSGD, tier) {
   const srp = wholesale * (1 + margin / 100);
   
   // 5. Ceiling to nearest 1000
-  return Math.ceil(srp / 1000) * 1000;
-}
-  
-  // SRP = (Cost SGD × Rate × (1 + handling%)) × (1 + Margin%)
-  const wholesale = costSGD * rate * (1 + handlingPct / 100);
-  const srp = wholesale * (1 + margin / 100);
   return Math.ceil(srp / 1000) * 1000;
 }
     // ── Core: Update Totals (SRP-based) ──
