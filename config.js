@@ -15,6 +15,7 @@ function saveSession(data) {
   sessionStorage.setItem('ols_retailerId', data.retailerId || '');
   sessionStorage.setItem('ols_name',       data.name       || '');
   sessionStorage.setItem('ols_tier',       data.tier       || '');
+  sessionStorage.setItem('ols_code',       data.code || '');
 }
 
 function getSession() {
@@ -24,6 +25,7 @@ function getSession() {
     retailerId : sessionStorage.getItem('ols_retailerId'),
     name       : sessionStorage.getItem('ols_name'),
     tier       : sessionStorage.getItem('ols_tier'),
+    code       : sessionStorage.getItem('ols_code'),
   };
 }
 
