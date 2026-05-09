@@ -120,7 +120,7 @@
     }
 
     .stock-count {
-      font-size: 12px; color: #555; margin-bottom: 12px;
+      font-size: 12px; color: #AAA; margin-bottom: 12px;
     }
 
     .loading { padding: 48px; text-align: center; color: #444; font-size: 13px; }
@@ -166,8 +166,8 @@
     .modal-section-title:first-of-type { margin-top: 0; }
 
     .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .detail-label { font-size: 11px; color: #555; margin-bottom: 3px; }
-    .detail-value { font-size: 13px; color: #CCC; }
+    .detail-label { font-size: 11px; color: #888; margin-bottom: 3px; }
+    .detail-value { font-size: 13px; color: #FFF; }
     .detail-value.mono { font-family: 'Courier New', monospace; font-size: 12px; }
 
     .stock-summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
@@ -175,7 +175,7 @@
       background: #1A1A1A; border: 1px solid #222;
       border-radius: 8px; padding: 12px; text-align: center;
     }
-    .stock-box-label { font-size: 10px; color: #555; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stock-box-label { font-size: 10px; color: #888; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
     .stock-box-value { font-size: 20px; font-weight: 700; }
   </style>
 </head>
@@ -225,7 +225,7 @@
       </div>
       <!-- Row 2: Classification filter -->
       <div class="filters-row2">
-        <span style="font-size:12px;color:#555">Classification:</span>
+        <span style="font-size:12px;color:#888">Classification:</span>
         <select class="filter-select" id="classFilter" onchange="renderStock()">
           <option value="all">All</option>
         </select>
@@ -459,9 +459,9 @@
             <td class="mono">${s.sku}</td>
             <td>${s.productName}</td>
             <td style="color:#00B4D8;font-size:11px">${classification}</td>
-            <td style="color:#555">${s.brand}</td>
+            <td style="color:#888">${s.brand}</td>
             <td>${s.physicalStock}</td>
-            <td style="color:#555">${s.committedUnits}</td>
+            <td style="color:#888">${s.committedUnits}</td>
             <td style="color:${stockColor};font-weight:600">${s.availableStock}</td>
             <td>${flag}</td>
           </tr>
@@ -518,12 +518,12 @@
             </span>
           </td>
           <td class="mono">${r.sku}</td>
-          <td style="color:#555">${r.brand}</td>
+          <td style="color:#888">${r.brand}</td>
           <td style="font-weight:600;color:${r.type === 'IN' ? '#52B788' : '#E63946'}">
             ${r.type === 'IN' ? '+' : '-'}${r.qty}
           </td>
           <td class="mono">${r.referenceId || '—'}</td>
-          <td style="color:#555">${r.notes || '—'}</td>
+          <td style="color:#888">${r.notes || '—'}</td>
         </tr>
       `).join('');
     }
