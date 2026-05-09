@@ -374,62 +374,69 @@
 
     // ── Load from API ────────────────────────────────────────
     async function loadDashboard() {
-      try {
-        // Show skeleton instead of full overlay
+  try {
+    // Show skeleton immediately
     document.getElementById('skeletonUI').style.display = 'block';
     document.getElementById('loadingOverlay').style.display = 'none';
 
     const data = await apiGet('getDashboardStats');
 
-        // Retailers
-        if (Array.isArray(data.retailers)) {
-          data.retailers.forEach(r => {
-            RAW.retailers[r.retailerId] = { name: r.name, tier: r.tier };
-          });
-        }
-
-        // Tier margins
-        RAW.tierMargins = data.tierMargins || {};
-
-        // SO rows — includes qty from line items
-        if (Array.isArray(data.soRows)) {
-          RAW.soRows = data.soRows.map(row => ({
-            soNumber   : row.soNumber,
-            brand      : row.brand      || '',
-            retailerId : row.retailerId || '',
-            orderType  : row.orderType  || '',
-            orderDate  : row.orderDate  ? new Date(row.orderDate) : null,
-            tier       : row.tier       || '',
-            totalIDR   : Number(row.totalIDR)  || 0,
-            status     : row.status     || '',
-            invoicedIDR: row.status === 'Invoiced' ? (Number(row.totalIDR) || 0) : 0,
-            qty        : Number(row.qty) || 0,
-            skus       : Array.isArray(row.skus) ? row.skus : [],
-          }));
-        }
-
-        // Static stock stats
-        RAW.totalSKUs     = data.stockSummary?.length  || 0;
-        RAW.pendingPLs    = data.pendingPLs?.length    || 0;
-        RAW.reorderAlerts = data.reorderAlerts?.length || 0;
-
-        document.getElementById('mSKUs').textContent    = RAW.totalSKUs;
-        document.getElementById('mSKUsSub').textContent = RAW.pendingPLs + ' pending receipt';
-        document.getElementById('mAlerts').textContent  = RAW.reorderAlerts;
-
-        buildDynamicPills(data);
-
-        document.getElementById('lastUpdated').textContent =
-          'Last updated ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) + ' WIB';
-
-        refresh();
-
-      } catch (err) {
-        showError('Failed to load dashboard — ' + err.message);
-      } finally {
-        document.getElementById('loadingOverlay').style.display = 'none';
-      }
+    // Process retailers
+    if (Array.isArray(data.retailers)) {
+      data.retailers.forEach(r => {
+        RAW.retailers[r.retailerId] = { name: r.name, tier: r.tier };
+      });
     }
+
+    // Process tier margins
+    RAW.tierMargins = data.tierMargins || {};
+
+    // Process SO rows
+    if (Array.isArray(data.soRows)) {
+      RAW.soRows = data.soRows.map(row => ({
+        soNumber   : row.soNumber,
+        brand      : row.brand      || '',
+        retailerId : row.retailerId || '',
+        orderType  : row.orderType  || '',
+        orderDate  : row.orderDate  ? new Date(row.orderDate) : null,
+        tier       : row.tier       || '',
+        totalIDR   : Number(row.totalIDR)  || 0,
+        status     : row.status     || '',
+        invoicedIDR: row.status === 'Invoiced' ? (Number(row.totalIDR) || 0) : 0,
+        qty        : Number(row.qty) || 0,
+        skus       : Array.isArray(row.skus) ? row.skus : [],
+      }));
+    }
+
+    // Process static stock stats
+    RAW.totalSKUs     = data.stockSummary?.length  || 0;
+    RAW.pendingPLs    = data.pendingPLs?.length    || 0;
+    RAW.reorderAlerts = data.reorderAlerts?.length || 0;
+
+    document.getElementById('mSKUs').textContent    = RAW.totalSKUs;
+    document.getElementById('mSKUsSub').textContent = RAW.pendingPLs + ' pending receipt';
+    document.getElementById('mAlerts').textContent  = RAW.reorderAlerts;
+
+    buildDynamicPills(data);
+
+    document.getElementById('lastUpdated').textContent =
+      'Last updated ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) + ' WIB';
+
+    // Render chart and metrics
+    refresh();
+
+    // ✅ HIDE SKELETON AFTER SUCCESS
+    document.getElementById('skeletonUI').style.display = 'none';
+
+  } catch (err) {
+    showError('Failed to load dashboard — ' + err.message);
+    // ✅ HIDE SKELETON ON ERROR TOO
+    document.getElementById('skeletonUI').style.display = 'none';
+  } finally {
+    // Keep this for overlay safety
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+}
   
 
     // ── Build dynamic pills from API data ───────────────────
