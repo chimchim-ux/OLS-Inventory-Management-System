@@ -12,15 +12,15 @@
 
     /* ── Nav ── */
     nav { background: #0A2A35; border-bottom: 1px solid #222; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
-    .nav-brand { font-size: 16px; font-weight: 700; color: #00B4D8; letter-spacing: 1px; }
-    .nav-links { display: flex; gap: 4px; }
-    .nav-links a { color: #7ECFDF; text-decoration: none; font-size: 13px; padding: 6px 12px; border-radius: 6px; transition: all 0.2s; }
-    .nav-links a:hover { color: #FFF; background: #0F3D4D; }
-    .nav-links a.active { color: #FFF; background: #0F3D4D; }
-    .nav-right { display: flex; align-items: center; gap: 16px; }
-    .nav-user { font-size: 12px; color: #7ECFDF; }
-    .btn-logout { font-size: 12px; color: #7ECFDF; background: none; border: 1px solid #1A4D5D; border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all 0.2s; }
-    .btn-logout:hover { color: #FFF; border-color: #555; }
+.nav-brand { font-size: 16px; font-weight: 700; color: #00B4D8; letter-spacing: 1px; }
+.nav-links { display: flex; gap: 4px; }
+.nav-links a { color: #7ECFDF; text-decoration: none; font-size: 13px; padding: 6px 12px; border-radius: 6px; transition: all 0.2s; }
+.nav-links a:hover { color: #FFF; background: #0F3D4D; }
+.nav-links a.active { color: #FFF; background: #0F3D4D; }
+.nav-right { display: flex; align-items: center; gap: 16px; }
+.nav-user { font-size: 12px; color: #7ECFDF; }
+.btn-logout { font-size: 12px; color: #7ECFDF; background: none; border: 1px solid #1A4D5D; border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all 0.2s; }
+.btn-logout:hover { color: #FFF; border-color: #555; }
 
     /* ── Page ── */
     .page { max-width: 1200px; margin: 0 auto; padding: 32px; }
@@ -84,20 +84,19 @@
     .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #00B4D8; border-radius: 50%; animation: spin 0.6s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .error-bar { background: rgba(224,82,82,0.12); border: 0.5px solid rgba(224,82,82,0.3); border-radius: 8px; padding: 10px 16px; font-size: 12px; color: #E05252; margin-bottom: 20px; display: none; }
-    
-    /* ── Skeleton Loading ── */
-    .skeleton {
-      background: linear-gradient(90deg, #1A1A1A 25%, #242424 50%, #1A1A1A 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: 10px;
-    }
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-    .skeleton-card { height: 80px; }
-    .skeleton-chart { height: 300px; }
+  /* ── Skeleton Loading ── */
+.skeleton {
+  background: linear-gradient(90deg, #1A1A1A 25%, #242424 50%, #1A1A1A 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 10px;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-card { height: 80px; }
+.skeleton-chart { height: 300px; }
   </style>
 </head>
 <body>
@@ -269,20 +268,20 @@
       </div>
     </div>
 
-    <!-- ── Skeleton Loading UI ── -->
-    <div id="skeletonUI" style="display:none">
-      <div class="metric-grid">
-        <div class="metric-card skeleton skeleton-card"></div>
-        <div class="metric-card skeleton skeleton-card"></div>
-        <div class="metric-card skeleton skeleton-card"></div>
-        <div class="metric-card skeleton skeleton-card"></div>
-      </div>
-      <div class="metric-row">
-        <div class="metric-card skeleton skeleton-card"></div>
-        <div class="metric-card skeleton skeleton-card"></div>
-      </div>
-      <div class="chart-card skeleton skeleton-chart"></div>
-    </div>
+    <!-- Skeleton Loading UI -->
+<div id="skeletonUI" style="display:none">
+  <div class="metric-grid">
+    <div class="metric-card skeleton skeleton-card"></div>
+    <div class="metric-card skeleton skeleton-card"></div>
+    <div class="metric-card skeleton skeleton-card"></div>
+    <div class="metric-card skeleton skeleton-card"></div>
+  </div>
+  <div class="metric-row">
+    <div class="metric-card skeleton skeleton-card"></div>
+    <div class="metric-card skeleton skeleton-card"></div>
+  </div>
+  <div class="chart-card skeleton skeleton-chart"></div>
+</div>
 
     <!-- ── Static stock cards ── -->
     <div class="metric-row">
@@ -335,8 +334,8 @@
     const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
     let RAW = {
-      soRows    : [],
-      retailers : {},
+      soRows    : [],   // { soNumber, brand, retailerId, orderType, orderDate, tier, totalIDR, status, invoicedIDR, qty }
+      retailers : {},   // { retailerId: { name, tier } }
       tierMargins: {},
       totalSKUs : 0,
       pendingPLs: 0,
@@ -375,23 +374,23 @@
     // ── Load from API ────────────────────────────────────────
     async function loadDashboard() {
       try {
-        // Show skeleton immediately for perceived performance
-        document.getElementById('skeletonUI').style.display = 'block';
-        document.getElementById('loadingOverlay').style.display = 'none';
+    // Show skeleton instead of full overlay
+    document.getElementById('skeletonUI').style.display = 'block';
+    document.getElementById('loadingOverlay').style.display = 'none';
 
-        const data = await apiGet('getDashboardStats');
+    const data = await apiGet('getDashboardStats');
 
-        // Process retailers
+        // Retailers
         if (Array.isArray(data.retailers)) {
           data.retailers.forEach(r => {
             RAW.retailers[r.retailerId] = { name: r.name, tier: r.tier };
           });
         }
 
-        // Process tier margins
+        // Tier margins
         RAW.tierMargins = data.tierMargins || {};
 
-        // Process SO rows
+        // SO rows — includes qty from line items
         if (Array.isArray(data.soRows)) {
           RAW.soRows = data.soRows.map(row => ({
             soNumber   : row.soNumber,
@@ -408,7 +407,7 @@
           }));
         }
 
-        // Process static stock stats
+        // Static stock stats
         RAW.totalSKUs     = data.stockSummary?.length  || 0;
         RAW.pendingPLs    = data.pendingPLs?.length    || 0;
         RAW.reorderAlerts = data.reorderAlerts?.length || 0;
@@ -420,23 +419,21 @@
         buildDynamicPills(data);
 
         document.getElementById('lastUpdated').textContent =
-          'Last updated ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) + ' WIB';
+      'Last updated ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) + ' WIB';
 
-        // Render chart and metrics
-        refresh();
+    // Hide skeleton after data loads
+    document.getElementById('skeletonUI').style.display = 'none';
+    
+    refresh();
 
-        // ✅ HIDE SKELETON AFTER SUCCESSFUL LOAD
-        document.getElementById('skeletonUI').style.display = 'none';
-
-      } catch (err) {
-        showError('Failed to load dashboard — ' + err.message);
-        // ✅ HIDE SKELETON ON ERROR TOO
-        document.getElementById('skeletonUI').style.display = 'none';
-      } finally {
-        // Keep this for overlay safety
-        document.getElementById('loadingOverlay').style.display = 'none';
-      }
-    }
+  } catch (err) {
+    showError('Failed to load dashboard — ' + err.message);
+    document.getElementById('skeletonUI').style.display = 'none';
+  } finally {
+    // Keep this line to hide overlay if error occurs
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+}
 
     // ── Build dynamic pills from API data ───────────────────
     function buildDynamicPills(data) {
