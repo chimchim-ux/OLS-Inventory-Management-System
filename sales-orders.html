@@ -599,8 +599,8 @@ function getTierMargin(tier) {
       document.getElementById('marginPct').textContent = marginPct;
       document.getElementById('estMargin').textContent = '+' + formatIDR(marginAmt);
     }
-    // ── Core: Calculate SRP Price (Gross, excl. PPN) ──
-    // ── Core: Calculate SRP Price (Gross, excl. PPN) ──
+   
+    // ─ Core: Calculate SRP Price (Gross, excl. PPN) ──
 function calcSRP(costSGD, tier) {
   if (!settings) {
     console.error('❌ Settings not loaded!');
@@ -610,13 +610,26 @@ function calcSRP(costSGD, tier) {
   const margin = getTierMargin(tier);
   if (margin === null) return 0;
   
+  // 1. Get Rate from Settings (No hardcoded 13500)
   const rate = settings.sgdIdrRate;
-  const handlingPct = settings.handlingPct ?? 0; // Default to 0 if not set
-  
   if (!rate || rate <= 0) {
     console.error('❌ SGD_IDR_RATE not configured in Settings!');
     return 0;
   }
+  
+  // 2. Get Handling PCT from Settings (No hardcoded 1.05)
+  // Default to 0 if not set
+  const handlingPct = settings.handlingPct ?? 0;
+  
+  // 3. Calculate Wholesale: Cost × Rate × (1 + Handling%)
+  const wholesale = costSGD * rate * (1 + handlingPct / 100);
+  
+  // 4. Calculate SRP: Wholesale × (1 + Margin%)
+  const srp = wholesale * (1 + margin / 100);
+  
+  // 5. Ceiling to nearest 1000
+  return Math.ceil(srp / 1000) * 1000;
+}
   
   // SRP = (Cost SGD × Rate × (1 + handling%)) × (1 + Margin%)
   const wholesale = costSGD * rate * (1 + handlingPct / 100);
