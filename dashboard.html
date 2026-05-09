@@ -84,6 +84,20 @@
     .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #00B4D8; border-radius: 50%; animation: spin 0.6s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .error-bar { background: rgba(224,82,82,0.12); border: 0.5px solid rgba(224,82,82,0.3); border-radius: 8px; padding: 10px 16px; font-size: 12px; color: #E05252; margin-bottom: 20px; display: none; }
+    
+    /* ── Skeleton Loading ── */
+.skeleton {
+  background: linear-gradient(90deg, #1A1A1A 25%, #242424 50%, #1A1A1A 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 10px;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-card { height: 80px; }
+.skeleton-chart { height: 300px; }
   </style>
 </head>
 <body>
@@ -255,6 +269,21 @@
       </div>
     </div>
 
+    <!-- Skeleton Loading UI -->
+<div id="skeletonUI" style="display:none">
+  <div class="metric-grid">
+    <div class="metric-card skeleton skeleton-card"></div>
+    <div class="metric-card skeleton skeleton-card"></div>
+    <div class="metric-card skeleton skeleton-card"></div>
+    <div class="metric-card skeleton skeleton-card"></div>
+  </div>
+  <div class="metric-row">
+    <div class="metric-card skeleton skeleton-card"></div>
+    <div class="metric-card skeleton skeleton-card"></div>
+  </div>
+  <div class="chart-card skeleton skeleton-chart"></div>
+</div>
+
     <!-- ── Static stock cards ── -->
     <div class="metric-row">
       <div class="metric-card">
@@ -346,7 +375,11 @@
     // ── Load from API ────────────────────────────────────────
     async function loadDashboard() {
       try {
-        const data = await apiGet('getDashboardStats');
+        // Show skeleton instead of full overlay
+    document.getElementById('skeletonUI').style.display = 'block';
+    document.getElementById('loadingOverlay').style.display = 'none';
+
+    const data = await apiGet('getDashboardStats');
 
         // Retailers
         if (Array.isArray(data.retailers)) {
@@ -387,16 +420,22 @@
         buildDynamicPills(data);
 
         document.getElementById('lastUpdated').textContent =
-          'Last updated ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) + ' WIB';
+      'Last updated ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) + ' WIB';
 
-        refresh();
+    // Hide skeleton after data loads
+    document.getElementById('skeletonUI').style.display = 'none';
+    
+    refresh();
 
-      } catch (err) {
-        showError('Failed to load dashboard — ' + err.message);
-      } finally {
-        document.getElementById('loadingOverlay').style.display = 'none';
-      }
-    }
+  } catch (err) {
+    showError('Failed to load dashboard — ' + err.message);
+    document.getElementById('skeletonUI').style.display = 'none';
+  } finally {
+    // Keep this line to hide overlay if error occurs
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+}
+  
 
     // ── Build dynamic pills from API data ───────────────────
     function buildDynamicPills(data) {
