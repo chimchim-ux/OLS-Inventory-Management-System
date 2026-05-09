@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,7 +34,6 @@
       padding: 6px 12px; cursor: pointer; transition: all 0.2s;
     }
     .btn-logout:hover { color: #FFF; border-color: #555; }
-
     .page { max-width: 1200px; margin: 0 auto; padding: 32px; }
     .page-header {
       display: flex; align-items: center;
@@ -41,7 +41,6 @@
     }
     .page-header h1 { font-size: 24px; font-weight: 700; }
     .page-header p { font-size: 13px; color: #555; margin-top: 4px; }
-
     .btn-primary {
       padding: 10px 20px; background: #00B4D8; border: none;
       border-radius: 8px; color: #000; font-size: 13px;
@@ -63,7 +62,6 @@
       cursor: pointer; transition: all 0.2s;
     }
     .btn-danger:hover { background: #3A0000; }
-
     .filters {
       display: flex; gap: 8px; margin-bottom: 20px;
       align-items: center; flex-wrap: wrap;
@@ -83,7 +81,6 @@
     }
     .search-input:focus { border-color: #00B4D8; }
     .search-input::placeholder { color: #444; }
-
     .table-wrap {
       background: #141414; border: 1px solid #222;
       border-radius: 10px; overflow: hidden;
@@ -102,14 +99,12 @@
     tbody tr:last-child td { border-bottom: none; }
     tbody tr:hover td { background: #181818; }
     .mono { font-family: 'Courier New', monospace; font-size: 12px; }
-
     .badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
     .badge-grey  { background: #1A1A1A; color: #666;    border: 1px solid #2A2A2A; }
     .badge-amber { background: #2A1F00; color: #F4A261; border: 1px solid #3A2A00; }
     .badge-blue  { background: #001A2A; color: #00B4D8; border: 1px solid #00253A; }
     .badge-green { background: #002A10; color: #52B788; border: 1px solid #003A18; }
     .badge-red   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
-
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.85);
       display: flex; align-items: center; justify-content: center;
@@ -136,7 +131,6 @@
       display: flex; gap: 12px; justify-content: flex-end;
       position: sticky; bottom: 0; background: #141414;
     }
-
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .form-group { margin-bottom: 16px; }
     label {
@@ -151,7 +145,6 @@
     }
     input:focus, select:focus { border-color: #00B4D8; }
     select option { background: #1E1E1E; }
-
     .section-divider {
       font-size: 12px; font-weight: 600; color: #555;
       text-transform: uppercase; letter-spacing: 1px;
@@ -183,7 +176,6 @@
       transition: all 0.2s; margin-top: 4px;
     }
     .btn-add-line:hover { border-color: #555; color: #FFF; }
-
     .so-totals {
       background: #1A1A1A; border: 1px solid #222;
       border-radius: 8px; padding: 16px; margin-top: 16px;
@@ -197,11 +189,9 @@
       margin-bottom: 0; padding-top: 8px; border-top: 1px solid #333;
     }
     .so-totals-row span:last-child { color: #FFF; }
-
     .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
     .detail-item label { margin-bottom: 4px; }
     .detail-item .val { font-size: 14px; color: #FFF; }
-
     .loading { padding: 48px; text-align: center; color: #444; font-size: 13px; }
     .empty   { padding: 48px; text-align: center; color: #444; font-size: 13px; }
     .spinner {
@@ -211,7 +201,6 @@
       margin-right: 8px; vertical-align: middle;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
     .toast {
       position: fixed; bottom: 32px; right: 32px;
       padding: 12px 20px; border-radius: 8px; font-size: 13px;
@@ -224,7 +213,6 @@
   </style>
 </head>
 <body>
-
   <nav>
     <div class="nav-brand">OLS</div>
     <div class="nav-links">
@@ -241,7 +229,6 @@
       <button class="btn-logout" onclick="logout()">Log out</button>
     </div>
   </nav>
-
   <div class="page">
     <div class="page-header">
       <div>
@@ -253,7 +240,6 @@
         + New SO
       </button>
     </div>
-
     <div class="filters">
       <button class="filter-btn active" onclick="filterStatus('all', this)">All</button>
       <button class="filter-btn" onclick="filterStatus('Draft', this)">Draft</button>
@@ -265,7 +251,6 @@
       <input class="search-input" type="text" id="searchInput"
         placeholder="Search SO, retailer..." oninput="renderSOs()">
     </div>
-
     <div class="table-wrap">
       <div class="loading" id="loadingState">
         <span class="spinner"></span>Loading sales orders...
@@ -289,7 +274,6 @@
       </div>
     </div>
   </div>
-
   <!-- Create Modal -->
   <div class="modal-overlay" id="createModal" style="display:none">
     <div class="modal">
@@ -377,7 +361,6 @@
       </div>
     </div>
   </div>
-
   <!-- Detail Modal -->
   <div class="modal-overlay" id="detailModal" style="display:none">
     <div class="modal">
@@ -391,46 +374,36 @@
       <div class="modal-footer" id="detailFooter"></div>
     </div>
   </div>
-
   <div class="toast" id="toast"></div>
-
   <script>
     if (!isLoggedIn() || (!isAdmin() && !isViewer())) {
       window.location.href = 'index.html';
     }
-
     if (isAdmin()) {
       document.getElementById('btnNewSO').style.display = 'inline-block';
     }
-
     document.getElementById('navUser').textContent = isViewer() ? 'Viewer' : 'Admin';
-
     function logout() { clearSession(); window.location.href = 'index.html'; }
-
     let allSOs        = [];
     let retailers     = [];
     let catalogue     = [];
     let settings      = null;
     let currentStatus = 'all';
-
     function showToast(msg, type = 'success') {
       const t = document.getElementById('toast');
       t.textContent = msg;
       t.className = `toast ${type} visible`;
       setTimeout(() => t.classList.remove('visible'), 4000);
     }
-
     function formatIDR(n) {
       return 'Rp ' + Number(n).toLocaleString('id-ID');
     }
-
     function formatDate(d) {
       if (!d) return '—';
       return new Date(d).toLocaleDateString('id-ID', {
         day: '2-digit', month: 'short', year: 'numeric'
       });
     }
-
     function statusBadge(status) {
       const map = {
         'Draft'            : 'badge-grey',
@@ -442,7 +415,6 @@
       };
       return `<span class="badge ${map[status] || 'badge-grey'}">${status}</span>`;
     }
-
     async function init() {
       try {
         const [soData, catData, setData] = await Promise.all([
@@ -450,14 +422,11 @@
           apiGet('getProducts'),
           apiGet('getSettings'),
         ]);
-
         allSOs    = Array.isArray(soData)  ? soData  : [];
         catalogue = Array.isArray(catData) ? catData : [];
         settings  = setData;
-
         document.getElementById('loadingState').style.display = 'none';
         renderSOs();
-
         if (isAdmin()) {
           populateRetailerDropdown();
         }
@@ -466,7 +435,6 @@
           'Error loading data: ' + err.message;
       }
     }
-
     async function populateRetailerDropdown() {
       try {
         const res  = await fetch(
@@ -477,25 +445,21 @@
       } catch {
         retailers = [];
       }
-
       const rtlOptions = retailers.length > 0 ? retailers : [
         { retailerId: 'RTL-000', name: 'Direct Sale', tier: 'T1' },
         { retailerId: 'RTL-001', name: 'Test Retailer One', tier: 'T2' },
         { retailerId: 'RTL-002', name: 'Test Retailer Two', tier: 'T3' },
       ];
-
       document.getElementById('newRetailer').innerHTML = rtlOptions.map(r =>
         `<option value="${r.retailerId}">${r.retailerId} — ${r.name}</option>`
       ).join('');
     }
-
     function filterStatus(status, btn) {
       currentStatus = status;
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       renderSOs();
     }
-
     function renderSOs() {
       const search = document.getElementById('searchInput').value.toLowerCase();
       const filtered = allSOs.filter(so => {
@@ -506,16 +470,13 @@
           so.brand.toLowerCase().includes(search);
         return statusMatch && searchMatch;
       });
-
       document.getElementById('soCount').textContent =
         `${filtered.length} order${filtered.length !== 1 ? 's' : ''}`;
-
       if (filtered.length === 0) {
         document.getElementById('mainTable').style.display = 'none';
         document.getElementById('emptyState').style.display = 'block';
         return;
       }
-
       document.getElementById('emptyState').style.display = 'none';
       document.getElementById('mainTable').style.display  = 'table';
       document.getElementById('tableBody').innerHTML = filtered.map(so => `
@@ -536,7 +497,6 @@
         </tr>
       `).join('');
     }
-
     function openCreateModal() {
       document.getElementById('lineItems').innerHTML = '';
       document.getElementById('newOrderDate').value =
@@ -547,22 +507,18 @@
       addLineItem();
       document.getElementById('createModal').style.display = 'flex';
     }
-
     function closeCreateModal() {
       document.getElementById('createModal').style.display = 'none';
     }
-
     function togglePORef() {
       const type = document.getElementById('newOrderType').value;
       document.getElementById('poRefGroup').style.display =
         type === 'Retailer PO' ? 'block' : 'none';
       updateTotals();
     }
-
     function onRetailerChange() {
         updateTotals();
     }
-
     function refreshLineItemSKUs() {
       const brand = document.getElementById('newBrand').value;
       const skus = catalogue.filter(p => p.brand === brand && p.availableStock > 0);
@@ -574,14 +530,12 @@
       });
       updateTotals();
     }
-
     function addLineItem() {
       const brand = document.getElementById('newBrand').value;
       const skus = catalogue.filter(p => p.brand === brand && p.availableStock > 0);
       const opts  = skus.map(p =>
         `<option value="${p.sku}" data-srp="${p.srp || p.retailPriceIDR}" data-cost="${p.costSGD}">${p.sku} — ${p.productName}</option>`
       ).join('') || '<option value="">No SKUs for this brand</option>';
-
       const row = document.createElement('div');
       row.className = 'li-row';
       row.innerHTML = `
@@ -595,12 +549,10 @@
       document.getElementById('lineItems').appendChild(row);
       updateTotals();
     }
-
     function removeLineItem(btn) {
       btn.closest('.li-row').remove();
       updateTotals();
     }
-
     // ─ Helper: Get Tier (Strict: No defaults, must exist) ──
     function getRetailerTier(retailerId) {
       if (!retailerId) throw new Error('Please select a retailer first');
@@ -611,25 +563,27 @@
       
       return retailer.tier;
     }
-
-    // ── Helper: Get Margin % for a Tier (STRICT) ──
-    function getTierMargin(tier) {
-      if (!settings || !settings.tierMargins) {
-        console.error('❌ Settings not loaded! Cannot calculate margin.');
-        return null;
-      }
-      const margin = settings.tierMargins[tier];
-      if (margin === undefined || margin === null) {
-        console.error(`❌ Margin for tier "${tier}" not configured in Settings!`);
-        return null;
-      }
-      if (typeof margin !== 'number' || margin < 0) {
-        console.error(`❌ Invalid margin for tier "${tier}": ${margin}`);
-        return null;
-      }
-      return margin;
-    }
-
+    // ── Helper: Get Margin % for a Tier ──
+function getTierMargin(tier) {
+  if (!settings) {
+    console.error('❌ Settings not loaded! Cannot calculate margin.');
+    return null;
+  }
+  
+  // 1. Try flat key (Matches your Settings backend: TIER_T3_MARGIN)
+  const flatKey = `TIER_${tier}_MARGIN`;
+  if (settings[flatKey] !== undefined && settings[flatKey] !== null) {
+    return settings[flatKey];
+  }
+  
+  // 2. Fallback to nested key (Standard structure)
+  if (settings.tierMargins && settings.tierMargins[tier] !== undefined) {
+    return settings.tierMargins[tier];
+  }
+  
+  console.error(`❌ Margin for tier "${tier}" not configured in Settings!`);
+  return null;
+}
     // ── Helper: Calc Margin from Gross Total (SRP-based) ──
     function calcMarginFromGross(grossTotal, tier) {
       const marginPct = getTierMargin(tier);
@@ -639,115 +593,103 @@
       const marginAmount = grossTotal * (marginPct / (100 + marginPct));
       return Math.round(marginAmount / 1000) * 1000;
     }
-
     // ── Helper: Update Margin Display in UI ──
     function updateMarginDisplay(orderType, tier, marginPct, marginAmt) {
       document.getElementById('marginTier').textContent = tier;
       document.getElementById('marginPct').textContent = marginPct;
       document.getElementById('estMargin').textContent = '+' + formatIDR(marginAmt);
     }
-
     // ── Core: Calculate SRP Price (Gross, excl. PPN) ──
-    function calcSRP(costSGD, tier) {
-      const margin = getTierMargin(tier);
-      const rate   = settings?.sgdIdrRate || 13500;
-      // SRP = Wholesale × (1 + Margin%)
-      const wholesale = costSGD * rate * 1.05;
-      const srp = wholesale * (1 + margin / 100);
-      return Math.ceil(srp / 1000) * 1000;  // CEILING to nearest 1000
-    }
-
+    // ── Core: Calculate SRP Price (Gross, excl. PPN) ──
+function calcSRP(costSGD, tier) {
+  if (!settings) {
+    console.error('❌ Settings not loaded!');
+    return 0;
+  }
+  
+  const margin = getTierMargin(tier);
+  if (margin === null) return 0;
+  
+  const rate = settings.sgdIdrRate;
+  const handlingPct = settings.handlingPct ?? 0; // Default to 0 if not set
+  
+  if (!rate || rate <= 0) {
+    console.error('❌ SGD_IDR_RATE not configured in Settings!');
+    return 0;
+  }
+  
+  // SRP = (Cost SGD × Rate × (1 + handling%)) × (1 + Margin%)
+  const wholesale = costSGD * rate * (1 + handlingPct / 100);
+  const srp = wholesale * (1 + margin / 100);
+  return Math.ceil(srp / 1000) * 1000;
+}
     // ── Core: Update Totals (SRP-based) ──
     function updateTotals() {
-  try {
-    const retailerId = document.getElementById('newRetailer').value;
-    const orderType  = document.getElementById('newOrderType').value;
-    const ppnPct     = settings?.ppnPercent || 12;
-    
-    // If no retailer selected, show placeholder & calculate basic totals only
-    if (!retailerId) {
-      document.getElementById('marginTier').textContent = '—';
-      document.getElementById('marginPct').textContent = '0';
-      document.getElementById('estMargin').textContent = '+Rp 0';
-      document.getElementById('estMargin').style.color = '#888';
-      calculateBasicTotals(ppnPct);
-      return;
+      try {
+        const retailerId = document.getElementById('newRetailer').value;
+        const orderType  = document.getElementById('newOrderType').value;
+        const tier       = getRetailerTier(retailerId);
+        const ppnPct     = settings?.ppnPercent || 12;
+        
+        let grossSubtotal = 0;  // SRP × Qty (before discount)
+        let totalCostSGD  = 0;
+        let totalDiscount = 0;
+        document.querySelectorAll('.li-row').forEach(row => {
+          const sel    = row.querySelector('.li-sku-select');
+          const qty    = parseInt(row.querySelector('.li-qty')?.value) || 0;
+          const opt    = sel?.options[sel.selectedIndex];
+          const srp    = parseFloat(opt?.dataset.srp) || 0;  // SRP (Gross, excl. PPN)
+          const cost   = parseFloat(opt?.dataset.cost) || 0;
+          
+          // Calculate line totals
+          const lineGross = srp * qty;                    // SRP × Qty
+          const discountPct = 0; // Add discount field later if needed
+          const discountAmt = Math.round(lineGross * discountPct / 100 / 1000) * 1000;
+          const afterDiscount = lineGross - discountAmt;
+          const ppnAmt = Math.ceil(afterDiscount * ppnPct / 100 / 1000) * 1000;  // CEILING
+          const lineFinal = afterDiscount + ppnAmt;
+          
+          // Update UI
+          row.querySelector('[data-unit]').textContent = formatIDR(srp);
+          row.querySelector('[data-line]').textContent = formatIDR(lineFinal);
+          
+          grossSubtotal += lineGross;
+          totalDiscount += discountAmt;
+          totalCostSGD += (cost * qty);
+        });
+        // Calculate totals
+        const afterDiscountTotal = grossSubtotal - totalDiscount;
+        const ppnTotal = Math.ceil(afterDiscountTotal * ppnPct / 100 / 1000) * 1000;
+        const finalTotal = afterDiscountTotal + ppnTotal;
+        
+        // Calculate margin (on gross, before discount)
+        const marginPct = getTierMargin(tier);
+        const marginAmt = calcMarginFromGross(grossSubtotal, tier);
+        // Update display
+        document.getElementById('totSubtotal').textContent = formatIDR(grossSubtotal);
+        
+        if (totalDiscount > 0) {
+          document.getElementById('discountRow').style.display = 'flex';
+          document.getElementById('discountPctDisplay').textContent = 0; // Update if adding discount field
+          document.getElementById('totDiscount').textContent = '-' + formatIDR(totalDiscount);
+          document.getElementById('afterDiscountRow').style.display = 'flex';
+          document.getElementById('totAfterDiscount').textContent = formatIDR(afterDiscountTotal);
+        } else {
+          document.getElementById('discountRow').style.display = 'none';
+          document.getElementById('afterDiscountRow').style.display = 'none';
+        }
+        
+        document.getElementById('ppnLabel').textContent = `PPN (${ppnPct}%)`;
+        document.getElementById('totPPN').textContent = formatIDR(ppnTotal);
+        document.getElementById('totTotal').textContent = formatIDR(finalTotal);
+        
+        if (orderType === 'Retailer PO' && marginPct !== null) {
+          updateMarginDisplay(orderType, tier, marginPct, marginAmt);
+        }
+      } catch (err) {
+        console.error('Update Totals Error:', err);
+      }
     }
-    
-    const tier = getRetailerTier(retailerId); // May throw
-    const marginPct = getTierMargin(tier);    // May return null
-    
-    let grossSubtotal = 0;
-    let totalDiscount = 0;
-
-    document.querySelectorAll('.li-row').forEach(row => {
-      const sel = row.querySelector('.li-sku-select');
-      const qty = parseInt(row.querySelector('.li-qty')?.value) || 0;
-      const opt = sel?.options[sel.selectedIndex];
-      const srp = parseFloat(opt?.dataset.srp) || 0;
-      
-      const lineGross = srp * qty;
-      const discountAmt = 0; // Placeholder for future discount field
-      const afterDiscount = lineGross - discountAmt;
-      const ppnAmt = Math.ceil(afterDiscount * ppnPct / 100 / 1000) * 1000;
-      const lineFinal = afterDiscount + ppnAmt;
-      
-      row.querySelector('[data-unit]').textContent = formatIDR(srp);
-      row.querySelector('[data-line]').textContent = formatIDR(lineFinal);
-      
-      grossSubtotal += lineGross;
-      totalDiscount += discountAmt;
-    });
-
-    const afterDiscountTotal = grossSubtotal - totalDiscount;
-    const ppnTotal = Math.ceil(afterDiscountTotal * ppnPct / 100 / 1000) * 1000;
-    const finalTotal = afterDiscountTotal + ppnTotal;
-    
-    // Update margin display
-    if (orderType === 'Retailer PO' && marginPct !== null) {
-      const marginAmt = calcMarginFromGross(grossSubtotal, tier);
-      updateMarginDisplay(orderType, tier, marginPct, marginAmt);
-    } else {
-      updateMarginDisplay(orderType, null, null, 0);
-    }
-
-    // Update totals UI
-    document.getElementById('totSubtotal').textContent = formatIDR(grossSubtotal);
-    document.getElementById('discountRow').style.display = totalDiscount > 0 ? 'flex' : 'none';
-    document.getElementById('afterDiscountRow').style.display = totalDiscount > 0 ? 'flex' : 'none';
-    document.getElementById('totDiscount').textContent = '-' + formatIDR(totalDiscount);
-    document.getElementById('totAfterDiscount').textContent = formatIDR(afterDiscountTotal);
-    document.getElementById('ppnLabel').textContent = `PPN (${ppnPct}%)`;
-    document.getElementById('totPPN').textContent = formatIDR(ppnTotal);
-    document.getElementById('totTotal').textContent = formatIDR(finalTotal);
-
-  } catch (err) {
-    console.error('Update Totals Error:', err);
-    document.getElementById('marginTier').textContent = 'Error';
-    document.getElementById('marginPct').textContent = '0';
-    document.getElementById('estMargin').textContent = '+Rp 0';
-    showToast('Calculation error: ' + err.message, 'error');
-  }
-}
-
-function calculateBasicTotals(ppnPct) {
-  let grossSubtotal = 0;
-  document.querySelectorAll('.li-row').forEach(row => {
-    const sel = row.querySelector('.li-sku-select');
-    const qty = parseInt(row.querySelector('.li-qty')?.value) || 0;
-    const opt = sel?.options[sel.selectedIndex];
-    const srp = parseFloat(opt?.dataset.srp) || 0;
-    const lineGross = srp * qty;
-    const ppnAmt = Math.ceil(lineGross * ppnPct / 100 / 1000) * 1000;
-    row.querySelector('[data-unit]').textContent = formatIDR(srp);
-    row.querySelector('[data-line]').textContent = formatIDR(lineGross + ppnAmt);
-    grossSubtotal += lineGross;
-  });
-  const ppnTotal = Math.ceil(grossSubtotal * ppnPct / 100 / 1000) * 1000;
-  document.getElementById('totSubtotal').textContent = formatIDR(grossSubtotal);
-  document.getElementById('totPPN').textContent = formatIDR(ppnTotal);
-  document.getElementById('totTotal').textContent = formatIDR(grossSubtotal + ppnTotal);
-}
     
     async function submitCreate() {
       const brand      = document.getElementById('newBrand').value;
@@ -756,30 +698,23 @@ function calculateBasicTotals(ppnPct) {
       const orderDate  = document.getElementById('newOrderDate').value;
       const poRef      = document.getElementById('newPORef').value.trim();
       const notes      = document.getElementById('newNotes').value.trim();
-
       if (!retailerId) { showToast('Select a retailer', 'error'); return; }
       if (!orderDate)  { showToast('Order date is required', 'error'); return; }
-
       const rows = document.querySelectorAll('#lineItems .li-row');
       if (rows.length === 0) { showToast('Add at least one line item', 'error'); return; }
-
       const lineItems = Array.from(rows).map(row => ({
         sku : row.querySelector('.li-sku-select').value,
         qty : Number(row.querySelector('.li-qty').value),
       })).filter(i => i.sku && i.qty > 0);
-
       if (lineItems.length === 0) { showToast('No valid line items', 'error'); return; }
-
       const btn = document.getElementById('createBtn');
       btn.disabled = true;
       btn.textContent = 'Creating...';
-
       try {
         const res = await apiPost('createSO', {
           brand, retailerId, orderType, orderDate,
           poRef, notes, lineItems, createdBy: 'admin',
         });
-
         if (res.success) {
           showToast(`Created ${res.soNumber}`);
           closeCreateModal();
@@ -797,23 +732,19 @@ function calculateBasicTotals(ppnPct) {
       } catch (err) {
         showToast('Connection error', 'error');
       }
-
       btn.disabled = false;
       btn.textContent = 'Create SO';
     }
-
     async function openDetail(soNumber) {
       document.getElementById('detailTitle').textContent = soNumber;
       document.getElementById('detailBody').innerHTML =
         '<div class="loading"><span class="spinner"></span>Loading...</div>';
       document.getElementById('detailFooter').innerHTML = '';
       document.getElementById('detailModal').style.display = 'flex';
-
       try {
         const data  = await apiGet('getSODetail', { soNumber });
         const h     = data.header;
         const items = data.lineItems || [];
-
         // SRP-based calculation for display
         const ppnPct = settings?.ppnPercent || 12;
         
@@ -827,7 +758,6 @@ function calculateBasicTotals(ppnPct) {
         const afterDiscount = grossSubtotal - discountAmt;
         const ppnAmt = Math.ceil(afterDiscount * ppnPct / 100 / 1000) * 1000;
         const finalTotal = afterDiscount + ppnAmt;
-
         document.getElementById('detailBody').innerHTML = `
           <div class="detail-grid">
             <div class="detail-item">
@@ -863,7 +793,6 @@ function calculateBasicTotals(ppnPct) {
               <div class="val">${h.notes}</div>
             </div>` : ''}
           </div>
-
           <div class="section-divider">Line Items</div>
           <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
             <thead>
@@ -891,7 +820,6 @@ function calculateBasicTotals(ppnPct) {
               `).join('')}
             </tbody>
           </table>
-
           <div class="so-totals">
             <div class="so-totals-row">
               <span>Subtotal (Gross, excl. PPN)</span>
@@ -923,27 +851,21 @@ function calculateBasicTotals(ppnPct) {
             </div>
           </div>
         `;
-
         document.getElementById('detailFooter').innerHTML =
           buildStatusActions(h.soNumber, h.status);
-
       } catch (err) {
         document.getElementById('detailBody').innerHTML =
           '<div class="empty">Error: ' + err.message + '</div>';
       }
     }
-
     function buildStatusActions(soNumber, status) {
       let btns = `<button class="btn-secondary" onclick="closeDetailModal()">Close</button>`;
       const code = sessionStorage.getItem('ols_code') || '';
-
       btns += `<a href="so-pdf.html?so=${soNumber}&code=${code}" target="_blank"
         class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px">
         ↓ PDF
       </a>`;
-
       if (isViewer()) return btns;
-
       const transitions = {
         'Draft'            : ['Pending Approval', 'Cancelled'],
         'Pending Approval' : ['Confirmed', 'Cancelled'],
@@ -952,7 +874,6 @@ function calculateBasicTotals(ppnPct) {
         'Invoiced'         : [],
         'Cancelled'        : [],
       };
-
       const next = transitions[status] || [];
       next.forEach(newStatus => {
         if (newStatus === 'Cancelled') {
@@ -967,28 +888,22 @@ function calculateBasicTotals(ppnPct) {
           </button>`;
         }
       });
-
       return btns;
     }
-
     function closeDetailModal() {
       document.getElementById('detailModal').style.display = 'none';
     }
-
     async function updateStatus(soNumber, newStatus) {
       const confirm_msg = newStatus === 'Cancelled'
         ? `Cancel ${soNumber}? This cannot be undone.`
         : newStatus === 'Shipped'
         ? `Mark ${soNumber} as Shipped? Stock will be deducted from Inventory.`
         : `Move ${soNumber} to "${newStatus}"?`;
-
       if (!confirm(confirm_msg)) return;
-
       try {
         const res = await apiPost('updateSOStatus', {
           soNumber, newStatus, updatedBy: 'admin',
         });
-
         if (res.success) {
           showToast(`${soNumber} → ${newStatus}`);
           closeDetailModal();
@@ -1001,7 +916,6 @@ function calculateBasicTotals(ppnPct) {
         showToast('Connection error', 'error');
       }
     }
-
     init();
   </script>
 </body>
