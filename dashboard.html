@@ -5,258 +5,200 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OLS — Dashboard</title>
   <script src="config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
+      font-family: 'Segoe UI', system-ui, sans-serif;
       background: #0A0A0A;
-      color: #FFFFFF;
+      color: #FFF;
+      font-size: 14px;
       min-height: 100vh;
     }
 
     /* ── Nav ── */
     nav {
-      background: #0A2A35;
-      border-bottom: 1px solid #0F3D4D;
-      padding: 0 32px;
+      background: #0D1F2D;
+      height: 52px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 56px;
+      padding: 0 28px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.08);
       position: sticky;
       top: 0;
       z-index: 100;
     }
-
-    .nav-brand {
-      font-size: 16px;
-      font-weight: 700;
-      color: #00B4D8;
-      letter-spacing: 1px;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 4px;
-    }
-
-    .nav-links a {
-      color: #7ECFDF;
-      text-decoration: none;
-      font-size: 13px;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: all 0.2s;
-    }
-
-    .nav-links a:hover { color: #FFF; background: #0F3D4D; }
-    .nav-links a.active { color: #FFF; background: #0F3D4D; }
-
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .nav-user {
-      font-size: 12px;
-      color: #7ECFDF;
-    }
-
-    .btn-logout {
-      font-size: 12px;
-      color: #7ECFDF;
-      background: none;
-      border: 1px solid #1A4D5D;
-      border-radius: 6px;
-      padding: 6px 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-logout:hover { color: #FFF; border-color: #555; }
+    .nav-brand { font-size: 12px; font-weight: 600; color: #FFF; letter-spacing: 4px; text-transform: uppercase; }
+    .nav-links { display: flex; gap: 2px; }
+    .nav-links a { font-size: 12px; color: rgba(255,255,255,0.5); text-decoration: none; padding: 5px 10px; border-radius: 5px; transition: all 0.15s; }
+    .nav-links a.active { color: #FFF; background: rgba(255,255,255,0.1); }
+    .nav-links a:hover { color: #FFF; }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-user { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 1.5px; text-transform: uppercase; }
+    .btn-logout { font-size: 10px; color: rgba(255,255,255,0.4); background: none; border: 0.5px solid rgba(255,255,255,0.15); border-radius: 5px; padding: 4px 10px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; }
+    .btn-logout:hover { color: #FFF; border-color: rgba(255,255,255,0.35); }
 
     /* ── Page ── */
-    .page {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 32px;
-    }
+    .page { max-width: 1100px; margin: 0 auto; padding: 28px 28px; }
 
-    .page-header {
-      margin-bottom: 32px;
-    }
+    .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+    .page-header h1 { font-size: 18px; font-weight: 500; color: #FFF; }
+    .page-header p { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 3px; }
+    .last-updated { font-size: 11px; color: rgba(255,255,255,0.3); padding-top: 4px; }
 
-    .page-header h1 {
-      font-size: 24px;
-      font-weight: 700;
-      color: #FFFFFF;
-    }
+    /* ── Filter bar ── */
+    .filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
 
-    .page-header p {
-      font-size: 13px;
-      color: #555;
-      margin-top: 4px;
-    }
+    .filter-dropdown { position: relative; }
 
-    /* ── Stat cards ── */
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 32px;
+    .filter-trigger {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      background: #161616;
+      border: 0.5px solid rgba(255,255,255,0.14);
+      border-radius: 20px;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+      white-space: nowrap;
     }
+    .filter-trigger:hover { color: #FFF; border-color: rgba(255,255,255,0.28); }
+    .filter-trigger.has-value { color: #FFF; border-color: #00B4D8; background: rgba(0,180,216,0.1); }
+    .filter-trigger.open { border-color: rgba(255,255,255,0.3); color: #FFF; }
 
-    .stat-card {
-      background: #141414;
-      border: 1px solid #222;
-      border-radius: 10px;
-      padding: 20px;
+    .trigger-arrow { font-size: 9px; color: rgba(255,255,255,0.35); transition: transform 0.15s; }
+    .filter-trigger.open .trigger-arrow { transform: rotate(180deg); }
+    .filter-trigger.has-value .trigger-arrow { color: #00B4D8; }
+    .active-dot { width: 6px; height: 6px; border-radius: 50%; background: #00B4D8; flex-shrink: 0; }
+
+    .filter-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      background: #1A1A1A;
+      border: 0.5px solid rgba(255,255,255,0.14);
+      border-radius: 12px;
+      padding: 16px;
+      min-width: 260px;
+      z-index: 200;
     }
+    .filter-panel.open { display: block; }
 
-    .stat-label {
-      font-size: 11px;
-      color: #555;
+    .panel-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.35);
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
+    .panel-section-label + .panel-section-label,
+    .pills-row + .panel-section-label { margin-top: 14px; }
 
-    .stat-value {
-      font-size: 28px;
-      font-weight: 700;
-      color: #FFFFFF;
-    }
+    .pills-row { display: flex; flex-wrap: wrap; gap: 6px; }
 
-    .stat-sub {
+    .pill {
       font-size: 12px;
-      color: #444;
-      margin-top: 4px;
+      color: rgba(255,255,255,0.55);
+      background: #242424;
+      border: 0.5px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      user-select: none;
     }
+    .pill:hover { color: #FFF; border-color: rgba(255,255,255,0.28); }
+    .pill.active { color: #FFF; background: #00B4D8; border-color: #00B4D8; }
 
-    .stat-card.alert { border-color: #E63946; }
-    .stat-card.alert .stat-value { color: #E63946; }
-
-    /* ── Section ── */
-    .section {
-      margin-bottom: 32px;
-    }
-
-    .section-header {
+    .panel-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 0.5px solid rgba(255,255,255,0.08);
     }
+    .btn-clear { font-size: 12px; color: rgba(255,255,255,0.35); background: none; border: none; cursor: pointer; padding: 4px 0; transition: color 0.15s; }
+    .btn-clear:hover { color: rgba(255,255,255,0.7); }
+    .btn-apply { font-size: 12px; color: #FFF; background: #00B4D8; border: none; border-radius: 8px; padding: 7px 20px; cursor: pointer; font-weight: 500; transition: opacity 0.15s; }
+    .btn-apply:hover { opacity: 0.85; }
 
-    .section-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #FFFFFF;
-    }
+    .filter-reset-all { font-size: 11px; color: rgba(255,255,255,0.28); background: none; border: none; cursor: pointer; padding: 6px 4px; margin-left: 4px; transition: color 0.15s; }
+    .filter-reset-all:hover { color: rgba(255,255,255,0.6); }
 
-    .badge {
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 20px;
-      font-weight: 600;
-    }
+    /* ── Stat cards ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: #141414; border: 0.5px solid rgba(255,255,255,0.09); border-radius: 10px; padding: 18px 20px; }
+    .stat-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 10px; }
+    .stat-value { font-size: 28px; font-weight: 500; color: #FFF; letter-spacing: -1px; line-height: 1; }
+    .stat-value-sm { font-size: 18px; font-weight: 500; color: #FFF; letter-spacing: -0.5px; line-height: 1; }
+    .stat-currency { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+    .stat-sub { font-size: 11px; color: rgba(255,255,255,0.38); margin-top: 5px; }
+    .stat-card.alert-card .stat-value { color: #E05252; }
+    .stat-card.alert-card { border-color: rgba(224,82,82,0.22); }
 
-    .badge-amber { background: #2A1F00; color: #F4A261; border: 1px solid #3A2A00; }
-    .badge-red   { background: #2A0000; color: #E63946; border: 1px solid #3A0000; }
-    .badge-green { background: #002A10; color: #52B788; border: 1px solid #003A18; }
-    .badge-blue  { background: #001A2A; color: #00B4D8; border: 1px solid #00253A; }
-    .badge-grey  { background: #1A1A1A; color: #666;    border: 1px solid #2A2A2A; }
+    /* ── Chart ── */
+    .chart-card { background: #141414; border: 0.5px solid rgba(255,255,255,0.09); border-radius: 10px; overflow: hidden; }
+    .chart-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.06); flex-wrap: wrap; gap: 10px; }
+    .chart-title { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
+    .chart-legend { display: flex; align-items: center; gap: 16px; font-size: 11px; color: rgba(255,255,255,0.45); }
+    .chart-body { padding: 20px 20px 16px; }
 
-    /* ── Table ── */
-    .table-wrap {
-      background: #141414;
-      border: 1px solid #222;
-      border-radius: 10px;
-      overflow: hidden;
-    }
+    .period-toggle { display: flex; gap: 2px; }
+    .period-btn { font-size: 10px; color: rgba(255,255,255,0.4); background: none; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 5px; padding: 4px 10px; cursor: pointer; letter-spacing: 0.5px; text-transform: uppercase; transition: all 0.15s; }
+    .period-btn.active { color: #00B4D8; border-color: rgba(0,180,216,0.5); background: rgba(0,180,216,0.08); }
+    .period-btn:hover:not(.active) { color: rgba(255,255,255,0.7); }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    thead th {
-      background: #0A2A35;
-      padding: 12px 16px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 600;
-      color: #7ECFDF;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      border-bottom: 1px solid #0F3D4D;
-    }
-
-    tbody td {
-      padding: 12px 16px;
+    /* ── Loading / error ── */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: #0A0A0A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
       font-size: 13px;
-      color: #CCC;
-      border-bottom: 1px solid #1A1A1A;
+      color: rgba(255,255,255,0.35);
+      gap: 10px;
     }
-
-    tbody tr:last-child td { border-bottom: none; }
-    tbody tr:hover td { background: #181818; }
-
-    .mono { font-family: 'Courier New', monospace; font-size: 12px; }
-
-    /* ── Two col layout ── */
-    .two-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-    }
-
-    /* ── Empty state ── */
-    .empty {
-      padding: 32px;
-      text-align: center;
-      color: #444;
-      font-size: 13px;
-    }
-
-    /* ── Loading ── */
-    .loading {
-      padding: 32px;
-      text-align: center;
-      color: #444;
-      font-size: 13px;
-    }
-
     .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid #333;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.1);
       border-top-color: #00B4D8;
       border-radius: 50%;
       animation: spin 0.6s linear infinite;
-      margin-right: 8px;
-      vertical-align: middle;
     }
-
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Link button ── */
-    .btn-link {
+    .error-bar {
+      background: rgba(224,82,82,0.12);
+      border: 0.5px solid rgba(224,82,82,0.3);
+      border-radius: 8px;
+      padding: 10px 16px;
       font-size: 12px;
-      color: #00B4D8;
-      text-decoration: none;
-      padding: 4px 10px;
-      border: 1px solid #00B4D8;
-      border-radius: 6px;
-      transition: all 0.2s;
+      color: #E05252;
+      margin-bottom: 20px;
+      display: none;
     }
-    .btn-link:hover { background: #00B4D8; color: #000; }
   </style>
 </head>
 <body>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    Loading dashboard...
+  </div>
 
   <!-- Nav -->
   <nav>
@@ -278,323 +220,537 @@
 
   <!-- Page -->
   <div class="page">
+
     <div class="page-header">
-      <h1>Dashboard</h1>
-      <p id="lastUpdated">Loading...</p>
+      <div>
+        <h1>Dashboard</h1>
+        <p>One Logistics Solutions</p>
+      </div>
+      <span class="last-updated" id="lastUpdated">—</span>
+    </div>
+
+    <div class="error-bar" id="errorBar"></div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+
+      <!-- By Period -->
+      <div class="filter-dropdown" id="ddPeriod">
+        <div class="filter-trigger" id="trigPeriod" onclick="toggleDropdown('ddPeriod')">
+          <span id="labelPeriod">By Period</span>
+          <span class="trigger-arrow">▼</span>
+        </div>
+        <div class="filter-panel" id="panelPeriod">
+          <div class="panel-section-label">Year</div>
+          <div class="pills-row" id="yearPills"></div>
+          <div class="panel-section-label">Month</div>
+          <div class="pills-row">
+            <div class="pill active" data-group="month" data-val="all" onclick="selectPill(this)">All</div>
+            <div class="pill" data-group="month" data-val="1"  onclick="selectPill(this)">Jan</div>
+            <div class="pill" data-group="month" data-val="2"  onclick="selectPill(this)">Feb</div>
+            <div class="pill" data-group="month" data-val="3"  onclick="selectPill(this)">Mar</div>
+            <div class="pill" data-group="month" data-val="4"  onclick="selectPill(this)">Apr</div>
+            <div class="pill" data-group="month" data-val="5"  onclick="selectPill(this)">May</div>
+            <div class="pill" data-group="month" data-val="6"  onclick="selectPill(this)">Jun</div>
+            <div class="pill" data-group="month" data-val="7"  onclick="selectPill(this)">Jul</div>
+            <div class="pill" data-group="month" data-val="8"  onclick="selectPill(this)">Aug</div>
+            <div class="pill" data-group="month" data-val="9"  onclick="selectPill(this)">Sep</div>
+            <div class="pill" data-group="month" data-val="10" onclick="selectPill(this)">Oct</div>
+            <div class="pill" data-group="month" data-val="11" onclick="selectPill(this)">Nov</div>
+            <div class="pill" data-group="month" data-val="12" onclick="selectPill(this)">Dec</div>
+          </div>
+          <div class="panel-footer">
+            <button class="btn-clear" onclick="clearDropdown('ddPeriod')">Clear</button>
+            <button class="btn-apply" onclick="applyDropdown('ddPeriod')">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- By Customer -->
+      <div class="filter-dropdown" id="ddCustomer">
+        <div class="filter-trigger" id="trigCustomer" onclick="toggleDropdown('ddCustomer')">
+          <span id="labelCustomer">By Customer</span>
+          <span class="trigger-arrow">▼</span>
+        </div>
+        <div class="filter-panel" id="panelCustomer">
+          <div class="panel-section-label">Customer</div>
+          <div class="pills-row" id="customerPills"></div>
+          <div class="panel-footer">
+            <button class="btn-clear" onclick="clearDropdown('ddCustomer')">Clear</button>
+            <button class="btn-apply" onclick="applyDropdown('ddCustomer')">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- By Tier -->
+      <div class="filter-dropdown" id="ddTier">
+        <div class="filter-trigger" id="trigTier" onclick="toggleDropdown('ddTier')">
+          <span id="labelTier">By Tier</span>
+          <span class="trigger-arrow">▼</span>
+        </div>
+        <div class="filter-panel" id="panelTier">
+          <div class="panel-section-label">Tier</div>
+          <div class="pills-row" id="tierPills"></div>
+          <div class="panel-footer">
+            <button class="btn-clear" onclick="clearDropdown('ddTier')">Clear</button>
+            <button class="btn-apply" onclick="applyDropdown('ddTier')">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- By Product -->
+      <div class="filter-dropdown" id="ddProduct">
+        <div class="filter-trigger" id="trigProduct" onclick="toggleDropdown('ddProduct')">
+          <span id="labelProduct">By Product</span>
+          <span class="trigger-arrow">▼</span>
+        </div>
+        <div class="filter-panel" id="panelProduct">
+          <div class="panel-section-label">Brand</div>
+          <div class="pills-row" id="brandPills"></div>
+          <div class="panel-footer">
+            <button class="btn-clear" onclick="clearDropdown('ddProduct')">Clear</button>
+            <button class="btn-apply" onclick="applyDropdown('ddProduct')">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="filter-reset-all" id="btnResetAll" onclick="resetAll()" style="display:none;">↺ Reset all</button>
     </div>
 
     <!-- Stat cards -->
     <div class="stat-grid">
-      <div class="stat-card" id="cardTotalOrders">
+      <div class="stat-card">
         <div class="stat-label">Total Orders</div>
-        <div class="stat-value" id="statTotalOrders">—</div>
-        <div class="stat-sub" id="statPending">— pending approval</div>
+        <div class="stat-value" id="statOrders">—</div>
+        <div class="stat-sub" id="statOrdersSub">— pending approval</div>
       </div>
-      <div class="stat-card" id="cardRevenue">
-        <div class="stat-label">Invoiced Revenue</div>
-        <div class="stat-value" id="statRevenue">—</div>
-        <div class="stat-sub">Invoiced SOs only</div>
+      <div class="stat-card">
+        <div class="stat-label">SO Order (Value)</div>
+        <div class="stat-value-sm" id="statSOValue">—</div>
+        <div class="stat-currency">IDR</div>
+        <div class="stat-sub">Consignment & direct buy</div>
       </div>
-      <div class="stat-card" id="cardStock">
+      <div class="stat-card">
         <div class="stat-label">Total SKUs</div>
         <div class="stat-value" id="statSKUs">—</div>
-        <div class="stat-sub" id="statPendingPL">— pending receipt</div>
+        <div class="stat-sub" id="statSKUsSub">— pending receipt</div>
       </div>
-      <div class="stat-card" id="cardAlerts">
+      <div class="stat-card alert-card" id="cardAlerts">
         <div class="stat-label">Reorder Alerts</div>
         <div class="stat-value" id="statAlerts">—</div>
         <div class="stat-sub">SKUs below threshold</div>
       </div>
     </div>
 
-    <!-- Two column -->
-    <div class="two-col">
-
-      <!-- Pending SOs -->
-      <div class="section">
-        <div class="section-header">
-          <span class="section-title">Pending Approval</span>
-          <a href="sales-orders.html" class="btn-link">View all</a>
+    <!-- Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <span class="chart-title">Revenue Overview</span>
+          <div class="period-toggle">
+            <button class="period-btn active" id="btnMonthly" onclick="setPeriod('monthly')">Monthly</button>
+            <button class="period-btn"        id="btnYearly"  onclick="setPeriod('yearly')">Yearly</button>
+          </div>
         </div>
-        <div class="table-wrap">
-          <div class="loading" id="loadingPendingSOs">
-            <span class="spinner"></span>Loading...
-          </div>
-          <table id="tablePendingSOs" style="display:none">
-            <thead>
-              <tr>
-                <th>SO Number</th>
-                <th>Retailer</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody id="bodyPendingSOs"></tbody>
-          </table>
-          <div class="empty" id="emptyPendingSOs" style="display:none">
-            No orders pending approval
-          </div>
+        <div class="chart-legend">
+          <span style="display:flex;align-items:center;gap:6px;">
+            <span style="width:10px;height:10px;border-radius:2px;background:rgba(0,180,216,0.5);border:1px solid #00B4D8;display:inline-block;"></span>
+            SO order value
+          </span>
+          <span style="display:flex;align-items:center;gap:6px;">
+            <span style="width:18px;height:0;border-bottom:2px dashed #00B4D8;display:inline-block;"></span>
+            Invoiced revenue
+          </span>
         </div>
       </div>
-
-      <!-- Reorder alerts -->
-      <div class="section">
-        <div class="section-header">
-          <span class="section-title">Reorder Alerts</span>
-          <a href="inventory.html" class="btn-link">View stock</a>
-        </div>
-        <div class="table-wrap">
-          <div class="loading" id="loadingAlerts">
-            <span class="spinner"></span>Loading...
-          </div>
-          <table id="tableAlerts" style="display:none">
-            <thead>
-              <tr>
-                <th>SKU</th>
-                <th>Product</th>
-                <th>Available</th>
-              </tr>
-            </thead>
-            <tbody id="bodyAlerts"></tbody>
-          </table>
-          <div class="empty" id="emptyAlerts" style="display:none">
-            All SKUs above threshold ✓
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Recent activity -->
-    <div class="section">
-      <div class="section-header">
-        <span class="section-title">Recent Activity</span>
-      </div>
-      <div class="table-wrap">
-        <div class="loading" id="loadingActivity">
-          <span class="spinner"></span>Loading...
-        </div>
-        <table id="tableActivity" style="display:none">
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Action</th>
-              <th>Detail</th>
-              <th>User</th>
-              <th>Reference</th>
-            </tr>
-          </thead>
-          <tbody id="bodyActivity"></tbody>
-        </table>
-        <div class="empty" id="emptyActivity" style="display:none">
-          No activity yet
+      <div class="chart-body">
+        <div style="position:relative;width:100%;height:280px;">
+          <canvas id="revenueChart" role="img" aria-label="Monthly SO order value and invoiced revenue for OLS">SO order value vs invoiced revenue.</canvas>
         </div>
       </div>
     </div>
 
-    <!-- Stock summary -->
-    <div class="section">
-      <div class="section-header">
-        <span class="section-title">Stock Summary</span>
-        <a href="inventory.html" class="btn-link">Full inventory</a>
-      </div>
-      <div class="table-wrap">
-        <div class="loading" id="loadingStock">
-          <span class="spinner"></span>Loading...
-        </div>
-        <table id="tableStock" style="display:none">
-          <thead>
-            <tr>
-              <th>SKU</th>
-              <th>Product</th>
-              <th>Brand</th>
-              <th>Physical</th>
-              <th>Committed</th>
-              <th>Available</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="bodyStock"></tbody>
-        </table>
-        <div class="empty" id="emptyStock" style="display:none">
-          No products in catalogue
-        </div>
-      </div>
-    </div>
-
-  </div>
+  </div><!-- /.page -->
 
   <script>
-    // ── Auth guard ────────────────────────────────────────
+    // ── Auth guard ──────────────────────────────────────────
     if (!isLoggedIn() || (!isAdmin() && !isViewer())) {
       window.location.href = 'index.html';
     }
-
-    // ── Init ──────────────────────────────────────────────
-    document.getElementById('navUser').textContent = isViewer() ? 'Viewer' : 'Admin';
+    document.getElementById('navUser').textContent = isAdmin() ? 'Admin' : 'Viewer';
 
     function logout() {
       clearSession();
       window.location.href = 'index.html';
     }
 
-    // ── Format helpers ────────────────────────────────────
-    function formatIDR(n) {
-      return 'Rp ' + Number(n).toLocaleString('id-ID');
+    // ── Constants ───────────────────────────────────────────
+    const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    // ── Raw data from API ────────────────────────────────────
+    let RAW = {
+      soRows       : [],
+      retailers    : {},
+      brands       : [],
+      reorderAlerts: 0,
+      totalSKUs    : 0,
+      pendingPLs   : 0,
+    };
+
+    // ── Active filters & staged ──────────────────────────────
+    let filters = { year:'all', month:'all', customer:'all', tier:'all', brand:'all' };
+    let staged  = {};
+    let currentPeriod = 'monthly';
+    let chartInstance = null;
+
+    // ── Dropdown config ──────────────────────────────────────
+    const DD_GROUPS = {
+      ddPeriod  : ['year','month'],
+      ddCustomer: ['customer'],
+      ddTier    : ['tier'],
+      ddProduct : ['brand'],
+    };
+
+    const DD_LABEL_FMT = {
+      ddPeriod  : f => {
+        const y = f.year  !== 'all' ? f.year : '';
+        const m = f.month !== 'all' ? MONTHS_SHORT[parseInt(f.month)-1] : '';
+        return [m, y].filter(Boolean).join(' ') || 'By Period';
+      },
+      ddCustomer: f => f.customer !== 'all' ? (RAW.retailers[f.customer]?.name || f.customer) : 'By Customer',
+      ddTier    : f => f.tier  !== 'all' ? f.tier  : 'By Tier',
+      ddProduct : f => f.brand !== 'all' ? f.brand : 'By Product',
+    };
+
+    // ── Helpers ──────────────────────────────────────────────
+    function fmtIDR(n) {
+      return Math.round(n).toLocaleString('id-ID');
     }
 
-    function formatTime(ts) {
-      if (!ts) return '—';
-      const d = new Date(ts);
-      return d.toLocaleDateString('id-ID', {
-        day: '2-digit', month: 'short', year: 'numeric'
-      }) + ' ' + d.toLocaleTimeString('id-ID', {
-        hour: '2-digit', minute: '2-digit'
+    function showError(msg) {
+      const bar = document.getElementById('errorBar');
+      bar.textContent = msg;
+      bar.style.display = 'block';
+    }
+
+    // ── Load from API ────────────────────────────────────────
+    async function loadDashboard() {
+      try {
+        const data = await apiGet('getDashboardStats');
+
+        // Retailers lookup
+        if (data.retailers && Array.isArray(data.retailers)) {
+          data.retailers.forEach(r => {
+            RAW.retailers[r.retailerId] = { name: r.name, tier: r.tier };
+          });
+        }
+
+        // Flat SO rows for client-side filtering
+        if (data.soRows && Array.isArray(data.soRows)) {
+          RAW.soRows = data.soRows.map(row => ({
+            soNumber   : row.soNumber,
+            brand      : row.brand,
+            retailerId : row.retailerId,
+            orderType  : row.orderType,
+            orderDate  : row.orderDate ? new Date(row.orderDate) : null,
+            tier       : row.tier,
+            totalIDR   : Number(row.totalIDR) || 0,
+            status     : row.status,
+            invoicedIDR: row.status === 'Invoiced' ? (Number(row.totalIDR) || 0) : 0,
+          }));
+        }
+
+        // Static stats
+        RAW.totalSKUs     = data.stockSummary?.length  || 0;
+        RAW.pendingPLs    = data.pendingPLs?.length    || 0;
+        RAW.reorderAlerts = data.reorderAlerts?.length || 0;
+
+        document.getElementById('statSKUs').textContent    = RAW.totalSKUs;
+        document.getElementById('statSKUsSub').textContent = RAW.pendingPLs + ' pending receipt';
+        document.getElementById('statAlerts').textContent  = RAW.reorderAlerts;
+        if (RAW.reorderAlerts > 0) {
+          document.getElementById('cardAlerts').classList.add('alert-card');
+        }
+
+        // Build dynamic filter pills
+        buildDynamicPills(data);
+
+        document.getElementById('lastUpdated').textContent =
+          'Last updated ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) + ' WIB';
+
+        refresh();
+
+      } catch (err) {
+        showError('Failed to load dashboard — ' + err.message);
+      } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+      }
+    }
+
+    // ── Build filter pills from live data ────────────────────
+    function buildDynamicPills(data) {
+      // Year pills
+      const years = [...new Set(RAW.soRows.map(s => s.orderDate?.getFullYear()).filter(Boolean))].sort();
+      if (!years.includes(new Date().getFullYear())) years.push(new Date().getFullYear());
+      years.sort();
+      const yearEl = document.getElementById('yearPills');
+      yearEl.innerHTML = '<div class="pill active" data-group="year" data-val="all" onclick="selectPill(this)">All</div>';
+      years.forEach(y => {
+        const d = document.createElement('div');
+        d.className = 'pill';
+        d.dataset.group = 'year';
+        d.dataset.val   = String(y);
+        d.textContent   = String(y);
+        d.onclick = () => selectPill(d);
+        yearEl.appendChild(d);
+      });
+
+      // Customer pills
+      const custEl = document.getElementById('customerPills');
+      custEl.innerHTML = '<div class="pill active" data-group="customer" data-val="all" onclick="selectPill(this)">All</div>';
+      Object.entries(RAW.retailers).forEach(([id, r]) => {
+        const d = document.createElement('div');
+        d.className = 'pill';
+        d.dataset.group = 'customer';
+        d.dataset.val   = id;
+        d.textContent   = r.name;
+        d.onclick = () => selectPill(d);
+        custEl.appendChild(d);
+      });
+
+      // Tier pills
+      const tierMargins = data.tierMargins || { T1:'30%', T2:'35%', T3:'37.5%', T4:'45%' };
+      const tiers = [...new Set(Object.values(RAW.retailers).map(r => r.tier))].sort();
+      const tierEl = document.getElementById('tierPills');
+      tierEl.innerHTML = '<div class="pill active" data-group="tier" data-val="all" onclick="selectPill(this)">All</div>';
+      tiers.forEach(t => {
+        const d = document.createElement('div');
+        d.className = 'pill';
+        d.dataset.group = 'tier';
+        d.dataset.val   = t;
+        d.textContent   = `${t} — ${tierMargins[t] || ''}`;
+        d.onclick = () => selectPill(d);
+        tierEl.appendChild(d);
+      });
+
+      // Brand pills
+      const brands = [...new Set(RAW.soRows.map(s => s.brand).filter(Boolean))].sort();
+      if (!brands.length && data.stockSummary) {
+        [...new Set(data.stockSummary.map(s => s.brand).filter(Boolean))].sort().forEach(b => brands.push(b));
+      }
+      const brandEl = document.getElementById('brandPills');
+      brandEl.innerHTML = '<div class="pill active" data-group="brand" data-val="all" onclick="selectPill(this)">All brands</div>';
+      brands.forEach(b => {
+        const d = document.createElement('div');
+        d.className = 'pill';
+        d.dataset.group = 'brand';
+        d.dataset.val   = b;
+        d.textContent   = b;
+        d.onclick = () => selectPill(d);
+        brandEl.appendChild(d);
       });
     }
 
-    function statusBadge(status) {
-      const map = {
-        'Draft'            : 'badge-grey',
-        'Pending Approval' : 'badge-amber',
-        'Confirmed'        : 'badge-blue',
-        'Shipped'          : 'badge-green',
-        'Invoiced'         : 'badge-green',
-        'Cancelled'        : 'badge-red',
-        'Pending Receipt'  : 'badge-amber',
-        'Received'         : 'badge-green',
-      };
-      const cls = map[status] || 'badge-grey';
-      return `<span class="badge ${cls}">${status}</span>`;
+    // ── Filtering ────────────────────────────────────────────
+    function getFiltered() {
+      return RAW.soRows.filter(so => {
+        if (filters.year     !== 'all' && so.orderDate?.getFullYear()    !== parseInt(filters.year))  return false;
+        if (filters.month    !== 'all' && (so.orderDate?.getMonth()+1)   !== parseInt(filters.month)) return false;
+        if (filters.customer !== 'all' && so.retailerId !== filters.customer)                          return false;
+        if (filters.tier     !== 'all' && so.tier       !== filters.tier)                              return false;
+        if (filters.brand    !== 'all' && so.brand      !== filters.brand)                             return false;
+        return true;
+      });
     }
 
-    function actionBadge(action) {
-      const map = {
-        'CREATE_SO'      : 'badge-blue',
-        'UPDATE_STATUS'  : 'badge-amber',
-        'CREATE_PL'      : 'badge-blue',
-        'RECEIVE_PL'     : 'badge-green',
-        'ROTATE_CODES'   : 'badge-grey',
-        'SYNC_IMAGES'    : 'badge-grey',
-        'UPDATE_SETTINGS': 'badge-grey',
-      };
-      const cls = map[action] || 'badge-grey';
-      return `<span class="badge ${cls}">${action}</span>`;
+    function updateStats(filtered) {
+      const pending = filtered.filter(s => s.status === 'Pending Approval').length;
+      const soVal   = filtered.reduce((a,s) => a + s.totalIDR, 0);
+      document.getElementById('statOrders').textContent    = filtered.length || '—';
+      document.getElementById('statOrdersSub').textContent = pending + ' pending approval';
+      document.getElementById('statSOValue').textContent   = filtered.length ? fmtIDR(soVal) : '—';
     }
 
-    // ── Load dashboard ────────────────────────────────────
-    async function loadDashboard() {
-      try {
-        const data = await apiGet('getDashboard');
-
-        // Update timestamp
-        document.getElementById('lastUpdated').textContent =
-          'Last updated: ' + new Date().toLocaleTimeString('id-ID');
-
-        // ── Stat cards ──
-        const so = data.soSummary;
-        document.getElementById('statTotalOrders').textContent =
-          so.totalOrders || 0;
-        document.getElementById('statPending').textContent =
-          (data.pendingSOs?.length || 0) + ' pending approval';
-        document.getElementById('statRevenue').textContent =
-          formatIDR(so.totalRevenue || 0);
-        document.getElementById('statSKUs').textContent =
-          data.stockSummary?.length || 0;
-        document.getElementById('statPendingPL').textContent =
-          (data.pendingPLs?.length || 0) + ' pending receipt';
-
-        const alertCount = data.reorderAlerts?.length || 0;
-        document.getElementById('statAlerts').textContent = alertCount;
-        if (alertCount > 0) {
-          document.getElementById('cardAlerts').classList.add('alert');
-        }
-
-        // ── Pending SOs ──
-        document.getElementById('loadingPendingSOs').style.display = 'none';
-        const pendingSOs = data.pendingSOs || [];
-        if (pendingSOs.length > 0) {
-          document.getElementById('tablePendingSOs').style.display = 'table';
-          document.getElementById('bodyPendingSOs').innerHTML =
-            pendingSOs.slice(0, 5).map(so => `
-              <tr>
-                <td class="mono">${so.soNumber}</td>
-                <td>${so.retailerId}</td>
-                <td>${formatIDR(so.totalIDR)}</td>
-              </tr>
-            `).join('');
-        } else {
-          document.getElementById('emptyPendingSOs').style.display = 'block';
-        }
-
-        // ── Reorder alerts ──
-        document.getElementById('loadingAlerts').style.display = 'none';
-        const alerts = data.reorderAlerts || [];
-        if (alerts.length > 0) {
-          document.getElementById('tableAlerts').style.display = 'table';
-          document.getElementById('bodyAlerts').innerHTML =
-            alerts.map(a => `
-              <tr>
-                <td class="mono">${a.sku}</td>
-                <td>${a.productName}</td>
-                <td style="color:#E63946">${a.availableStock}</td>
-              </tr>
-            `).join('');
-        } else {
-          document.getElementById('emptyAlerts').style.display = 'block';
-        }
-
-        // ── Recent activity ──
-        document.getElementById('loadingActivity').style.display = 'none';
-        const activity = data.recentActivity || [];
-        if (activity.length > 0) {
-          document.getElementById('tableActivity').style.display = 'table';
-          document.getElementById('bodyActivity').innerHTML =
-            activity.map(a => `
-              <tr>
-                <td style="color:#555;font-size:12px">${formatTime(a.timestamp)}</td>
-                <td>${actionBadge(a.action)}</td>
-                <td>${a.detail}</td>
-                <td style="color:#555">${a.user}</td>
-                <td class="mono">${a.referenceId || '—'}</td>
-              </tr>
-            `).join('');
-        } else {
-          document.getElementById('emptyActivity').style.display = 'block';
-        }
-
-        // ── Stock summary ──
-        document.getElementById('loadingStock').style.display = 'none';
-        const stock = data.stockSummary || [];
-        if (stock.length > 0) {
-          document.getElementById('tableStock').style.display = 'table';
-          document.getElementById('bodyStock').innerHTML =
-            stock.map(s => `
-              <tr>
-                <td class="mono">${s.sku}</td>
-                <td>${s.productName}</td>
-                <td style="color:#555">${s.brand}</td>
-                <td>${s.physicalStock}</td>
-                <td style="color:#555">${s.committedUnits}</td>
-                <td style="color:${s.availableStock <= 0 ? '#E63946' : '#52B788'}">
-                  ${s.availableStock}
-                </td>
-                <td>${s.reorderFlag === 'REORDER'
-                  ? '<span class="badge badge-red">REORDER</span>'
-                  : s.reorderFlag === 'OK'
-                  ? '<span class="badge badge-green">OK</span>'
-                  : '<span class="badge badge-grey">—</span>'
-                }</td>
-              </tr>
-            `).join('');
-        } else {
-          document.getElementById('emptyStock').style.display = 'block';
-        }
-
-      } catch (err) {
-        document.getElementById('lastUpdated').textContent =
-          'Error loading dashboard — ' + err.message;
+    // ── Chart ────────────────────────────────────────────────
+    function buildChartData(filtered) {
+      if (currentPeriod === 'monthly') {
+        const so  = Array(12).fill(0);
+        const inv = Array(12).fill(0);
+        filtered.forEach(s => {
+          if (!s.orderDate) return;
+          so[s.orderDate.getMonth()]  += s.totalIDR;
+          inv[s.orderDate.getMonth()] += s.invoicedIDR;
+        });
+        return { labels: MONTHS_SHORT, soData: so, invData: inv };
+      } else {
+        const years = [...new Set(RAW.soRows.map(s => s.orderDate?.getFullYear()).filter(Boolean))].sort();
+        if (!years.length) years.push(new Date().getFullYear());
+        return {
+          labels : years.map(String),
+          soData : years.map(y => filtered.filter(s => s.orderDate?.getFullYear()===y).reduce((a,s)=>a+s.totalIDR,0)),
+          invData: years.map(y => filtered.filter(s => s.orderDate?.getFullYear()===y).reduce((a,s)=>a+s.invoicedIDR,0)),
+        };
       }
     }
+
+    function renderChart(filtered) {
+      const { labels, soData, invData } = buildChartData(filtered);
+      const ctx = document.getElementById('revenueChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
+        data: {
+          labels,
+          datasets: [
+            {
+              type: 'bar', label: 'SO order value', data: soData,
+              backgroundColor: 'rgba(0,180,216,0.12)', borderColor: '#00B4D8',
+              borderWidth: 1, borderRadius: 4, yAxisID: 'y',
+            },
+            {
+              type: 'line', label: 'Invoiced revenue', data: invData,
+              borderColor: '#00B4D8', borderWidth: 1.5, borderDash: [5,4],
+              pointBackgroundColor: '#00B4D8', pointBorderColor: '#141414',
+              pointBorderWidth: 1.5, pointRadius: 3, pointHoverRadius: 5,
+              fill: false, tension: 0.35, yAxisID: 'y',
+            },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1C1C1C', borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1, titleColor: 'rgba(255,255,255,0.5)', bodyColor: '#FFF', padding: 10,
+              callbacks: {
+                label: c => (c.dataset.label === 'SO order value' ? ' SO' : ' Invoiced') + '  IDR ' + fmtIDR(c.parsed.y),
+              },
+            },
+          },
+          scales: {
+            x: {
+              ticks: { color: 'rgba(255,255,255,0.4)', font: { size:11 }, autoSkip:false, maxRotation:0 },
+              grid:  { color: 'rgba(255,255,255,0.05)' },
+              border:{ color: 'rgba(255,255,255,0.08)' },
+            },
+            y: {
+              position: 'left',
+              ticks: {
+                color: 'rgba(255,255,255,0.35)', font: { size:10 },
+                callback: v => v >= 1000000 ? (v/1000000).toFixed(0)+'M' : v.toLocaleString('id-ID'),
+              },
+              grid:  { color: 'rgba(255,255,255,0.05)' },
+              border:{ color: 'transparent' },
+            },
+          },
+        },
+      });
+    }
+
+    function refresh() {
+      const filtered = getFiltered();
+      updateStats(filtered);
+      renderChart(filtered);
+    }
+
+    // ── Dropdown mechanics ───────────────────────────────────
+    function toggleDropdown(id) {
+      const key   = id.replace('dd','');
+      const panel = document.getElementById('panel' + key);
+      const trig  = document.getElementById('trig'  + key);
+      const isOpen = panel.classList.contains('open');
+      closeAll();
+      if (!isOpen) {
+        panel.classList.add('open');
+        trig.classList.add('open');
+        staged = Object.assign({}, filters);
+        syncPillsToStaged(id);
+      }
+    }
+
+    function closeAll() {
+      document.querySelectorAll('.filter-panel').forEach(p => p.classList.remove('open'));
+      document.querySelectorAll('.filter-trigger').forEach(t => t.classList.remove('open'));
+    }
+
+    function syncPillsToStaged(ddId) {
+      DD_GROUPS[ddId].forEach(group => {
+        document.querySelectorAll(`.pill[data-group="${group}"]`).forEach(p => {
+          p.classList.toggle('active', p.dataset.val === staged[group]);
+        });
+      });
+    }
+
+    function selectPill(el) {
+      const group = el.dataset.group;
+      document.querySelectorAll(`.pill[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+      staged[group] = el.dataset.val;
+    }
+
+    function applyDropdown(ddId) {
+      DD_GROUPS[ddId].forEach(g => { filters[g] = staged[g]; });
+      closeAll();
+      updateTriggerLabel(ddId);
+      checkResetAll();
+      refresh();
+    }
+
+    function clearDropdown(ddId) {
+      DD_GROUPS[ddId].forEach(g => { staged[g] = 'all'; filters[g] = 'all'; });
+      syncPillsToStaged(ddId);
+      updateTriggerLabel(ddId);
+      checkResetAll();
+      refresh();
+    }
+
+    function updateTriggerLabel(ddId) {
+      const key    = ddId.replace('dd','');
+      const label  = DD_LABEL_FMT[ddId](filters);
+      document.getElementById('label' + key).textContent = label;
+      const trig   = document.getElementById('trig' + key);
+      const hasVal = DD_GROUPS[ddId].some(k => filters[k] !== 'all');
+      trig.classList.toggle('has-value', hasVal);
+      const dot = trig.querySelector('.active-dot');
+      if (hasVal && !dot) {
+        const d = document.createElement('span');
+        d.className = 'active-dot';
+        trig.insertBefore(d, trig.firstChild);
+      } else if (!hasVal && dot) {
+        dot.remove();
+      }
+    }
+
+    function checkResetAll() {
+      const any = Object.values(filters).some(v => v !== 'all');
+      document.getElementById('btnResetAll').style.display = any ? 'inline-block' : 'none';
+    }
+
+    function resetAll() {
+      filters = { year:'all', month:'all', customer:'all', tier:'all', brand:'all' };
+      Object.keys(DD_LABEL_FMT).forEach(id => {
+        updateTriggerLabel(id);
+        DD_GROUPS[id].forEach(g => {
+          document.querySelectorAll(`.pill[data-group="${g}"]`).forEach(p => {
+            p.classList.toggle('active', p.dataset.val === 'all');
+          });
+        });
+      });
+      checkResetAll();
+      refresh();
+    }
+
+    function setPeriod(p) {
+      currentPeriod = p;
+      document.getElementById('btnMonthly').classList.toggle('active', p === 'monthly');
+      document.getElementById('btnYearly').classList.toggle('active',  p === 'yearly');
+      refresh();
+    }
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.filter-dropdown')) closeAll();
+    });
 
     loadDashboard();
   </script>
