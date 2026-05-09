@@ -659,75 +659,95 @@
 
     // ── Core: Update Totals (SRP-based) ──
     function updateTotals() {
-      try {
-        const retailerId = document.getElementById('newRetailer').value;
-        const orderType  = document.getElementById('newOrderType').value;
-        const tier       = getRetailerTier(retailerId);
-        const ppnPct     = settings?.ppnPercent || 12;
-        
-        let grossSubtotal = 0;  // SRP × Qty (before discount)
-        let totalCostSGD  = 0;
-        let totalDiscount = 0;
-
-        document.querySelectorAll('.li-row').forEach(row => {
-          const sel    = row.querySelector('.li-sku-select');
-          const qty    = parseInt(row.querySelector('.li-qty')?.value) || 0;
-          const opt    = sel?.options[sel.selectedIndex];
-          const srp    = parseFloat(opt?.dataset.srp) || 0;  // SRP (Gross, excl. PPN)
-          const cost   = parseFloat(opt?.dataset.cost) || 0;
-          
-          // Calculate line totals
-          const lineGross = srp * qty;                    // SRP × Qty
-          const discountPct = 0; // Add discount field later if needed
-          const discountAmt = Math.round(lineGross * discountPct / 100 / 1000) * 1000;
-          const afterDiscount = lineGross - discountAmt;
-          const ppnAmt = Math.ceil(afterDiscount * ppnPct / 100 / 1000) * 1000;  // CEILING
-          const lineFinal = afterDiscount + ppnAmt;
-          
-          // Update UI
-          row.querySelector('[data-unit]').textContent = formatIDR(srp);
-          row.querySelector('[data-line]').textContent = formatIDR(lineFinal);
-          
-          grossSubtotal += lineGross;
-          totalDiscount += discountAmt;
-          totalCostSGD += (cost * qty);
-        });
-
-        // Calculate totals
-        const afterDiscountTotal = grossSubtotal - totalDiscount;
-        const ppnTotal = Math.ceil(afterDiscountTotal * ppnPct / 100 / 1000) * 1000;
-        const finalTotal = afterDiscountTotal + ppnTotal;
-        
-        // Calculate margin (on gross, before discount)
-        const marginPct = getTierMargin(tier);
-        const marginAmt = calcMarginFromGross(grossSubtotal, tier);
-
-        // Update display
-        document.getElementById('totSubtotal').textContent = formatIDR(grossSubtotal);
-        
-        if (totalDiscount > 0) {
-          document.getElementById('discountRow').style.display = 'flex';
-          document.getElementById('discountPctDisplay').textContent = 0; // Update if adding discount field
-          document.getElementById('totDiscount').textContent = '-' + formatIDR(totalDiscount);
-          document.getElementById('afterDiscountRow').style.display = 'flex';
-          document.getElementById('totAfterDiscount').textContent = formatIDR(afterDiscountTotal);
-        } else {
-          document.getElementById('discountRow').style.display = 'none';
-          document.getElementById('afterDiscountRow').style.display = 'none';
-        }
-        
-        document.getElementById('ppnLabel').textContent = `PPN (${ppnPct}%)`;
-        document.getElementById('totPPN').textContent = formatIDR(ppnTotal);
-        document.getElementById('totTotal').textContent = formatIDR(finalTotal);
-        
-        if (orderType === 'Retailer PO' && marginPct !== null) {
-          updateMarginDisplay(orderType, tier, marginPct, marginAmt);
-        }
-
-      } catch (err) {
-        console.error('Update Totals Error:', err);
-      }
+  try {
+    const retailerId = document.getElementById('newRetailer').value;
+    const orderType  = document.getElementById('newOrderType').value;
+    const ppnPct     = settings?.ppnPercent || 12;
+    
+    // If no retailer selected, show placeholder & calculate basic totals only
+    if (!retailerId) {
+      document.getElementById('marginTier').textContent = '—';
+      document.getElementById('marginPct').textContent = '0';
+      document.getElementById('estMargin').textContent = '+Rp 0';
+      document.getElementById('estMargin').style.color = '#888';
+      calculateBasicTotals(ppnPct);
+      return;
     }
+    
+    const tier = getRetailerTier(retailerId); // May throw
+    const marginPct = getTierMargin(tier);    // May return null
+    
+    let grossSubtotal = 0;
+    let totalDiscount = 0;
+
+    document.querySelectorAll('.li-row').forEach(row => {
+      const sel = row.querySelector('.li-sku-select');
+      const qty = parseInt(row.querySelector('.li-qty')?.value) || 0;
+      const opt = sel?.options[sel.selectedIndex];
+      const srp = parseFloat(opt?.dataset.srp) || 0;
+      
+      const lineGross = srp * qty;
+      const discountAmt = 0; // Placeholder for future discount field
+      const afterDiscount = lineGross - discountAmt;
+      const ppnAmt = Math.ceil(afterDiscount * ppnPct / 100 / 1000) * 1000;
+      const lineFinal = afterDiscount + ppnAmt;
+      
+      row.querySelector('[data-unit]').textContent = formatIDR(srp);
+      row.querySelector('[data-line]').textContent = formatIDR(lineFinal);
+      
+      grossSubtotal += lineGross;
+      totalDiscount += discountAmt;
+    });
+
+    const afterDiscountTotal = grossSubtotal - totalDiscount;
+    const ppnTotal = Math.ceil(afterDiscountTotal * ppnPct / 100 / 1000) * 1000;
+    const finalTotal = afterDiscountTotal + ppnTotal;
+    
+    // Update margin display
+    if (orderType === 'Retailer PO' && marginPct !== null) {
+      const marginAmt = calcMarginFromGross(grossSubtotal, tier);
+      updateMarginDisplay(orderType, tier, marginPct, marginAmt);
+    } else {
+      updateMarginDisplay(orderType, null, null, 0);
+    }
+
+    // Update totals UI
+    document.getElementById('totSubtotal').textContent = formatIDR(grossSubtotal);
+    document.getElementById('discountRow').style.display = totalDiscount > 0 ? 'flex' : 'none';
+    document.getElementById('afterDiscountRow').style.display = totalDiscount > 0 ? 'flex' : 'none';
+    document.getElementById('totDiscount').textContent = '-' + formatIDR(totalDiscount);
+    document.getElementById('totAfterDiscount').textContent = formatIDR(afterDiscountTotal);
+    document.getElementById('ppnLabel').textContent = `PPN (${ppnPct}%)`;
+    document.getElementById('totPPN').textContent = formatIDR(ppnTotal);
+    document.getElementById('totTotal').textContent = formatIDR(finalTotal);
+
+  } catch (err) {
+    console.error('Update Totals Error:', err);
+    document.getElementById('marginTier').textContent = 'Error';
+    document.getElementById('marginPct').textContent = '0';
+    document.getElementById('estMargin').textContent = '+Rp 0';
+    showToast('Calculation error: ' + err.message, 'error');
+  }
+}
+
+function calculateBasicTotals(ppnPct) {
+  let grossSubtotal = 0;
+  document.querySelectorAll('.li-row').forEach(row => {
+    const sel = row.querySelector('.li-sku-select');
+    const qty = parseInt(row.querySelector('.li-qty')?.value) || 0;
+    const opt = sel?.options[sel.selectedIndex];
+    const srp = parseFloat(opt?.dataset.srp) || 0;
+    const lineGross = srp * qty;
+    const ppnAmt = Math.ceil(lineGross * ppnPct / 100 / 1000) * 1000;
+    row.querySelector('[data-unit]').textContent = formatIDR(srp);
+    row.querySelector('[data-line]').textContent = formatIDR(lineGross + ppnAmt);
+    grossSubtotal += lineGross;
+  });
+  const ppnTotal = Math.ceil(grossSubtotal * ppnPct / 100 / 1000) * 1000;
+  document.getElementById('totSubtotal').textContent = formatIDR(grossSubtotal);
+  document.getElementById('totPPN').textContent = formatIDR(ppnTotal);
+  document.getElementById('totTotal').textContent = formatIDR(grossSubtotal + ppnTotal);
+}
     
     async function submitCreate() {
       const brand      = document.getElementById('newBrand').value;
